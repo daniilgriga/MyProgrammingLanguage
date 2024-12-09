@@ -1,0 +1,24 @@
+digraph
+{
+bgcolor="transparent"
+node0x5030000001f0 [shape=Mrecord; label = " { [0x5030000001f0] | type = 2 (OP)   | value = '/' | { left = [0x503000000130] | right = [0x5030000001c0] } }"; style = filled; fillcolor = "#20B2AA"];
+node0x5030000001f0 -> node0x503000000130;
+node0x5030000001f0 -> node0x5030000001c0;
+node0x503000000130 [shape=Mrecord; label = " { [0x503000000130] | type = 2 (OP)   | value = 's' | { left = [0x503000000100] | right = [(nil)] } }"; style = filled; fillcolor = "#20B2AA"];
+node0x503000000130 -> node0x503000000100;
+node0x503000000100 [shape=Mrecord; label = " { [0x503000000100] | type = 2 (OP)   | value = '+' | { left = [0x503000000040] | right = [0x5030000000d0] } }"; style = filled; fillcolor = "#20B2AA"];
+node0x503000000100 -> node0x503000000040;
+node0x503000000100 -> node0x5030000000d0;
+node0x503000000040 [shape=Mrecord; label = " { [0x503000000040] | type = 4 (ID)   | number of name in name table = '11' | { left = [(nil)] | right = [(nil)] } }"; style = filled; fillcolor = "#F00000"];
+node0x5030000000d0 [shape=Mrecord; label = " { [0x5030000000d0] | type = 2 (OP)   | value = '*' | { left = [0x503000000070] | right = [0x5030000000a0] } }"; style = filled; fillcolor = "#20B2AA"];
+node0x5030000000d0 -> node0x503000000070;
+node0x5030000000d0 -> node0x5030000000a0;
+node0x503000000070 [shape=Mrecord; label = " { [0x503000000070] | type = 1 (NUM)  | value = 5   | { left = [(nil)] | right = [(nil)] } }"; style = filled; fillcolor = "#FFD700"];
+node0x5030000000a0 [shape=Mrecord; label = " { [0x5030000000a0] | type = 4 (ID)   | number of name in name table = '12' | { left = [(nil)] | right = [(nil)] } }"; style = filled; fillcolor = "#F00000"];
+node0x5030000001c0 [shape=Mrecord; label = " { [0x5030000001c0] | type = 2 (OP)   | value = '^' | { left = [0x503000000160] | right = [0x503000000190] } }"; style = filled; fillcolor = "#20B2AA"];
+node0x5030000001c0 -> node0x503000000160;
+node0x5030000001c0 -> node0x503000000190;
+node0x503000000160 [shape=Mrecord; label = " { [0x503000000160] | type = 4 (ID)   | number of name in name table = '13' | { left = [(nil)] | right = [(nil)] } }"; style = filled; fillcolor = "#F00000"];
+node0x503000000190 [shape=Mrecord; label = " { [0x503000000190] | type = 4 (ID)   | number of name in name table = '14' | { left = [(nil)] | right = [(nil)] } }"; style = filled; fillcolor = "#F00000"];
+
+}
