@@ -4,6 +4,7 @@
 #include "tree.h"
 #include "tokens.h"
 #include "syntax.h"
+#include "buffer.h"
 
 int main (int argc, const char* argv[])
 {
@@ -11,11 +12,12 @@ int main (int argc, const char* argv[])
 
     FILE* LogFile = open_log_file (LogFileName);
 
+    struct  Buffer_t  buffer = {};
     struct Context_t context = {};
 
     ctor_keywords (&context);
 
-    const char* string = "hype = sin(temp+5*size)/num^age$";
+    const char* string = file_reader (&buffer, "code_example.txt");
 
     int error = tokenization (&context, string);
 
@@ -28,6 +30,7 @@ int main (int argc, const char* argv[])
 
     delete_sub_tree (root);
 
+    buffer_dtor (&buffer);
     close_log_file ();
 
     return 0;
