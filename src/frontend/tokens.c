@@ -17,6 +17,8 @@ int tokenization (struct Context_t* context, const char* string)
     int old_size      = context->table_size;
     int count_tokens  = 0;
 
+    fprintf (stderr, "old = %d\n", old_size);
+
     while (string[i] != '$')
     {
         i = skip_spaces (string, length_string, i);
@@ -55,6 +57,8 @@ int tokenization (struct Context_t* context, const char* string)
                 context->token[count_tokens].type  = ID;
                 context->token[count_tokens].value = context->table_size;
 
+                fprintf (stderr, "value = %lg\n", context->token[count_tokens].value);
+
                 count_tokens++;
             }
 
@@ -79,7 +83,7 @@ int tokenization (struct Context_t* context, const char* string)
             continue;
         }
 
-        if (strchr ("+-*/()^", string[i]) != NULL)
+        if (strchr ("+-*/^()=", string[i]) != NULL)
         {
             int value = check_keyword (context, &string[start_i], 1);
 
@@ -206,6 +210,7 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,   "^",  POW , strlen (  "^") );
     add_struct_in_keywords (context,   "(", OP_BR, strlen (  "(") );
     add_struct_in_keywords (context,   ")", CL_BR, strlen (  ")") );
+    add_struct_in_keywords (context,   "=", EQUAL, strlen (  "=") );
 
     return 0;
 }

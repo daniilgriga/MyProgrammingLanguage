@@ -15,7 +15,7 @@ int main (int argc, const char* argv[])
 
     ctor_keywords (&context);
 
-    const char* string = "sin(temp+5*size)/num^age$";
+    const char* string = "hype = sin(temp+5*size)/num^age$";
 
     int error = tokenization (&context, string);
 

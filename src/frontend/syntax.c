@@ -14,7 +14,8 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*         GRAMMAR
- *    G ::= E
+ *    G ::= EQL
+ *    EQL ::= Id '=' E
  *    E ::= T {['+''-']T}*
  *    T ::= P {['*''/']P}*
  *    P ::= '('E')' | Id | N | Pow
@@ -24,11 +25,12 @@ int Position =  0;
  *    N ::= ['0'-'9']+
  */
 
-static struct Node_t*  GetE (struct Context_t* context);
-static struct Node_t*  GetT (struct Context_t* context);
-static struct Node_t*  GetP (struct Context_t* context);
-static struct Node_t*  GetN (struct Context_t* context);
-static struct Node_t* GetId (struct Context_t* context);
+static struct Node_t*  GetEqual (struct Context_t* context);
+static struct Node_t*      GetE (struct Context_t* context);
+static struct Node_t*      GetT (struct Context_t* context);
+static struct Node_t*      GetP (struct Context_t* context);
+static struct Node_t*      GetN (struct Context_t* context);
+static struct Node_t*     GetId (struct Context_t* context);
 
 static struct Node_t* GetFunc (struct Context_t* context);
 static struct Node_t* GetPow  (struct Context_t* context);
@@ -40,7 +42,7 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    struct Node_t* val = GetE (context);
+    struct Node_t* val = GetEqual (context);
 
     if ( !_IS_OP('$') )
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
@@ -48,6 +50,28 @@ struct Node_t* GetGrammar (struct Context_t* context)
     MOVE_POSITION;
 
     return val;
+}
+
+struct Node_t* GetEqual (struct Context_t* context)
+{
+    struct Node_t* val_1 = GetId (context);
+
+    if ( _IS_OP (EQUAL) )
+    {
+        MOVE_POSITION;
+
+        struct Node_t* val_2 = GetE (context);
+
+        val_1 = _EQL (val_1, val_2);
+    }
+    else
+    {
+        val_1 = GetE (context);
+
+        MOVE_POSITION;
+    }
+
+    return val_1;
 }
 
 static struct Node_t* GetE (struct Context_t* context)
@@ -139,7 +163,6 @@ static struct Node_t* GetP (struct Context_t* context)
             else
                 return GetN (context);
         }
-
     }
 }
 
@@ -204,8 +227,8 @@ static struct Node_t* GetFunc (struct Context_t* context)
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line)
 {
-    fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("ERROR in read >>> SYNTAX-ERROR ") "SYMBOL = %c (%lg)\n\n",
-                     filename, func, line, (int) context->token[Position].value, context->token[Position].value);
+    fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("ERROR in read >>> SYNTAX-ERROR ") "Position = %d: ""SYMBOL = '%c'" "\n\n",
+                     filename, func, line, Position, (int) context->token[Position].value);
 
     exit (1);
 }

@@ -10,6 +10,7 @@
 #define _LN(arg)          new_node (OP,  LN,   NULL,   (arg))
 #define _NUM(value)       new_node (NUM, (value), NULL, NULL)
 #define _ID(value)        new_node (ID,  (value), NULL, NULL)
+#define _EQL(left, right) new_node (OP, EQUAL, (left), (right))
 
 #define _COMPOUND(diff_res) _MUL (diff_res, diff (node->left, context) )
 

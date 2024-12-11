@@ -20,5 +20,6 @@ enum Operations
     POW   = '^',
     LN    = 'l',
     OP_BR = '(',
-    CL_BR = ')'
+    CL_BR = ')',
+    EQUAL = '='
 };
