@@ -14,7 +14,7 @@ int tokenization (struct Context_t* context, const char* string)
     fprintf (stderr, PURPLE_TEXT("\n\nSTART_STRING = <<< %s >>>\n\n"), string);
     int i = 0;
 
-    int old_size      = context->table_size;
+    int old_size      = context->table_size - 1;
     int count_tokens  = 0;
 
     fprintf (stderr, "old = %d\n", old_size);

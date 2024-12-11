@@ -14,8 +14,8 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*         GRAMMAR
- *    G ::= EQL
- *    EQL ::= Id '=' E
+ *    G ::= A
+ *    A ::= Id '=' E
  *    E ::= T {['+''-']T}*
  *    T ::= P {['*''/']P}*
  *    P ::= '('E')' | Id | N | Pow
@@ -25,7 +25,7 @@ int Position =  0;
  *    N ::= ['0'-'9']+
  */
 
-static struct Node_t*  GetEqual (struct Context_t* context);
+static struct Node_t*      GetAssignment (struct Context_t* context);
 static struct Node_t*      GetE (struct Context_t* context);
 static struct Node_t*      GetT (struct Context_t* context);
 static struct Node_t*      GetP (struct Context_t* context);
@@ -42,7 +42,7 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    struct Node_t* val = GetEqual (context);
+    struct Node_t* val = GetAssignment (context);
 
     if ( !_IS_OP('$') )
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
@@ -52,7 +52,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
     return val;
 }
 
-struct Node_t* GetEqual (struct Context_t* context)
+struct Node_t* GetAssignment (struct Context_t* context)
 {
     struct Node_t* val_1 = GetId (context);
 
@@ -65,11 +65,7 @@ struct Node_t* GetEqual (struct Context_t* context)
         val_1 = _EQL (val_1, val_2);
     }
     else
-    {
-        val_1 = GetE (context);
-
-        MOVE_POSITION;
-    }
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
 
     return val_1;
 }
@@ -174,6 +170,8 @@ static struct Node_t* GetId (struct Context_t* context)
     {
         node = _ID (context->token[Position].value);
 
+        fprintf (stderr, "\nnode [%p]: node->value = %lg\n", node, node->value);
+
         MOVE_POSITION;
     }
 
@@ -196,8 +194,8 @@ static struct Node_t* GetFunc (struct Context_t* context)
 {
     int func = 0;
 
-    if      ( context->token[Position].value == 'c' ) func = 'c';
-    else if ( context->token[Position].value == 's' ) func = 's';
+    if      ( context->token[Position].value == COS ) func = COS;
+    else if ( context->token[Position].value == SIN ) func = SIN;
     else return NULL;
 
     MOVE_POSITION;
@@ -216,8 +214,8 @@ static struct Node_t* GetFunc (struct Context_t* context)
 
         struct Node_t* node_F = NULL;
 
-        if (func == 'c') node_F = _COS (node_E);
-        if (func == 's') node_F = _SIN (node_E);
+        if (func == COS) node_F = _COS (node_E);
+        if (func == SIN) node_F = _SIN (node_E);
 
         return node_F;
     }
