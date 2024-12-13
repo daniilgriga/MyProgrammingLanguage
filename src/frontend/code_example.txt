@@ -1,1 +1,7 @@
-size = (man * bro)$
+man = 5
+bro = 10
+
+forreal (x + 5) 
+lesssgo 
+    size = (man * bro) 
+stoopit$

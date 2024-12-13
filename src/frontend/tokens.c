@@ -5,6 +5,7 @@
 
 #include "enum.h"
 #include "tokens.h"
+#include "assert.h"
 #include "color_print.h"
 
 int tokenization (struct Context_t* context, const char* string)
@@ -40,10 +41,14 @@ int tokenization (struct Context_t* context, const char* string)
 
             double value = check_keyword (context, &string[start_i], length);
 
+            int num_keyword = find_number_of_keyword (context, &string[start_i], length);
+
+            fprintf (stderr, "POS: %d: num_keywrd = %d\n", count_tokens, num_keyword);
+
             // fprintf (stderr, "after check_keyword >>>  value = %lg\n", value);
             // fprintf (stderr, "string in this moment >>>  string = '%s'\n\n", &string[start_i]);
 
-            if (value != -1)
+            if (value != -1 && context->name_table[count_tokens].name.added == 0)
             {
                 context->token[count_tokens].type   = OP;
                 context->token[count_tokens].value  = value;
@@ -52,14 +57,28 @@ int tokenization (struct Context_t* context, const char* string)
             }
             else
             {
-                add_struct_in_keywords (context, &string[start_i], ID, length);
+                if (context->name_table[count_tokens].name.added == 0)
+                {
+                    add_struct_in_keywords (context, &string[start_i], ID, length, 1);
 
-                context->token[count_tokens].type  = ID;
-                context->token[count_tokens].value = context->table_size;
+                    context->token[count_tokens].type  = ID;
+                    context->token[count_tokens].value = context->table_size;
 
-                fprintf (stderr, "value = %lg\n", context->token[count_tokens].value);
+                    fprintf (stderr, "IN ADD STRUCT >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
-                count_tokens++;
+                    count_tokens++;
+                }
+                else
+                {
+                    int num_keyword = find_number_of_keyword (context, &string[start_i], length);
+
+                    context->token[count_tokens].type  = ID;
+                    context->token[count_tokens].value = num_keyword;
+
+                    fprintf (stderr, "IN FILLING TOKEN >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
+
+                    count_tokens++;
+                }
             }
 
             continue;
@@ -95,7 +114,7 @@ int tokenization (struct Context_t* context, const char* string)
         }
     }
 
-    context->token[count_tokens].type  = OP;
+    context->token[count_tokens].type  =  OP;
     context->token[count_tokens].value = '$';
 
     count_tokens++;
@@ -116,6 +135,15 @@ int check_keyword (struct Context_t* context, const char* str, int length)
     for (int i = 0; i < context->table_size; i++)
         if ( strncmp (str, context->name_table[i].name.str_pointer, length) == 0 )
             return context->name_table[i].name.code;
+
+    return -1;
+}
+
+int find_number_of_keyword (struct Context_t* context, const char* str, int length)
+{
+    for (int i = 0; i < context->table_size; i++)
+        if ( strncmp (str, context->name_table[i].name.str_pointer, length) == 0 )
+            return i + 1;
 
     return -1;
 }
@@ -158,10 +186,10 @@ int tokens_dump (struct Context_t* context, int old_size)
 
             case ID:
                 fprintf (stderr, BLUE_TEXT("[%.2d] ") GREEN_TEXT("token_type = ID  ||| ADDRESS = [%p] ||| token_value = ") BLUE_TEXT("[%lg]\n"),
-                                 j, context[j].token, context->token[j].value - 1);
+                                 j, context[j].token, context->token[j].value);
 
-                fprintf (stderr, GREEN_TEXT ("     ADDRESS = [%p], name = '%.*s', length = %zu\n\n"),
-                                 context[Id_count].name_table, (int) context->name_table[Id_count].name.length, context->name_table[Id_count].name.str_pointer, context->name_table[Id_count].name.length);
+                fprintf (stderr, GREEN_TEXT ("     ADDRESS = [%p], name = '%.*s', length = %zu, added_status = %d\n\n"),
+                                 context[Id_count].name_table, (int) context->name_table[Id_count].name.length, context->name_table[Id_count].name.str_pointer, context->name_table[Id_count].name.length, context->name_table[Id_count].name.added);
 
                 Id_count++;
 
@@ -187,9 +215,9 @@ int name_table_dump (struct Context_t* context)
     int j = 0;
     while ( context->name_table[j].name.str_pointer != NULL)
     {
-        fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu\n",
+        fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu, added_status = %d\n",
                          j, context[j].name_table, (int) context->name_table[j].name.length,
-                         context->name_table[j].name.str_pointer, context->name_table[j].name.length);
+                         context->name_table[j].name.str_pointer, context->name_table[j].name.length, context->name_table[j].name.added);
         j++;
     }
 
@@ -200,27 +228,31 @@ int ctor_keywords (struct Context_t* context)
 {
     context->table_size = 0;
 
-    add_struct_in_keywords (context, "sin",  SIN , strlen ("sin") );
-    add_struct_in_keywords (context, "cos",  COS , strlen ("cos") );
-    add_struct_in_keywords (context,  "ln",   LN , strlen ( "ln") );
-    add_struct_in_keywords (context,   "+",  ADD , strlen (  "+") );
-    add_struct_in_keywords (context,   "-",  SUB , strlen (  "-") );
-    add_struct_in_keywords (context,   "*",  MUL , strlen (  "*") );
-    add_struct_in_keywords (context,   "/",  DIV , strlen (  "/") );
-    add_struct_in_keywords (context,   "^",  POW , strlen (  "^") );
-    add_struct_in_keywords (context,   "(", OP_BR, strlen (  "(") );
-    add_struct_in_keywords (context,   ")", CL_BR, strlen (  ")") );
-    add_struct_in_keywords (context,   "=", EQUAL, strlen (  "=") );
+    add_struct_in_keywords (context,      "sin",   SIN  , strlen (     "sin"), 0 );
+    add_struct_in_keywords (context,      "cos",   COS  , strlen (     "cos"), 0 );
+    add_struct_in_keywords (context,       "ln",    LN  , strlen (      "ln"), 0 );
+    add_struct_in_keywords (context,        "+",   ADD  , strlen (       "+"), 0 );
+    add_struct_in_keywords (context,        "-",   SUB  , strlen (       "-"), 0 );
+    add_struct_in_keywords (context,        "*",   MUL  , strlen (       "*"), 0 );
+    add_struct_in_keywords (context,        "/",   DIV  , strlen (       "/"), 0 );
+    add_struct_in_keywords (context,        "^",   POW  , strlen (       "^"), 0 );
+    add_struct_in_keywords (context,        "(",  OP_BR , strlen (       "("), 0 );
+    add_struct_in_keywords (context,        ")",  CL_BR , strlen (       ")"), 0 );
+    add_struct_in_keywords (context,  "lesssgo", OP_F_BR, strlen ( "lesssgo"), 0 );
+    add_struct_in_keywords (context,  "stoopit", CL_F_BR, strlen ( "stoopit"), 0 );
+    add_struct_in_keywords (context,         "=", EQUAL , strlen (       "="), 0 );
+    add_struct_in_keywords (context,   "forreal",   IF  , strlen ( "forreal"), 0 );
 
     return 0;
 }
 
-int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int length)
+int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int length, int add_status)
 {
     context->name_table[context->table_size].name.str_pointer = str;
     context->name_table[context->table_size].name.code        = code;
     context->name_table[context->table_size].name.is_keyword  = 1;    // YES = 1;
     context->name_table[context->table_size].name.length      = length;
+    context->name_table[context->table_size].name.added       = add_status;
 
     context->table_size++;
 

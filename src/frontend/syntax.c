@@ -14,26 +14,29 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*         GRAMMAR
- *    G ::= A
+ *    G ::= S$
+ *    S ::= 'forreal' '('E')' '{' A '}'
  *    A ::= Id '=' E
  *    E ::= T {['+''-']T}*
  *    T ::= P {['*''/']P}*
  *    P ::= '('E')' | Id | N | Pow
  *  Pow ::= P {['^']P}*
  *
+ *
  *   Id ::= ['a'-'z']+
  *    N ::= ['0'-'9']+
  */
 
-static struct Node_t*      GetAssignment (struct Context_t* context);
-static struct Node_t*      GetE (struct Context_t* context);
-static struct Node_t*      GetT (struct Context_t* context);
-static struct Node_t*      GetP (struct Context_t* context);
-static struct Node_t*      GetN (struct Context_t* context);
-static struct Node_t*     GetId (struct Context_t* context);
+static struct Node_t*  GetAssignment (struct Context_t* context);
+static struct Node_t*  GetExpression (struct Context_t* context);
+static struct Node_t*  GetTerm       (struct Context_t* context);
+static struct Node_t*  GetP          (struct Context_t* context);
+static struct Node_t*  GetNumber     (struct Context_t* context);
+static struct Node_t*  GetIdent      (struct Context_t* context);
+static struct Node_t*  GetState      (struct Context_t* context);
 
-static struct Node_t* GetFunc (struct Context_t* context);
-static struct Node_t* GetPow  (struct Context_t* context);
+static struct Node_t*  GetFunc       (struct Context_t* context);
+static struct Node_t*  GetPow        (struct Context_t* context);
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line);
 
@@ -42,7 +45,7 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    struct Node_t* val = GetAssignment (context);
+    struct Node_t* val = GetState (context);
 
     if ( !_IS_OP('$') )
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
@@ -54,13 +57,15 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
 struct Node_t* GetAssignment (struct Context_t* context)
 {
-    struct Node_t* val_1 = GetId (context);
+    struct Node_t* val_1 = GetIdent (context);
 
     if ( _IS_OP (EQUAL) )
     {
+        fprintf (stderr, "im in GetA in if\n");
+
         MOVE_POSITION;
 
-        struct Node_t* val_2 = GetE (context);
+        struct Node_t* val_2 = GetExpression (context);
 
         val_1 = _EQL (val_1, val_2);
     }
@@ -70,9 +75,9 @@ struct Node_t* GetAssignment (struct Context_t* context)
     return val_1;
 }
 
-static struct Node_t* GetE (struct Context_t* context)
+static struct Node_t* GetExpression (struct Context_t* context)
 {
-    struct Node_t* val = GetT (context);
+    struct Node_t* val = GetTerm (context);
 
     while ( _IS_OP (ADD) || _IS_OP (SUB) )
     {
@@ -80,7 +85,7 @@ static struct Node_t* GetE (struct Context_t* context)
 
         MOVE_POSITION;
 
-        struct Node_t* val2 = GetT (context);
+        struct Node_t* val2 = GetTerm (context);
 
         if (op == ADD)
             val = _ADD (val, val2);
@@ -91,7 +96,7 @@ static struct Node_t* GetE (struct Context_t* context)
     return val;
 }
 
-static struct Node_t* GetT (struct Context_t* context)
+static struct Node_t* GetTerm (struct Context_t* context)
 {
     struct Node_t* val = GetPow (context);
 
@@ -134,7 +139,7 @@ static struct Node_t* GetP (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        struct Node_t* val = GetE (context);
+        struct Node_t* val = GetExpression (context);
 
         if ( !_IS_OP (CL_BR) )
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
@@ -147,22 +152,23 @@ static struct Node_t* GetP (struct Context_t* context)
     {
         fprintf (stderr, "\n" "Position = %d" "\n", Position);
 
-        struct Node_t* node_ID = GetId (context);
+        struct Node_t* node_ID = GetIdent (context);
 
         if (node_ID != NULL)
             return node_ID;
         else
         {
             struct Node_t* node_F = GetFunc (context);
+
             if (node_F != NULL)
                 return node_F;
             else
-                return GetN (context);
+                return GetNumber (context);
         }
     }
 }
 
-static struct Node_t* GetId (struct Context_t* context)
+static struct Node_t* GetIdent (struct Context_t* context)
 {
     struct Node_t* node = NULL;
 
@@ -178,7 +184,7 @@ static struct Node_t* GetId (struct Context_t* context)
     return node;
 }
 
-static struct Node_t* GetN (struct Context_t* context)
+static struct Node_t* GetNumber (struct Context_t* context)
 {
     if (context->token[Position].type == NUM)
     {
@@ -206,7 +212,8 @@ static struct Node_t* GetFunc (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        node_E = GetE (context);
+        node_E = GetExpression (context);
+
         if ( !_IS_OP (CL_BR))
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
 
@@ -222,6 +229,63 @@ static struct Node_t* GetFunc (struct Context_t* context)
     else
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
 }
+
+static struct Node_t*  GetState (struct Context_t* context)
+{
+    struct Node_t* GetE = NULL;
+    struct Node_t* GetA = NULL;
+
+    if ( _IS_OP (IF) )
+    {
+        fprintf (stderr, "POS = %d: IN OP IF:\n", Position);
+
+        MOVE_POSITION;
+
+        if ( _IS_OP (OP_BR) )
+        {
+            fprintf (stderr, "POS = %d: IN OP_BR IF:\n", Position);
+
+            MOVE_POSITION;
+
+            GetE = GetExpression (context);
+
+            if ( !_IS_OP (CL_BR) )
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+
+            MOVE_POSITION;
+
+            if ( _IS_OP (OP_F_BR) )
+            {
+                MOVE_POSITION;
+
+                fprintf (stderr, "POS = %d: IN OP_F_BR IF:\n", Position);
+
+                GetA = GetAssignment (context);
+
+                if ( !_IS_OP (CL_F_BR) )
+                    SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+
+                MOVE_POSITION;
+
+                return _IF (GetE, GetA);
+            }
+            else
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+        }
+        else
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+    }
+    else
+    {
+        fprintf (stderr, "IN ELSE IF:\n");
+
+        MOVE_POSITION;
+
+        return GetState (context);
+    }
+}
+
+//GetCycle ()
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line)
 {

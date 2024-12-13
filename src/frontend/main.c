@@ -31,6 +31,7 @@ int main (int argc, const char* argv[])
     delete_sub_tree (root);
 
     buffer_dtor (&buffer);
+
     close_log_file ();
 
     return 0;

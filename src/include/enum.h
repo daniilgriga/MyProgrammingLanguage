@@ -21,5 +21,8 @@ enum Operations
     LN    = 'l',
     OP_BR = '(',
     CL_BR = ')',
-    EQUAL = '='
+    OP_F_BR = '{',
+    CL_F_BR = '}',
+    EQUAL = '=',
+    IF    = 'i'
 };
