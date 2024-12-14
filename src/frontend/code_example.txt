@@ -1,7 +1,9 @@
-man = 5
-bro = 10
+man = 11111
 
-forreal (x + 5) 
-lesssgo 
-    size = (man * bro) 
-stoopit$
+forreal (x + 44444)
+lesssgo
+    bro = 55555 + 66666
+    man = bro 
+stoopit
+ded = bro
+$

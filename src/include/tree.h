@@ -36,4 +36,6 @@ int make_graph  (struct Node_t* node);
 
 void dump_in_log_file (struct Node_t* node, const char* reason, ...);
 
+const char* get_name (double enum_value);
+
 void clean_buffer (void);

@@ -14,4 +14,4 @@
 #define _IF(left, right)  new_node (  OP,      IF, (left), (right) )
 
 
-#define _OP(left, right)  new_node (  OP,     666, (left), (right) )
+#define _OP(left, right)  new_node (  OP,    GLUE, (left), (right) )

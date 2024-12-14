@@ -23,6 +23,7 @@ enum Operations
     CL_BR = ')',
     OP_F_BR = '{',
     CL_F_BR = '}',
-    EQUAL = '=',
-    IF    = 'i'
+    EQUAL   = '=',
+    IF      = 'i',
+    GLUE    = ';'
 };

@@ -61,14 +61,14 @@ int tokenization (struct Context_t* context, const char* string)
             }
             else
             {
-                if (context->name_table[count_tokens].name.is_keyword == 1)
+                if (num_keyword == -1)
                 {
                     add_struct_in_keywords (context, &string[start_i], ID, 0, length);
 
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = context->table_size;
 
-                    fprintf (stderr, "IN ADD STRUCT >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
+                    fprintf (stderr, "IN ADD STRUCT_IF >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
                     count_tokens++;
                 }
@@ -220,10 +220,15 @@ int name_table_dump (struct Context_t* context)
     int j = 0;
     while ( context->name_table[j].name.str_pointer != NULL)
     {
-        fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu, is_keyword = %d\n",
-                         j, context[j].name_table, (int) context->name_table[j].name.length,
-                         context->name_table[j].name.str_pointer, context->name_table[j].name.length,
-                         context->name_table[j].name.is_keyword);
+        if (context->name_table[j].name.code == 0)
+            fprintf (stderr, YELLOW_TEXT("[%.2d]: ADDRESS = [%p], name = '%.*s'\n"),
+                             j, context[j].name_table, (int) context->name_table[j].name.length,
+                             context->name_table[j].name.str_pointer);
+        else
+            fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu, is_keyword = %d\n",
+                             j, context[j].name_table, (int) context->name_table[j].name.length,
+                             context->name_table[j].name.str_pointer, context->name_table[j].name.length,
+                             context->name_table[j].name.is_keyword);
         j++;
     }
 
@@ -234,20 +239,21 @@ int ctor_keywords (struct Context_t* context)
 {
     context->table_size = 0;
 
-    add_struct_in_keywords (context,      "sin",   SIN  , 1, strlen (     "sin"));
-    add_struct_in_keywords (context,      "cos",   COS  , 1, strlen (     "cos"));
-    add_struct_in_keywords (context,       "ln",    LN  , 1, strlen (      "ln"));
-    add_struct_in_keywords (context,        "+",   ADD  , 1, strlen (       "+"));
-    add_struct_in_keywords (context,        "-",   SUB  , 1, strlen (       "-"));
-    add_struct_in_keywords (context,        "*",   MUL  , 1, strlen (       "*"));
-    add_struct_in_keywords (context,        "/",   DIV  , 1, strlen (       "/"));
-    add_struct_in_keywords (context,        "^",   POW  , 1, strlen (       "^"));
-    add_struct_in_keywords (context,        "(",  OP_BR , 1, strlen (       "("));
-    add_struct_in_keywords (context,        ")",  CL_BR , 1, strlen (       ")"));
-    add_struct_in_keywords (context,  "lesssgo", OP_F_BR, 1, strlen ( "lesssgo"));
-    add_struct_in_keywords (context,  "stoopit", CL_F_BR, 1, strlen ( "stoopit"));
-    add_struct_in_keywords (context,         "=", EQUAL , 1, strlen (       "="));
-    add_struct_in_keywords (context,   "forreal",   IF  , 1, strlen ( "forreal"));
+    add_struct_in_keywords (context,                 "sin",   SIN  , 1, strlen (                "sin"));
+    add_struct_in_keywords (context,                 "cos",   COS  , 1, strlen (                "cos"));
+    add_struct_in_keywords (context,                  "ln",    LN  , 1, strlen (                 "ln"));
+    add_struct_in_keywords (context,                   "+",   ADD  , 1, strlen (                  "+"));
+    add_struct_in_keywords (context,                   "-",   SUB  , 1, strlen (                  "-"));
+    add_struct_in_keywords (context,                   "*",   MUL  , 1, strlen (                  "*"));
+    add_struct_in_keywords (context,                   "/",   DIV  , 1, strlen (                  "/"));
+    add_struct_in_keywords (context,                   "^",   POW  , 1, strlen (                  "^"));
+    add_struct_in_keywords (context,                   "(",  OP_BR , 1, strlen (                  "("));
+    add_struct_in_keywords (context,                   ")",  CL_BR , 1, strlen (                  ")"));
+    add_struct_in_keywords (context,             "lesssgo", OP_F_BR, 1, strlen (            "lesssgo"));
+    add_struct_in_keywords (context,             "stoopit", CL_F_BR, 1, strlen (            "stoopit"));
+    add_struct_in_keywords (context,                   "=",  EQUAL , 1, strlen (                  "="));
+    add_struct_in_keywords (context,             "forreal",    IF  , 1, strlen (            "forreal"));
+    add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"));
 
     return 0;
 }

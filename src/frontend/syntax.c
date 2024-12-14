@@ -16,7 +16,8 @@ int Position =  0;
 /*         GRAMMAR
  *    G ::= {OP}* $
  *   OP ::= A | S
- *    S ::= 'forreal' '('E')' '{' A '}'
+ *    S ::= 'forreal' '('E')' '{' {OP}* '}'
+ *
  *    A ::= Id '=' E
  *    E ::= T {['+''-']T}*
  *    T ::= P {['*''/']P}*
@@ -40,6 +41,8 @@ static struct Node_t*  GetState      (struct Context_t* context);
 static struct Node_t*  GetFunc       (struct Context_t* context);
 static struct Node_t*  GetPow        (struct Context_t* context);
 
+struct Node_t* union_of_operations (struct Context_t* context);
+
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line);
 
 #define _IS_OP(val)  ( context->token[Position].type  == OP && \
@@ -47,20 +50,29 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    struct Node_t* node_1 = GetOperation (context);
+    struct Node_t* node = GetOperation (context);
 
-    while ( _IS_OP (EQUAL) || _IS_OP (IF) )
+    int count = 0;
+
+    struct Node_t* root = _OP (node, NULL) ;
+
+    struct Node_t* link = root;
+
+    dump_in_log_file (root, "GetGrammar before while:");
+
+    while ( context->token[Position].type  == ID || _IS_OP (IF) ) // inf cycle
     {
-        int op = context->token[Position].value;
+        struct Node_t* node = GetOperation (context);
 
-        MOVE_POSITION;
+        struct Node_t* right_node = _OP  (node, NULL);
 
-        struct Node_t* node_2 = GetOperation (context);
+        link->right = right_node;
 
-        if (op == EQUAL)
-            node_1 = _EQL (node_1, node_2);
-        else
-            node_1 = _SUB (node_1, node_2);
+        link = right_node;
+
+        dump_in_log_file (root, "GetGrammar after while N%d." "\n" "next operation: '%c'", count, (int) context->token[Position].value);
+
+        count++;
     }
 
     if ( !_IS_OP('$') )
@@ -68,14 +80,12 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
     MOVE_POSITION;
 
-    return node_1;
+    return root;
 }
 
 struct Node_t* GetOperation  (struct Context_t* context)
 {
     struct Node_t* node_A = GetAssignment (context);
-
-    MOVE_POSITION;
 
     if (node_A != NULL)
         return node_A;
@@ -280,23 +290,10 @@ static struct Node_t*  GetState (struct Context_t* context)
 
             MOVE_POSITION;
 
-            if ( _IS_OP (OP_F_BR) )
-            {
-                MOVE_POSITION;
+            GetA = union_of_operations (context);
 
-                fprintf (stderr, "POS = %d: IN OP_F_BR IF:\n", Position);
+            return _IF (GetE, GetA);
 
-                GetA = GetAssignment (context);
-
-                if ( !_IS_OP (CL_F_BR) )
-                    SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
-
-                MOVE_POSITION;
-
-                return _IF (GetE, GetA);
-            }
-            else
-                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
         }
         else
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
@@ -312,7 +309,39 @@ static struct Node_t*  GetState (struct Context_t* context)
     }
 }
 
-//GetCycle ()
+struct Node_t* union_of_operations (struct Context_t* context)
+{
+    if ( _IS_OP (OP_F_BR) )
+    {
+        MOVE_POSITION;
+
+        struct Node_t* node = GetOperation (context);
+
+        struct Node_t* root = _OP (node, NULL) ;
+
+        struct Node_t* link = root;
+
+        while ( context->token[Position].type  == ID)
+        {
+            struct Node_t* node = GetOperation (context);
+
+            struct Node_t* right_node = _OP  (node, NULL);
+
+            link->right = right_node;
+
+            link = right_node;
+        }
+
+        if ( !_IS_OP (CL_F_BR) )
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+
+        MOVE_POSITION;
+
+        return root;
+    }
+    else
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+}
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line)
 {
