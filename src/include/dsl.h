@@ -13,11 +13,5 @@
 #define _EQL(left, right) new_node (  OP,   EQUAL, (left), (right) )
 #define _IF(left, right)  new_node (  OP,      IF, (left), (right) )
 
-#define _COMPOUND(diff_res) _MUL (diff_res, diff (node->left, context) )
 
-#define _L         node->left
-#define _R         node->right
-#define _dL  diff (node->left, context)
-#define _dR  diff (node->right, context)
-#define _cL  copy (node->left)
-#define _cR  copy (node->right)
+#define _OP(left, right)  new_node (  OP,     666, (left), (right) )
