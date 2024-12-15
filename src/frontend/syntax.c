@@ -15,8 +15,8 @@ int Position =  0;
 
 /*         GRAMMAR
  *    G ::= {OP}* $
- *   OP ::= A | S
- *    S ::= 'forreal' '('E')' '{' {OP}* '}'
+ *   OP ::= A | C 'shutup'
+ *    C ::= 'forreal' '('E')' '{' {OP}* '}'
  *
  *    A ::= Id '=' E
  *    E ::= T {['+''-']T}*
@@ -36,7 +36,7 @@ static struct Node_t*  GetTerm       (struct Context_t* context);
 static struct Node_t*  GetP          (struct Context_t* context);
 static struct Node_t*  GetNumber     (struct Context_t* context);
 static struct Node_t*  GetIdent      (struct Context_t* context);
-static struct Node_t*  GetState      (struct Context_t* context);
+static struct Node_t*  GetCond       (struct Context_t* context);
 
 static struct Node_t*  GetFunc       (struct Context_t* context);
 static struct Node_t*  GetPow        (struct Context_t* context);
@@ -85,12 +85,15 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
 struct Node_t* GetOperation  (struct Context_t* context)
 {
-    struct Node_t* node_A = GetAssignment (context);
+    struct Node_t*    node = GetAssignment (context);
 
-    if (node_A != NULL)
-        return node_A;
-    else
-        return GetState (context);
+    if (node == NULL) node = GetCond (context);
+
+    if (node != NULL)
+        if ( _IS_OP (GLUE) ) MOVE_POSITION;
+        else                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+
+    return node;
 }
 
 struct Node_t* GetAssignment (struct Context_t* context)
@@ -266,10 +269,12 @@ static struct Node_t* GetFunc (struct Context_t* context)
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
 }
 
-static struct Node_t*  GetState (struct Context_t* context)
+static struct Node_t*  GetCond (struct Context_t* context)
 {
     struct Node_t* GetE = NULL;
     struct Node_t* GetA = NULL;
+
+    fprintf (stderr, "IN GetCond: POS = %d >>> CUR_TOKEN = %lg\n", Position, context->token[Position].value);
 
     if ( _IS_OP (IF) )
     {

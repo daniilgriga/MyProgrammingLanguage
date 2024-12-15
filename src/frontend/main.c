@@ -28,6 +28,10 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, "TEST OF PROGRAMM");
 
+    fprintf (stderr, "\n");
+    print_tree_postorder (root);
+    fprintf (stderr, "\n");
+
     delete_sub_tree (root);
 
     buffer_dtor (&buffer);

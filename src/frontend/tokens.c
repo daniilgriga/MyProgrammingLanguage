@@ -253,6 +253,7 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,             "stoopit", CL_F_BR, 1, strlen (            "stoopit"));
     add_struct_in_keywords (context,                   "=",  EQUAL , 1, strlen (                  "="));
     add_struct_in_keywords (context,             "forreal",    IF  , 1, strlen (            "forreal"));
+    add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"));
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"));
 
     return 0;

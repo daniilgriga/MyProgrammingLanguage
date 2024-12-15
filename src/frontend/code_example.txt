@@ -1,9 +1,12 @@
-man = 11111
+man = 15 shutup
 
-forreal (x + 44444)
+forreal (man - 14)
 lesssgo
-    bro = 55555 + 66666
-    man = bro 
-stoopit
-ded = bro
+    bro = 240 + man shutup
+stoopit shutup
+ded = bro - 5 shutup
 $
+
+1. GetWhile >>> fronted -> dirty backend <-----|
+                                               |
+2. backend which is folder --------------------|

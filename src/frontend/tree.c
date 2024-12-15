@@ -39,6 +39,77 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
     return node;
 }
 
+// num -> push
+// +- -> +-
+// = -> right (stack - expression) - (pop temp from) left (numb name of table = addr)
+// if temp in left node -> pop
+
+int print_tree_postorder (struct Node_t* node)
+{
+    static int count_op = 0;
+    count_op++;
+
+    if (!node)
+        return 1;
+
+    fprintf (stderr, "; ( type = %d, value = %lg\n", node->type, node->value);
+
+    if (node->left  && node->value != EQUAL && node->value != IF) print_tree_postorder (node->left);
+
+    if (node->right && node->value != EQUAL && node->value != IF) print_tree_postorder (node->right);
+
+    if (node->type == NUM)
+        fprintf (stderr, "push %lg"    "\n",  node->value);
+    else if (node->type == ID)
+        fprintf (stderr, "push [%lg]"  "\n",  node->value);
+    else if (node->type == OP && (int) node->value == ADD)
+        fprintf (stderr, "ADD" "\n");
+    else if (node->type == OP && (int) node->value == SUB)
+        fprintf (stderr, "SUB" "\n");
+    else if (node->type == OP && (int) node->value == MUL)
+        fprintf (stderr, "MUL" "\n");
+    else if (node->type == OP && (int) node->value == DIV)
+        fprintf (stderr, "DIV" "\n");
+    else if (node->type == OP && (int) node->value == EQUAL)
+    {
+        if (node->right != NULL)
+            print_tree_postorder (node->right);
+
+        fprintf (stderr, "pop [%lg]" "\n",  node->left->value);
+    }
+    else if (node->type == OP && (int) node->value == IF)
+    {
+        fprintf (stderr, "; START 'IF'. COMPILING LEFT" "\n");
+        int old_count_op = count_op;
+        print_tree_postorder (node->left);
+
+        fprintf (stderr, "; 'IF'. TESTING LEFT" "\n");
+
+        fprintf (stderr, "push 0" "\n");
+
+        fprintf (stderr, "je: %d" "\n", old_count_op);
+
+        fprintf (stderr, "; 'IF'. COMPILING RIGHT" "\n");
+
+        print_tree_postorder (node->right);
+
+        fprintf (stderr, "; END 'IF'. TESTING RIGHT" "\n");
+
+        fprintf (stderr, "%d:"    "\n", old_count_op);
+    }
+    else if (node->type == OP && node->value == GLUE)
+        fprintf (stderr, "; NOP"  "\n");
+    else
+        fprintf (stderr, "%lg"    "\n",  node->value);
+
+    //else if (node->type = OP && node->value == EQUAL)
+    //     fprintf (stderr, "push %lg" "\n",  node->value);
+
+    fprintf (stderr, "; ) type = %d, value = %lg\n", node->type, node->value);
+
+    return 0;
+}
+
 int delete_sub_tree (struct Node_t* node)
 {
     if (node->left)  delete_sub_tree (node->left);
@@ -115,11 +186,10 @@ const char* get_name (double enum_value)
         case CL_F_BR: return "STOOPIT";
         case   EQUAL: return "=";
         case      IF: return "FORREAL";
-        case    GLUE: return "GLUE";
-        default:      return "XZ";
+        case    GLUE: return "SHUTUP";
+        default:      return "bro, wth...";
     }
 }
-
 
 void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
 {
@@ -129,22 +199,22 @@ void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
     assert (node->type == NUM || node->type == OP || node->type == ID);
 
     if (node->type == NUM)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (NUM)  | value = %g   | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FFD700\"];\n",
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (NUM)  | value = '' %g ''  | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FFD700\"];\n",
                  node, node, node->type, node->value, node->left, node->right);
     else if (node->type == OP && (int) node->value == GLUE)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#E0E0E0\"];\n",
-                 node, node, node->type, get_name (node->value), node->left, node->right);
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#E0E0E0\"];\n",
+                 node, node, node->type, get_name (node->value), node->value, node->left, node->right);
     else if (node->type == OP && (int) node->value == IF)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#00801A\"];\n",
-                 node, node, node->type, get_name (node->value), node->left, node->right);
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#00801A\"];\n",
+                 node, node, node->type, get_name (node->value), node->value, node->left, node->right);
     else if (node->type == OP)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#50B2AA\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
     else if (node->type == ID)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ID)   | number of name in name table = '%lg' | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FF5050\"];\n",
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ID)   | number of name in name table = '' %lg '' | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FF5050\"];\n",
                  node, node, node->type, node->value, node->left, node->right);
     else if (node->type == ROOT)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ROOT) | value = '%lg' | { son_node = [%p] } }\"; style = filled; fillcolor = \"#F0FFFF\"];\n",
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ROOT) | value = '' %lg '' | { son_node = [%p] } }\"; style = filled; fillcolor = \"#F0FFFF\"];\n",
                  node, node, node->type, node->value, node->left);
 
     if (node->left)
