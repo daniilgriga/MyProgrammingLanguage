@@ -14,36 +14,40 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*========================================= GRAMMAR ========================================= */
-/*    Grammar    ::= {Operation}* '$'
- *    Operation  ::= Assignment | Cond | Cycle 'shutup'
- *    Cond       ::= 'forreal' '('Expression')' '{' {Operation}* '}'
- *    Cycle      ::= 'money'   '('Expression')' '{' {Operation}* '}'
+/*    Grammar           ::= FunctionDef+ '$'
  *
- *    Assignment ::= 'lethimcook' Ident '=' Expression // 'lethimcook' >>> added_status for checking
- *    Expression ::= Term { ['+''-'] Term }*
- *    Term       ::= P    { ['*''/'] P }*
- *    P          ::= '('Expression')' | Ident | Number
- *    Pow        ::= P {['^']P}*
+ *    Compound_Operator ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
+ *    Cond              ::= 'forreal' '('Expression')' Compound_Operator
+ *    Cycle             ::= 'money'   '('Expression')' Compound_Operator
+ *
+ *    FunctionDef       ::= 'lethimcook' Ident '(' ')' Compound_Operator
+ *    FunctionCall      ::= Ident '(' ')'
+ *
+ *    Assignment        ::= 'lethimcook' Ident '=' Expression
+ *    Expression        ::= Term { ['+''-'] Term }*
+ *    Term              ::= P    { ['*''/'] P    }*
+ *    Pow               ::= P    { ['^'] P       }*
+ *    P                 ::= '('Expression')' | Ident | Number | FunctionCall
  *
  *
  *    Ident  ::= ['a'-'z']+
  *    Number ::= ['0'-'9']+
  */
 
-static struct Node_t*  GetOperation  (struct Context_t* context);
-static struct Node_t*  GetAssignment (struct Context_t* context);
-static struct Node_t*  GetExpression (struct Context_t* context);
-static struct Node_t*  GetTerm       (struct Context_t* context);
-static struct Node_t*  GetP          (struct Context_t* context);
-static struct Node_t*  GetNumber     (struct Context_t* context);
-static struct Node_t*  GetIdent      (struct Context_t* context);
-static struct Node_t*  GetCond       (struct Context_t* context);
-static struct Node_t*  GetLoop       (struct Context_t* context);
+static struct Node_t*  GetAssignment   (struct Context_t* context);
+static struct Node_t*  GetExpression   (struct Context_t* context);
+static struct Node_t*  GetOperation    (struct Context_t* context);
+static struct Node_t*  GetFunctionDef  (struct Context_t* context);
+static struct Node_t*  GetFunctionCall (struct Context_t* context);
+static struct Node_t*  GetNumber       (struct Context_t* context);
+static struct Node_t*  GetIdent        (struct Context_t* context);
+static struct Node_t*  GetCond         (struct Context_t* context);
+static struct Node_t*  GetLoop         (struct Context_t* context);
+static struct Node_t*  GetTerm         (struct Context_t* context);
+static struct Node_t*  GetPow          (struct Context_t* context);
+static struct Node_t*  GetP            (struct Context_t* context);
 
-static struct Node_t*  GetFunc       (struct Context_t* context);
-static struct Node_t*  GetPow        (struct Context_t* context);
-
-struct Node_t* union_of_operations (struct Context_t* context);
+struct Node_t* CompoundOperations (struct Context_t* context);
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error);
 
@@ -52,30 +56,15 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    struct Node_t* node = GetOperation (context);
+    //if ( _IS_OP (ADVT) )
+    //{
 
-    int count = 0;
 
-    struct Node_t* root = _OP (node, NULL) ;
+    struct Node_t* root = CompoundOperations (context);
 
-    struct Node_t* link = root;
-
-    dump_in_log_file (root, "GetGrammar before while:");
-
-    while ( context->token[Position].type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) ) // inf cycle
-    {
-        struct Node_t* node = GetOperation (context);
-
-        struct Node_t* right_node = _OP  (node, NULL);
-
-        link->right = right_node;
-
-        link = right_node;
-
-        dump_in_log_file (root, "GetGrammar after while N%d." "\n" "next operation: '%c'", count, (int) context->token[Position].value);
-
-        count++;
-    }
+    //}
+    //else
+    //    SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
     if ( !_IS_OP('$') )
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_END_OF_FILE);
@@ -83,6 +72,16 @@ struct Node_t* GetGrammar (struct Context_t* context)
     MOVE_POSITION;
 
     return root;
+}
+
+static struct Node_t*  GetFunctionDef  (struct Context_t* context)
+{
+
+}
+
+static struct Node_t*  GetFunctionCall (struct Context_t* context)
+{
+
 }
 
 struct Node_t* GetOperation  (struct Context_t* context)
@@ -114,7 +113,7 @@ struct Node_t* GetAssignment (struct Context_t* context)
 
         if ( context->token[Position].type == ID &&
              context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED_VAR);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
     }
 
     struct Node_t* val_1 = GetIdent (context);
@@ -216,7 +215,7 @@ static struct Node_t* GetP (struct Context_t* context)
             return node_ID;
         else
         {
-            struct Node_t* node_F = GetFunc (context);
+            struct Node_t* node_F = NULL; //GetFunction (context);
 
             if (node_F != NULL)
                 return node_F;
@@ -233,7 +232,7 @@ static struct Node_t* GetIdent (struct Context_t* context)
     if ( context->token[Position].type  == ID )
     {
         if (context->name_table[ (int) context->token[Position].value ].name.added_status == 0)
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED_VAR);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
         node = _ID (context->token[Position].value);
 
@@ -257,40 +256,6 @@ static struct Node_t* GetNumber (struct Context_t* context)
     }
 }
 
-static struct Node_t* GetFunc (struct Context_t* context)
-{
-    int func = 0;
-
-    if      ( context->token[Position].value == COS ) func = COS;
-    else if ( context->token[Position].value == SIN ) func = SIN;
-    else return NULL;
-
-    MOVE_POSITION;
-
-    struct Node_t* node_E = NULL;
-
-    if ( _IS_OP (OP_BR) )
-    {
-        MOVE_POSITION;
-
-        node_E = GetExpression (context);
-
-        if ( !_IS_OP (CL_BR))
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
-
-        MOVE_POSITION;
-
-        struct Node_t* node_F = NULL;
-
-        if (func == COS) node_F = _COS (node_E);
-        if (func == SIN) node_F = _SIN (node_E);
-
-        return node_F;
-    }
-    else
-        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
-}
-
 static struct Node_t*  GetCond (struct Context_t* context)
 {
     struct Node_t* GetE = NULL;
@@ -311,7 +276,7 @@ static struct Node_t*  GetCond (struct Context_t* context)
 
             MOVE_POSITION;
 
-            GetA = union_of_operations (context);
+            GetA = CompoundOperations (context);
 
             return _IF (GetE, GetA);
 
@@ -343,7 +308,7 @@ static struct Node_t*  GetLoop (struct Context_t* context)
 
             MOVE_POSITION;
 
-            GetA = union_of_operations (context);
+            GetA = CompoundOperations (context);
 
             return _WHILE (GetE, GetA);
 
@@ -355,7 +320,7 @@ static struct Node_t*  GetLoop (struct Context_t* context)
         return NULL;
 }
 
-struct Node_t* union_of_operations (struct Context_t* context)
+struct Node_t* CompoundOperations (struct Context_t* context)
 {
     if ( _IS_OP (OP_F_BR) )
     {
@@ -367,7 +332,7 @@ struct Node_t* union_of_operations (struct Context_t* context)
 
         struct Node_t* link = root;
 
-        while ( context->token[Position].type  == ID)
+        while ( context->token[Position].type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) )
         {
             struct Node_t* node = GetOperation (context);
 
@@ -412,8 +377,8 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
 
             break;
 
-        case UNDECLARED_VAR:
-            fprintf (stderr, "undeclared variable " WHITE_TEXT("'%.*s'")  "\n",
+        case UNDECLARED:
+            fprintf (stderr, "undeclared " WHITE_TEXT("'%.*s'")  "\n",
                              (int) context->name_table[(int)context->token[Position].value - 1].name.length,
                                    context->name_table[(int)context->token[Position].value - 1].name.str_pointer);
 
@@ -422,6 +387,11 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
         case NOT_FIND_OPEN_BRACE:
             fprintf (stderr, "expected " WHITE_TEXT("'('") " before " WHITE_TEXT("'%s'")  "\n",
                              ( (int) context->token[Position - 1].value == 'w') ? "money" : "forreal" );
+
+            break;
+
+        case NOT_FIND_MAIN_FUNC:
+            fprintf (stderr, "expected main function\n");
 
             break;
 

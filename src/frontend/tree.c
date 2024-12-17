@@ -65,16 +65,16 @@ int print_tree_postorder (struct Node_t* node)
         fprintf (stderr, "push [%lg]"  "\n",  node->value);
 
     else if (node->type == OP && (int) node->value == ADD)
-        fprintf (stderr, "ADD" "\n");
+        fprintf (stderr, "add" "\n");
 
     else if (node->type == OP && (int) node->value == SUB)
-        fprintf (stderr, "SUB" "\n");
+        fprintf (stderr, "sub" "\n");
 
     else if (node->type == OP && (int) node->value == MUL)
-        fprintf (stderr, "MUL" "\n");
+        fprintf (stderr, "mul" "\n");
 
     else if (node->type == OP && (int) node->value == DIV)
-        fprintf (stderr, "DIV" "\n");
+        fprintf (stderr, "div" "\n");
 
     else if (node->type == OP && (int) node->value == EQUAL)
     {

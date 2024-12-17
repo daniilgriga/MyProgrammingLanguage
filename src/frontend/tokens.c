@@ -28,8 +28,6 @@ int tokenization (struct Context_t* context, const char* string)
 
         if ( isalpha(string[i]) )
         {
-            // fprintf (stderr, "starting if >>>  start_i = %d\n", start_i);
-
             while ( isalpha(string[i]) )
                 i++;
 
@@ -104,7 +102,7 @@ int tokenization (struct Context_t* context, const char* string)
             continue;
         }
 
-        if (strchr ("+-*/^()=", string[i]) != NULL)
+        if (strchr ("+-*/^()={}", string[i]) != NULL)
         {
             int value = check_keyword (context, &string[start_i], 1);
 
@@ -114,6 +112,7 @@ int tokenization (struct Context_t* context, const char* string)
             count_tokens++;
             i++;
         }
+
     }
 
     context->token[count_tokens].type  =  OP;
