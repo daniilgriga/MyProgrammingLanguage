@@ -14,11 +14,12 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*         GRAMMAR
- *    G ::= {OP}* $
- *   OP ::= A | C 'shutup'
- *    C ::= 'forreal' '('E')' '{' {OP}* '}'
+ *    G  ::= {OP}* $
+ *   OP  ::= A | Cond | Cycle 'shutup'
+ * Cond  ::= 'forreal' '('E')' '{' {OP}* '}'
+ * Cycle ::= 'money'   '('E')' '{' {OP}* '}'
  *
- *    A ::= Id '=' E
+ *    A ::= Id '=' E // 'lethimcook' >>> added_status for checking
  *    E ::= T {['+''-']T}*
  *    T ::= P {['*''/']P}*
  *    P ::= '('E')' | Id | N | Pow
@@ -37,6 +38,7 @@ static struct Node_t*  GetP          (struct Context_t* context);
 static struct Node_t*  GetNumber     (struct Context_t* context);
 static struct Node_t*  GetIdent      (struct Context_t* context);
 static struct Node_t*  GetCond       (struct Context_t* context);
+static struct Node_t*  GetLoop      (struct Context_t* context);
 
 static struct Node_t*  GetFunc       (struct Context_t* context);
 static struct Node_t*  GetPow        (struct Context_t* context);
@@ -60,7 +62,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
     dump_in_log_file (root, "GetGrammar before while:");
 
-    while ( context->token[Position].type  == ID || _IS_OP (IF) ) // inf cycle
+    while ( context->token[Position].type  == ID || _IS_OP (IF) || _IS_OP (WHILE) ) // inf cycle
     {
         struct Node_t* node = GetOperation (context);
 
@@ -88,6 +90,8 @@ struct Node_t* GetOperation  (struct Context_t* context)
     struct Node_t*    node = GetAssignment (context);
 
     if (node == NULL) node = GetCond (context);
+
+    if (node == NULL) node = GetLoop (context);
 
     if (node != NULL)
         if ( _IS_OP (GLUE) ) MOVE_POSITION;
@@ -274,18 +278,12 @@ static struct Node_t*  GetCond (struct Context_t* context)
     struct Node_t* GetE = NULL;
     struct Node_t* GetA = NULL;
 
-    fprintf (stderr, "IN GetCond: POS = %d >>> CUR_TOKEN = %lg\n", Position, context->token[Position].value);
-
     if ( _IS_OP (IF) )
     {
-        fprintf (stderr, "POS = %d: IN OP IF:\n", Position);
-
         MOVE_POSITION;
 
         if ( _IS_OP (OP_BR) )
         {
-            fprintf (stderr, "POS = %d: IN OP_BR IF:\n", Position);
-
             MOVE_POSITION;
 
             GetE = GetExpression (context);
@@ -304,14 +302,39 @@ static struct Node_t*  GetCond (struct Context_t* context)
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
     }
     else
+        return NULL;
+}
+
+static struct Node_t*  GetLoop (struct Context_t* context)
+{
+    struct Node_t* GetE = NULL;
+    struct Node_t* GetA = NULL;
+
+    if ( _IS_OP (WHILE) )
     {
-
-        fprintf (stderr, "IN ELSE IF:\n");
-
         MOVE_POSITION;
 
-        return NULL;
+        if ( _IS_OP (OP_BR) )
+        {
+            MOVE_POSITION;
+
+            GetE = GetExpression (context);
+
+            if ( !_IS_OP (CL_BR) )
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+
+            MOVE_POSITION;
+
+            GetA = union_of_operations (context);
+
+            return _WHILE (GetE, GetA);
+
+        }
+        else
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
     }
+    else
+        return NULL;
 }
 
 struct Node_t* union_of_operations (struct Context_t* context)

@@ -39,24 +39,23 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
     return node;
 }
 
-// num -> push
-// +- -> +-
-// = -> right (stack - expression) - (pop temp from) left (numb name of table = addr)
-// if temp in left node -> pop
-
 int print_tree_postorder (struct Node_t* node)
 {
     static int count_op = 0;
-    count_op++;
+    count_op += 10;
 
     if (!node)
         return 1;
 
     fprintf (stderr, "; ( type = %d, value = %lg\n", node->type, node->value);
 
-    if (node->left  && node->value != EQUAL && node->value != IF) print_tree_postorder (node->left);
+    if (node->left  && node->value != EQUAL
+                    && node->value != IF
+                    && node->value != WHILE) print_tree_postorder (node->left);
 
-    if (node->right && node->value != EQUAL && node->value != IF) print_tree_postorder (node->right);
+    if (node->right && node->value != EQUAL
+                    && node->value != IF
+                    && node->value != WHILE) print_tree_postorder (node->right);
 
     if (node->type == NUM)
         fprintf (stderr, "push %lg"    "\n",  node->value);
@@ -87,13 +86,37 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "push 0" "\n");
 
-        fprintf (stderr, "je: %d" "\n", old_count_op);
+        fprintf (stderr, "je %d:" "\n", old_count_op);
 
         fprintf (stderr, "; 'IF'. COMPILING RIGHT" "\n");
 
         print_tree_postorder (node->right);
 
         fprintf (stderr, "; END 'IF'. TESTING RIGHT" "\n");
+
+        fprintf (stderr, "%d:"    "\n", old_count_op);
+    }
+    else if (node->type == OP && node->value == WHILE)
+    {
+        fprintf (stderr, "; START 'WHILE'. COMPILING LEFT" "\n");
+        int old_count_op = count_op;
+        fprintf (stderr, "%d:" "\n", old_count_op + 1);
+
+        print_tree_postorder (node->left);
+
+        fprintf (stderr, "push 0" "\n");
+
+        fprintf (stderr, "; 'WHILE'. TESTING LEFT" "\n");
+
+        fprintf (stderr, "je %d:" "\n", old_count_op);
+
+        fprintf (stderr, "; 'WHILE'. COMPILING RIGHT" "\n");
+
+        print_tree_postorder (node->right);
+
+        fprintf (stderr, "; END 'WHILE'. TESTING RIGHT" "\n");
+
+        fprintf (stderr, "jmp %d:" "\n", old_count_op + 1);
 
         fprintf (stderr, "%d:"    "\n", old_count_op);
     }
@@ -186,6 +209,7 @@ const char* get_name (double enum_value)
         case CL_F_BR: return "STOOPIT";
         case   EQUAL: return "=";
         case      IF: return "FORREAL";
+        case   WHILE: return "MONEY";
         case    GLUE: return "SHUTUP";
         default:      return "bro, wth...";
     }
@@ -206,6 +230,9 @@ void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
     else if (node->type == OP && (int) node->value == IF)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#00801A\"];\n",
+                 node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+    else if (node->type == OP && (int) node->value == WHILE)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
     else if (node->type == OP)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#50B2AA\"];\n",

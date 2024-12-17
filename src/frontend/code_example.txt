@@ -1,8 +1,8 @@
-man = 15 shutup
+man = 20 shutup
 
-forreal (man - 14)
+money (man - 14)
 lesssgo
-    bro = 240 + man shutup
+    man = man - 2 shutup
 stoopit shutup
 ded = bro - 5 shutup
 $

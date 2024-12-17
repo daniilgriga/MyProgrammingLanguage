@@ -24,5 +24,6 @@ enum Operations
     CL_F_BR = '}',
     EQUAL   = '=',
     IF      = 'i',
+    WHILE   = 'w',
     GLUE    = ';'
 };

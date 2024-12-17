@@ -50,7 +50,7 @@
 <polyline fill="none" stroke="black" points="0,-69.5 299,-69.5 "/>
 <text text-anchor="middle" x="149.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="0,-46.5 299,-46.5 "/>
-<text text-anchor="middle" x="149.5" y="-31.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 17 &#39;&#39;</text>
+<text text-anchor="middle" x="149.5" y="-31.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 18 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="0,-23.5 299,-23.5 "/>
 <text text-anchor="middle" x="72" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="144,-0.5 144,-23.5 "/>
@@ -70,7 +70,7 @@
 <polyline fill="none" stroke="black" points="317,-69.5 530,-69.5 "/>
 <text text-anchor="middle" x="423.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 1 (NUM)</text>
 <polyline fill="none" stroke="black" points="317,-46.5 530,-46.5 "/>
-<text text-anchor="middle" x="423.5" y="-31.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 15 &#39;&#39;</text>
+<text text-anchor="middle" x="423.5" y="-31.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 20 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="317,-23.5 530,-23.5 "/>
 <text text-anchor="middle" x="367.5" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="418,-0.5 418,-23.5 "/>

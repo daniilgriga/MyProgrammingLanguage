@@ -70,7 +70,7 @@
 <polyline fill="none" stroke="black" points="0,-585.5 299,-585.5 "/>
 <text text-anchor="middle" x="149.5" y="-570.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="0,-562.5 299,-562.5 "/>
-<text text-anchor="middle" x="149.5" y="-547.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 17 &#39;&#39;</text>
+<text text-anchor="middle" x="149.5" y="-547.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 18 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="0,-539.5 299,-539.5 "/>
 <text text-anchor="middle" x="72" y="-524.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="144,-516.5 144,-539.5 "/>
@@ -90,7 +90,7 @@
 <polyline fill="none" stroke="black" points="317,-585.5 530,-585.5 "/>
 <text text-anchor="middle" x="423.5" y="-570.3" font-family="Times,serif" font-size="14.00">type = 1 (NUM)</text>
 <polyline fill="none" stroke="black" points="317,-562.5 530,-562.5 "/>
-<text text-anchor="middle" x="423.5" y="-547.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 15 &#39;&#39;</text>
+<text text-anchor="middle" x="423.5" y="-547.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 20 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="317,-539.5 530,-539.5 "/>
 <text text-anchor="middle" x="367.5" y="-524.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="418,-516.5 418,-539.5 "/>
@@ -105,12 +105,12 @@
 <!-- node0x5030000002b0 -->
 <g id="node6" class="node">
 <title>node0x5030000002b0</title>
-<path fill="#00801a" stroke="black" d="M607.5,-516.5C607.5,-516.5 989.5,-516.5 989.5,-516.5 995.5,-516.5 1001.5,-522.5 1001.5,-528.5 1001.5,-528.5 1001.5,-596.5 1001.5,-596.5 1001.5,-602.5 995.5,-608.5 989.5,-608.5 989.5,-608.5 607.5,-608.5 607.5,-608.5 601.5,-608.5 595.5,-602.5 595.5,-596.5 595.5,-596.5 595.5,-528.5 595.5,-528.5 595.5,-522.5 601.5,-516.5 607.5,-516.5"/>
+<path fill="#df73df" stroke="black" d="M607.5,-516.5C607.5,-516.5 989.5,-516.5 989.5,-516.5 995.5,-516.5 1001.5,-522.5 1001.5,-528.5 1001.5,-528.5 1001.5,-596.5 1001.5,-596.5 1001.5,-602.5 995.5,-608.5 989.5,-608.5 989.5,-608.5 607.5,-608.5 607.5,-608.5 601.5,-608.5 595.5,-602.5 595.5,-596.5 595.5,-596.5 595.5,-528.5 595.5,-528.5 595.5,-522.5 601.5,-516.5 607.5,-516.5"/>
 <text text-anchor="middle" x="798.5" y="-593.3" font-family="Times,serif" font-size="14.00">[0x5030000002b0]</text>
 <polyline fill="none" stroke="black" points="595.5,-585.5 1001.5,-585.5 "/>
 <text text-anchor="middle" x="798.5" y="-570.3" font-family="Times,serif" font-size="14.00">type = 2 (OP)</text>
 <polyline fill="none" stroke="black" points="595.5,-562.5 1001.5,-562.5 "/>
-<text text-anchor="middle" x="798.5" y="-547.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; FORREAL &#39;&#39; (105)</text>
+<text text-anchor="middle" x="798.5" y="-547.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; MONEY &#39;&#39; (119)</text>
 <polyline fill="none" stroke="black" points="595.5,-539.5 1001.5,-539.5 "/>
 <text text-anchor="middle" x="694" y="-524.3" font-family="Times,serif" font-size="14.00">left = [0x503000000160]</text>
 <polyline fill="none" stroke="black" points="792.5,-516.5 792.5,-539.5 "/>
@@ -210,7 +210,7 @@
 <polyline fill="none" stroke="black" points="24,-327.5 323,-327.5 "/>
 <text text-anchor="middle" x="173.5" y="-312.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="24,-304.5 323,-304.5 "/>
-<text text-anchor="middle" x="173.5" y="-289.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 17 &#39;&#39;</text>
+<text text-anchor="middle" x="173.5" y="-289.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 18 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="24,-281.5 323,-281.5 "/>
 <text text-anchor="middle" x="96" y="-266.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="168,-258.5 168,-281.5 "/>
@@ -290,7 +290,7 @@
 <polyline fill="none" stroke="black" points="785,-198.5 1186,-198.5 "/>
 <text text-anchor="middle" x="985.5" y="-183.3" font-family="Times,serif" font-size="14.00">type = 2 (OP)</text>
 <polyline fill="none" stroke="black" points="785,-175.5 1186,-175.5 "/>
-<text text-anchor="middle" x="985.5" y="-160.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; PLUS &#39;&#39; (43)</text>
+<text text-anchor="middle" x="985.5" y="-160.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; SUB &#39;&#39; (45)</text>
 <polyline fill="none" stroke="black" points="785,-152.5 1186,-152.5 "/>
 <text text-anchor="middle" x="883" y="-137.3" font-family="Times,serif" font-size="14.00">left = [0x5030000001c0]</text>
 <polyline fill="none" stroke="black" points="981,-129.5 981,-152.5 "/>
@@ -305,16 +305,16 @@
 <!-- node0x5030000001c0 -->
 <g id="node15" class="node">
 <title>node0x5030000001c0</title>
-<path fill="#ffd700" stroke="black" d="M754,-0.5C754,-0.5 943,-0.5 943,-0.5 949,-0.5 955,-6.5 955,-12.5 955,-12.5 955,-80.5 955,-80.5 955,-86.5 949,-92.5 943,-92.5 943,-92.5 754,-92.5 754,-92.5 748,-92.5 742,-86.5 742,-80.5 742,-80.5 742,-12.5 742,-12.5 742,-6.5 748,-0.5 754,-0.5"/>
+<path fill="#ff5050" stroke="black" d="M711,-0.5C711,-0.5 986,-0.5 986,-0.5 992,-0.5 998,-6.5 998,-12.5 998,-12.5 998,-80.5 998,-80.5 998,-86.5 992,-92.5 986,-92.5 986,-92.5 711,-92.5 711,-92.5 705,-92.5 699,-86.5 699,-80.5 699,-80.5 699,-12.5 699,-12.5 699,-6.5 705,-0.5 711,-0.5"/>
 <text text-anchor="middle" x="848.5" y="-77.3" font-family="Times,serif" font-size="14.00">[0x5030000001c0]</text>
-<polyline fill="none" stroke="black" points="742,-69.5 955,-69.5 "/>
-<text text-anchor="middle" x="848.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 1 (NUM)</text>
-<polyline fill="none" stroke="black" points="742,-46.5 955,-46.5 "/>
-<text text-anchor="middle" x="848.5" y="-31.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 240 &#39;&#39;</text>
-<polyline fill="none" stroke="black" points="742,-23.5 955,-23.5 "/>
-<text text-anchor="middle" x="792.5" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
+<polyline fill="none" stroke="black" points="699,-69.5 998,-69.5 "/>
+<text text-anchor="middle" x="848.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
+<polyline fill="none" stroke="black" points="699,-46.5 998,-46.5 "/>
+<text text-anchor="middle" x="848.5" y="-31.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 18 &#39;&#39;</text>
+<polyline fill="none" stroke="black" points="699,-23.5 998,-23.5 "/>
+<text text-anchor="middle" x="771" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="843,-0.5 843,-23.5 "/>
-<text text-anchor="middle" x="899" y="-8.3" font-family="Times,serif" font-size="14.00">right = [(nil)]</text>
+<text text-anchor="middle" x="920.5" y="-8.3" font-family="Times,serif" font-size="14.00">right = [(nil)]</text>
 </g>
 <!-- node0x503000000220&#45;&gt;node0x5030000001c0 -->
 <g id="edge14" class="edge">
@@ -325,16 +325,16 @@
 <!-- node0x5030000001f0 -->
 <g id="node16" class="node">
 <title>node0x5030000001f0</title>
-<path fill="#ff5050" stroke="black" d="M985,-0.5C985,-0.5 1260,-0.5 1260,-0.5 1266,-0.5 1272,-6.5 1272,-12.5 1272,-12.5 1272,-80.5 1272,-80.5 1272,-86.5 1266,-92.5 1260,-92.5 1260,-92.5 985,-92.5 985,-92.5 979,-92.5 973,-86.5 973,-80.5 973,-80.5 973,-12.5 973,-12.5 973,-6.5 979,-0.5 985,-0.5"/>
+<path fill="#ffd700" stroke="black" d="M1028,-0.5C1028,-0.5 1217,-0.5 1217,-0.5 1223,-0.5 1229,-6.5 1229,-12.5 1229,-12.5 1229,-80.5 1229,-80.5 1229,-86.5 1223,-92.5 1217,-92.5 1217,-92.5 1028,-92.5 1028,-92.5 1022,-92.5 1016,-86.5 1016,-80.5 1016,-80.5 1016,-12.5 1016,-12.5 1016,-6.5 1022,-0.5 1028,-0.5"/>
 <text text-anchor="middle" x="1122.5" y="-77.3" font-family="Times,serif" font-size="14.00">[0x5030000001f0]</text>
-<polyline fill="none" stroke="black" points="973,-69.5 1272,-69.5 "/>
-<text text-anchor="middle" x="1122.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
-<polyline fill="none" stroke="black" points="973,-46.5 1272,-46.5 "/>
-<text text-anchor="middle" x="1122.5" y="-31.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 17 &#39;&#39;</text>
-<polyline fill="none" stroke="black" points="973,-23.5 1272,-23.5 "/>
-<text text-anchor="middle" x="1045" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
+<polyline fill="none" stroke="black" points="1016,-69.5 1229,-69.5 "/>
+<text text-anchor="middle" x="1122.5" y="-54.3" font-family="Times,serif" font-size="14.00">type = 1 (NUM)</text>
+<polyline fill="none" stroke="black" points="1016,-46.5 1229,-46.5 "/>
+<text text-anchor="middle" x="1122.5" y="-31.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 2 &#39;&#39;</text>
+<polyline fill="none" stroke="black" points="1016,-23.5 1229,-23.5 "/>
+<text text-anchor="middle" x="1066.5" y="-8.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="1117,-0.5 1117,-23.5 "/>
-<text text-anchor="middle" x="1194.5" y="-8.3" font-family="Times,serif" font-size="14.00">right = [(nil)]</text>
+<text text-anchor="middle" x="1173" y="-8.3" font-family="Times,serif" font-size="14.00">right = [(nil)]</text>
 </g>
 <!-- node0x503000000220&#45;&gt;node0x5030000001f0 -->
 <g id="edge15" class="edge">
@@ -390,7 +390,7 @@
 <polyline fill="none" stroke="black" points="1256,-198.5 1555,-198.5 "/>
 <text text-anchor="middle" x="1405.5" y="-183.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="1256,-175.5 1555,-175.5 "/>
-<text text-anchor="middle" x="1405.5" y="-160.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 18 &#39;&#39;</text>
+<text text-anchor="middle" x="1405.5" y="-160.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 20 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="1256,-152.5 1555,-152.5 "/>
 <text text-anchor="middle" x="1328" y="-137.3" font-family="Times,serif" font-size="14.00">left = [(nil)]</text>
 <polyline fill="none" stroke="black" points="1400,-129.5 1400,-152.5 "/>
