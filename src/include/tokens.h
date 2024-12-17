@@ -24,6 +24,8 @@ struct Name_t
 
     enum Operations code;
     int is_keyword;
+
+    int added_status;
 };
 
 struct NameTable_t
@@ -41,7 +43,7 @@ struct Context_t
     struct Token_t           token[MAX_SIZE];
 };
 
-int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length);
+int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length, int added_status);
 
 int ctor_keywords (struct Context_t* context);
 

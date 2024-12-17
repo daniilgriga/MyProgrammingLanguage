@@ -63,7 +63,7 @@ int tokenization (struct Context_t* context, const char* string)
             {
                 if (num_keyword == -1)
                 {
-                    add_struct_in_keywords (context, &string[start_i], ID, 0, length);
+                    add_struct_in_keywords (context, &string[start_i], ID, 0, length, 0);
 
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = context->table_size;
@@ -225,10 +225,11 @@ int name_table_dump (struct Context_t* context)
                              j, context[j].name_table, (int) context->name_table[j].name.length,
                              context->name_table[j].name.str_pointer);
         else
-            fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu, is_keyword = %d\n",
+            fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %zu, is_keyword = %d, added_status = %d\n",
                              j, context[j].name_table, (int) context->name_table[j].name.length,
                              context->name_table[j].name.str_pointer, context->name_table[j].name.length,
-                             context->name_table[j].name.is_keyword);
+                             context->name_table[j].name.is_keyword,
+                             context->name_table[j].name.added_status);
         j++;
     }
 
@@ -239,33 +240,35 @@ int ctor_keywords (struct Context_t* context)
 {
     context->table_size = 0;
 
-    add_struct_in_keywords (context,                 "sin",   SIN  , 1, strlen (                "sin"));
-    add_struct_in_keywords (context,                 "cos",   COS  , 1, strlen (                "cos"));
-    add_struct_in_keywords (context,                  "ln",    LN  , 1, strlen (                 "ln"));
-    add_struct_in_keywords (context,                   "+",   ADD  , 1, strlen (                  "+"));
-    add_struct_in_keywords (context,                   "-",   SUB  , 1, strlen (                  "-"));
-    add_struct_in_keywords (context,                   "*",   MUL  , 1, strlen (                  "*"));
-    add_struct_in_keywords (context,                   "/",   DIV  , 1, strlen (                  "/"));
-    add_struct_in_keywords (context,                   "^",   POW  , 1, strlen (                  "^"));
-    add_struct_in_keywords (context,                   "(",  OP_BR , 1, strlen (                  "("));
-    add_struct_in_keywords (context,                   ")",  CL_BR , 1, strlen (                  ")"));
-    add_struct_in_keywords (context,             "lesssgo", OP_F_BR, 1, strlen (            "lesssgo"));
-    add_struct_in_keywords (context,             "stoopit", CL_F_BR, 1, strlen (            "stoopit"));
-    add_struct_in_keywords (context,                   "=",  EQUAL , 1, strlen (                  "="));
-    add_struct_in_keywords (context,             "forreal",    IF  , 1, strlen (            "forreal"));
-    add_struct_in_keywords (context,               "money",  WHILE , 1, strlen (              "money"));
-    add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"));
-    add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"));
+    add_struct_in_keywords (context,                 "sin",   SIN  , 1, strlen (                "sin"), 0);
+    add_struct_in_keywords (context,                 "cos",   COS  , 1, strlen (                "cos"), 0);
+    add_struct_in_keywords (context,                  "ln",    LN  , 1, strlen (                 "ln"), 0);
+    add_struct_in_keywords (context,                   "+",   ADD  , 1, strlen (                  "+"), 0);
+    add_struct_in_keywords (context,                   "-",   SUB  , 1, strlen (                  "-"), 0);
+    add_struct_in_keywords (context,                   "*",   MUL  , 1, strlen (                  "*"), 0);
+    add_struct_in_keywords (context,                   "/",   DIV  , 1, strlen (                  "/"), 0);
+    add_struct_in_keywords (context,                   "^",   POW  , 1, strlen (                  "^"), 0);
+    add_struct_in_keywords (context,                   "(",  OP_BR , 1, strlen (                  "("), 0);
+    add_struct_in_keywords (context,                   ")",  CL_BR , 1, strlen (                  ")"), 0);
+    add_struct_in_keywords (context,             "lesssgo", OP_F_BR, 1, strlen (            "lesssgo"), 0);
+    add_struct_in_keywords (context,             "stoopit", CL_F_BR, 1, strlen (            "stoopit"), 0);
+    add_struct_in_keywords (context,                  "is",  EQUAL , 1, strlen (                 "is"), 0);
+    add_struct_in_keywords (context,             "forreal",   IF   , 1, strlen (            "forreal"), 0);
+    add_struct_in_keywords (context,               "money",  WHILE , 1, strlen (              "money"), 0);
+    add_struct_in_keywords (context,          "lethimcook",  ADVT  , 1, strlen (         "lethimcook"), 0);
+    add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
+    add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
 
     return 0;
 }
 
-int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length)
+int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length, int added_status)
 {
-    context->name_table[context->table_size].name.str_pointer = str;
-    context->name_table[context->table_size].name.code        = code;
-    context->name_table[context->table_size].name.is_keyword  = is_keyword;    // YES = 1;
-    context->name_table[context->table_size].name.length      = length;
+    context->name_table[context->table_size].name.str_pointer  = str;
+    context->name_table[context->table_size].name.code         = code;
+    context->name_table[context->table_size].name.is_keyword   = is_keyword;    // YES = 1;
+    context->name_table[context->table_size].name.length       = length;
+    context->name_table[context->table_size].name.added_status = added_status;
 
     context->table_size++;
 

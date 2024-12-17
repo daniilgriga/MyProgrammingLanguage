@@ -25,5 +25,17 @@ enum Operations
     EQUAL   = '=',
     IF      = 'i',
     WHILE   = 'w',
+    ADVT    = 'A',
     GLUE    = ';'
+};
+
+enum Errors
+{
+    NOT_FIND_END_OF_FILE            =   1,
+    NOT_FIND_GLUE_MARK              =   2,
+    UNDECLARED_VAR                  =   4,
+    NOT_FIND_OPEN_BRACE             =   8,
+    NOT_FIND_CLOSE_BRACE            =  16,
+    NOT_FIND_OPEN_BRACE_OF_COND_OP  =  32,
+    NOT_FIND_CLOSE_BRACE_OF_COND_OP =  64
 };

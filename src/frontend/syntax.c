@@ -13,21 +13,21 @@ int Position =  0;
 
 #define MOVE_POSITION Position++
 
-/*         GRAMMAR
- *    G  ::= {OP}* $
- *   OP  ::= A | Cond | Cycle 'shutup'
- * Cond  ::= 'forreal' '('E')' '{' {OP}* '}'
- * Cycle ::= 'money'   '('E')' '{' {OP}* '}'
+/*========================================= GRAMMAR ========================================= */
+/*    Grammar    ::= {Operation}* '$'
+ *    Operation  ::= Assignment | Cond | Cycle 'shutup'
+ *    Cond       ::= 'forreal' '('Expression')' '{' {Operation}* '}'
+ *    Cycle      ::= 'money'   '('Expression')' '{' {Operation}* '}'
  *
- *    A ::= Id '=' E // 'lethimcook' >>> added_status for checking
- *    E ::= T {['+''-']T}*
- *    T ::= P {['*''/']P}*
- *    P ::= '('E')' | Id | N | Pow
- *  Pow ::= P {['^']P}*
+ *    Assignment ::= 'lethimcook' Ident '=' Expression // 'lethimcook' >>> added_status for checking
+ *    Expression ::= Term { ['+''-'] Term }*
+ *    Term       ::= P    { ['*''/'] P }*
+ *    P          ::= '('Expression')' | Ident | Number
+ *    Pow        ::= P {['^']P}*
  *
  *
- *   Id ::= ['a'-'z']+
- *    N ::= ['0'-'9']+
+ *    Ident  ::= ['a'-'z']+
+ *    Number ::= ['0'-'9']+
  */
 
 static struct Node_t*  GetOperation  (struct Context_t* context);
@@ -38,14 +38,14 @@ static struct Node_t*  GetP          (struct Context_t* context);
 static struct Node_t*  GetNumber     (struct Context_t* context);
 static struct Node_t*  GetIdent      (struct Context_t* context);
 static struct Node_t*  GetCond       (struct Context_t* context);
-static struct Node_t*  GetLoop      (struct Context_t* context);
+static struct Node_t*  GetLoop       (struct Context_t* context);
 
 static struct Node_t*  GetFunc       (struct Context_t* context);
 static struct Node_t*  GetPow        (struct Context_t* context);
 
 struct Node_t* union_of_operations (struct Context_t* context);
 
-static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line);
+static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error);
 
 #define _IS_OP(val)  ( context->token[Position].type  == OP && \
                        context->token[Position].value == (val) )
@@ -62,7 +62,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
     dump_in_log_file (root, "GetGrammar before while:");
 
-    while ( context->token[Position].type  == ID || _IS_OP (IF) || _IS_OP (WHILE) ) // inf cycle
+    while ( context->token[Position].type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) ) // inf cycle
     {
         struct Node_t* node = GetOperation (context);
 
@@ -78,7 +78,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
     }
 
     if ( !_IS_OP('$') )
-        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_END_OF_FILE);
 
     MOVE_POSITION;
 
@@ -95,13 +95,28 @@ struct Node_t* GetOperation  (struct Context_t* context)
 
     if (node != NULL)
         if ( _IS_OP (GLUE) ) MOVE_POSITION;
-        else                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+        else                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_GLUE_MARK);
 
     return node;
 }
 
 struct Node_t* GetAssignment (struct Context_t* context)
 {
+    if ( _IS_OP (ADVT) )
+    {
+        MOVE_POSITION;
+
+        context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+    }
+    else
+    {
+        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
+
+        if ( context->token[Position].type == ID &&
+             context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED_VAR);
+    }
+
     struct Node_t* val_1 = GetIdent (context);
 
     while ( _IS_OP (EQUAL) )
@@ -185,7 +200,7 @@ static struct Node_t* GetP (struct Context_t* context)
         struct Node_t* val = GetExpression (context);
 
         if ( !_IS_OP (CL_BR) )
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
 
         MOVE_POSITION;
 
@@ -217,6 +232,9 @@ static struct Node_t* GetIdent (struct Context_t* context)
 
     if ( context->token[Position].type  == ID )
     {
+        if (context->name_table[ (int) context->token[Position].value ].name.added_status == 0)
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED_VAR);
+
         node = _ID (context->token[Position].value);
 
         fprintf (stderr, "\nnode [%p]: node->value = %lg\n", node, node->value);
@@ -229,7 +247,7 @@ static struct Node_t* GetIdent (struct Context_t* context)
 
 static struct Node_t* GetNumber (struct Context_t* context)
 {
-    if (context->token[Position].type == NUM)
+    if ( context->token[Position].type == NUM )
     {
         struct Node_t* node = _NUM (context->token[Position].value);
 
@@ -258,7 +276,7 @@ static struct Node_t* GetFunc (struct Context_t* context)
         node_E = GetExpression (context);
 
         if ( !_IS_OP (CL_BR))
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
 
         MOVE_POSITION;
 
@@ -270,7 +288,7 @@ static struct Node_t* GetFunc (struct Context_t* context)
         return node_F;
     }
     else
-        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
 }
 
 static struct Node_t*  GetCond (struct Context_t* context)
@@ -289,7 +307,7 @@ static struct Node_t*  GetCond (struct Context_t* context)
             GetE = GetExpression (context);
 
             if ( !_IS_OP (CL_BR) )
-                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
 
             MOVE_POSITION;
 
@@ -299,7 +317,7 @@ static struct Node_t*  GetCond (struct Context_t* context)
 
         }
         else
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
     }
     else
         return NULL;
@@ -321,7 +339,7 @@ static struct Node_t*  GetLoop (struct Context_t* context)
             GetE = GetExpression (context);
 
             if ( !_IS_OP (CL_BR) )
-                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
 
             MOVE_POSITION;
 
@@ -331,7 +349,7 @@ static struct Node_t*  GetLoop (struct Context_t* context)
 
         }
         else
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
     }
     else
         return NULL;
@@ -361,20 +379,55 @@ struct Node_t* union_of_operations (struct Context_t* context)
         }
 
         if ( !_IS_OP (CL_F_BR) )
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE_OF_COND_OP);
 
         MOVE_POSITION;
 
         return root;
     }
     else
-        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__);
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE_OF_COND_OP);
 }
 
-static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line)
+static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)
 {
-    fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("ERROR in read >>> SYNTAX-ERROR ") "Position = %d: ""SYMBOL = '%c' (%lg)" "\n\n",
-                     filename, func, line, Position, (int) context->token[Position].value, context->token[Position].value);
+    fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("SYNTAX ERROR (code = %d) in %d position: "), filename, func, line, error, Position);
+
+    switch (error)
+    {
+        case NOT_FIND_END_OF_FILE:
+            fprintf (stderr, "expected " WHITE_TEXT("'$'") " before %s\n", context->token[Position - 1].str);
+
+            break;
+
+        case NOT_FIND_GLUE_MARK:
+            if (context->token[Position - 1].type == NUM)
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%lg'")   "\n",       context->token[Position - 1].value);
+            if (context->token[Position - 1].type == OP)
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%c'")    "\n", (int) context->token[Position - 1].value);
+            if (context->token[Position - 1].type == ID)
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%.*s'")  "\n",
+                                 (int) context->name_table[(int)context->token[Position - 1].value - 1].name.length,
+                                       context->name_table[(int)context->token[Position - 1].value - 1].name.str_pointer);
+
+            break;
+
+        case UNDECLARED_VAR:
+            fprintf (stderr, "undeclared variable " WHITE_TEXT("'%.*s'")  "\n",
+                             (int) context->name_table[(int)context->token[Position].value - 1].name.length,
+                                   context->name_table[(int)context->token[Position].value - 1].name.str_pointer);
+
+            break;
+
+        case NOT_FIND_OPEN_BRACE:
+            fprintf (stderr, "expected " WHITE_TEXT("'('") " before " WHITE_TEXT("'%s'")  "\n",
+                             ( (int) context->token[Position - 1].value == 'w') ? "money" : "forreal" );
+
+            break;
+
+        default:
+            fprintf (stderr, "Unknown error\n");
+    }
 
     exit (1);
 }

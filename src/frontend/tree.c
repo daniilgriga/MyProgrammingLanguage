@@ -39,6 +39,7 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
     return node;
 }
 
+//================= BACKEND (WILL BE PLACED IN A SEPARATE FILE) =================//
 int print_tree_postorder (struct Node_t* node)
 {
     static int count_op = 0;
@@ -59,16 +60,22 @@ int print_tree_postorder (struct Node_t* node)
 
     if (node->type == NUM)
         fprintf (stderr, "push %lg"    "\n",  node->value);
+
     else if (node->type == ID)
         fprintf (stderr, "push [%lg]"  "\n",  node->value);
+
     else if (node->type == OP && (int) node->value == ADD)
         fprintf (stderr, "ADD" "\n");
+
     else if (node->type == OP && (int) node->value == SUB)
         fprintf (stderr, "SUB" "\n");
+
     else if (node->type == OP && (int) node->value == MUL)
         fprintf (stderr, "MUL" "\n");
+
     else if (node->type == OP && (int) node->value == DIV)
         fprintf (stderr, "DIV" "\n");
+
     else if (node->type == OP && (int) node->value == EQUAL)
     {
         if (node->right != NULL)
@@ -76,6 +83,7 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "pop [%lg]" "\n",  node->left->value);
     }
+
     else if (node->type == OP && (int) node->value == IF)
     {
         fprintf (stderr, "; START 'IF'. COMPILING LEFT" "\n");
@@ -96,6 +104,7 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "%d:"    "\n", old_count_op);
     }
+
     else if (node->type == OP && node->value == WHILE)
     {
         fprintf (stderr, "; START 'WHILE'. COMPILING LEFT" "\n");
@@ -120,8 +129,10 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "%d:"    "\n", old_count_op);
     }
+
     else if (node->type == OP && node->value == GLUE)
         fprintf (stderr, "; NOP"  "\n");
+
     else
         fprintf (stderr, "%lg"    "\n",  node->value);
 
@@ -132,6 +143,7 @@ int print_tree_postorder (struct Node_t* node)
 
     return 0;
 }
+//==============================================================================//
 
 int delete_sub_tree (struct Node_t* node)
 {

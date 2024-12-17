@@ -1,10 +1,11 @@
-man = 20 shutup
-
-money (man - 14)
+lethimcook man is 20 shutup
+lethimcook bro is 10 shutup
+bro is bro - man shutup
+forreal (man - 14)
 lesssgo
-    man = man - 2 shutup
+    man is man - 2 shutup
 stoopit shutup
-ded = bro - 5 shutup
+lethimcook ded is bro - 5 shutup
 $
 
 1. GetWhile >>> fronted -> dirty backend <-----|
