@@ -5,6 +5,7 @@ enum Type
     NUM  = 1,
     OP   = 2,
     ID   = 3,
+    FUNC = 4,
     ROOT = -1
 };
 
@@ -26,7 +27,7 @@ enum Operations
     IF      = 'i',
     WHILE   = 'w',
     ADVT    = 'A',
-    FUNC    = 'F',
+    FUNCTION = 'F',
     GLUE    = ';'
 };
 

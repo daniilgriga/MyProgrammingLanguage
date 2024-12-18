@@ -30,8 +30,8 @@ int Position =  0;
  *    P                 ::= '('Expression')' | Ident | Number | FunctionCall
  *
  *
- *    Ident  ::= ['a'-'z']+
- *    Number ::= ['0'-'9']+
+ *    Ident            ::= ['a'-'z']+
+ *    Number           ::= ['0'-'9']+
  */
 
 static struct Node_t*  GetAssignment   (struct Context_t* context);
@@ -81,7 +81,28 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
 
 static struct Node_t*  GetFunctionCall (struct Context_t* context)
 {
+    struct Node_t* node = NULL;
 
+    if (context->token[Position].type == ID && context->token[Position + 1].value == OP_BR)
+    {
+        node = _FUNC (context->token[Position].value);
+
+        MOVE_POSITION;
+
+        if ( _IS_OP (OP_BR) )
+        {
+            MOVE_POSITION;
+
+            if ( !_IS_OP (CL_BR) )
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
+
+            MOVE_POSITION;
+        }
+        else
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
+    }
+
+    return node;
 }
 
 struct Node_t* GetOperation  (struct Context_t* context)
@@ -92,6 +113,8 @@ struct Node_t* GetOperation  (struct Context_t* context)
 
     if (node == NULL) node = GetLoop (context);
 
+    if (node == NULL) node = GetExpression (context);
+
     if (node != NULL)
         if ( _IS_OP (GLUE) ) MOVE_POSITION;
         else                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_GLUE_MARK);
@@ -101,35 +124,44 @@ struct Node_t* GetOperation  (struct Context_t* context)
 
 struct Node_t* GetAssignment (struct Context_t* context)
 {
-    if ( _IS_OP (ADVT) )
+    fprintf (stderr, "\nin GetA starting (Pos = %d): cur: type = %d, value = %lg" "\n" "next: type = %d, value = %lg\n\n", Position,
+                      context->token[Position].type, context->token[Position].value,
+                      context->token[Position+1].type, context->token[Position+1].value );
+
+    if (context->token[Position + 1].value != OP_BR)
     {
-        MOVE_POSITION;
+        if ( _IS_OP (ADVT) )
+        {
+            MOVE_POSITION;
 
-        context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+            context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+        }
+        else
+        {
+            fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
+
+            if ( context->token[Position].type == ID &&
+                 context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+                SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
+        }
+
+        struct Node_t* val_1 = GetIdent (context);
+
+        while ( _IS_OP (EQUAL) )
+        {
+            fprintf (stderr, "im in GetA: pos = %d\n", Position);
+
+            MOVE_POSITION;
+
+            struct Node_t* val_2 = GetExpression (context);
+
+            val_1 = _EQL (val_1, val_2);
+        }
+
+        return val_1;
     }
-    else
-    {
-        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
 
-        if ( context->token[Position].type == ID &&
-             context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
-            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
-    }
-
-    struct Node_t* val_1 = GetIdent (context);
-
-    while ( _IS_OP (EQUAL) )
-    {
-        fprintf (stderr, "im in GetA in if\n");
-
-        MOVE_POSITION;
-
-        struct Node_t* val_2 = GetExpression (context);
-
-        val_1 = _EQL (val_1, val_2);
-    }
-
-    return val_1;
+    return NULL;
 }
 
 static struct Node_t* GetExpression (struct Context_t* context)
@@ -207,15 +239,13 @@ static struct Node_t* GetP (struct Context_t* context)
     }
     else
     {
-        fprintf (stderr, "\n" "Position = %d" "\n", Position);
-
         struct Node_t* node_ID = GetIdent (context);
 
         if (node_ID != NULL)
             return node_ID;
         else
         {
-            struct Node_t* node_F = NULL; //GetFunction (context);
+            struct Node_t* node_F = GetFunctionCall (context);
 
             if (node_F != NULL)
                 return node_F;
@@ -229,7 +259,8 @@ static struct Node_t* GetIdent (struct Context_t* context)
 {
     struct Node_t* node = NULL;
 
-    if ( context->token[Position].type  == ID )
+    if ( context->token[Position].type  == ID &&
+         context->token[Position + 1].value != OP_BR)
     {
         if (context->name_table[ (int) context->token[Position].value ].name.added_status == 0)
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
@@ -361,17 +392,17 @@ static void SyntaxError (struct Context_t* context, const char* filename, const 
     switch (error)
     {
         case NOT_FIND_END_OF_FILE:
-            fprintf (stderr, "expected " WHITE_TEXT("'$'") " before %s\n", context->token[Position - 1].str);
+            fprintf (stderr, "expected " WHITE_TEXT("'$'") " after %s\n", context->token[Position - 1].str);
 
             break;
 
         case NOT_FIND_GLUE_MARK:
             if (context->token[Position - 1].type == NUM)
-                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%lg'")   "\n",       context->token[Position - 1].value);
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " after " WHITE_TEXT("'%lg'")   "\n",       context->token[Position - 1].value);
             if (context->token[Position - 1].type == OP)
-                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%c'")    "\n", (int) context->token[Position - 1].value);
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " after " WHITE_TEXT("'%c'")    "\n", (int) context->token[Position - 1].value);
             if (context->token[Position - 1].type == ID)
-                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " before " WHITE_TEXT("'%.*s'")  "\n",
+                fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " after " WHITE_TEXT("'%.*s'")  "\n",
                                  (int) context->name_table[(int)context->token[Position - 1].value - 1].name.length,
                                        context->name_table[(int)context->token[Position - 1].value - 1].name.str_pointer);
 

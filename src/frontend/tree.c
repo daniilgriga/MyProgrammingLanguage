@@ -222,6 +222,7 @@ const char* get_name (double enum_value)
         case   EQUAL: return "=";
         case      IF: return "FORREAL";
         case   WHILE: return "MONEY";
+        case    FUNC: return "FUNCTION";
         case    GLUE: return "SHUTUP";
         default:      return "bro, wth...";
     }
@@ -232,26 +233,36 @@ void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
     assert (node);
     assert (filename);
 
-    assert (node->type == NUM || node->type == OP || node->type == ID);
+    assert (node->type == NUM || node->type == OP || node->type == ID || node->type == FUNC);
 
     if (node->type == NUM)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (NUM)  | value = '' %g ''  | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FFD700\"];\n",
                  node, node, node->type, node->value, node->left, node->right);
+
     else if (node->type == OP && (int) node->value == GLUE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#E0E0E0\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+
     else if (node->type == OP && (int) node->value == IF)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#00801A\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+
     else if (node->type == OP && (int) node->value == WHILE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+
+    else if (node->type == FUNC)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (FUNC)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#2EE31E\"];\n",
+                 node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+
     else if (node->type == OP)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#50B2AA\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
+
     else if (node->type == ID)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ID)   | number of name in name table = '' %lg '' | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#FF5050\"];\n",
                  node, node, node->type, node->value, node->left, node->right);
+
     else if (node->type == ROOT)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (ROOT) | value = '' %lg '' | { son_node = [%p] } }\"; style = filled; fillcolor = \"#F0FFFF\"];\n",
                  node, node, node->type, node->value, node->left);
