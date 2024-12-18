@@ -52,6 +52,7 @@ int tokenization (struct Context_t* context, const char* string)
             {
                 context->token[count_tokens].type   = OP;
                 context->token[count_tokens].value  = value;
+                context->token[count_tokens].str    = &string[start_i];
 
                 fprintf (stderr, "IN OP >>> context->token[count_tokens].value = %lg\n\n", value);
 
@@ -65,6 +66,7 @@ int tokenization (struct Context_t* context, const char* string)
 
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = context->table_size;
+                    context->token[count_tokens].str   = &string[start_i];
 
                     fprintf (stderr, "IN ADD STRUCT_IF >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
@@ -74,6 +76,7 @@ int tokenization (struct Context_t* context, const char* string)
                 {
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = num_keyword;
+                    context->token[count_tokens].str   = &string[start_i];
 
                     fprintf (stderr, "IN ADD STRUCT >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
@@ -96,6 +99,7 @@ int tokenization (struct Context_t* context, const char* string)
 
             context->token[count_tokens].type  = NUM;
             context->token[count_tokens].value = val;
+            context->token[count_tokens].str   = &string[start_i];
 
             count_tokens++;
 
@@ -108,6 +112,7 @@ int tokenization (struct Context_t* context, const char* string)
 
             context->token[count_tokens].type  = OP;
             context->token[count_tokens].value = value;
+            context->token[count_tokens].str   = &string[start_i];
 
             count_tokens++;
             i++;

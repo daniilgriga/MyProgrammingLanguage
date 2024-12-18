@@ -15,6 +15,8 @@
 #define _WHILE(left, right) new_node (   OP,    WHILE, (left), (right) )
 #define _FUNC(value)        new_node ( FUNC,  (value),   NULL,    NULL )
 
-#define _DEF(left, right)  new_node ( FUNC,      DEF, (left), (right) )
+#define _CALL(left, right)  new_node ( FUNC,     CALL, (left), (right) )
 
-#define _OP(left, right)  new_node (  OP,    GLUE, (left), (right) )
+#define _DEF(left, right)   new_node ( FUNC,      DEF, (left), (right) )
+
+#define _OP(left, right)    new_node (   OP,     GLUE, (left), (right) )

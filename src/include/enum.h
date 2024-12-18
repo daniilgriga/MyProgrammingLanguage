@@ -9,6 +9,13 @@ enum Type
     ROOT = -1
 };
 
+enum Ident
+{
+    VAR   = 't',
+    FNCT  = 'f',
+    PARAM = 'p'
+};
+
 enum Operations
 {
     ADD     = '+',
@@ -27,8 +34,8 @@ enum Operations
     IF      = 'i',
     WHILE   = 'w',
     ADVT    = 'A',
-    FUNCTION = 'F',
-    DEF      = 'D',
+    CALL    = 'C',
+    DEF     = 'D',
     GLUE    = ';'
 };
 

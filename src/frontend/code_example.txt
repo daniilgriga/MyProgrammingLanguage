@@ -1,10 +1,10 @@
-lethimcook carti ()
-lesssgo
+lethimcook carti (lethimcook void)
+lesssgo       
 
-lethimcook man is 20 shutup
-lethimcook bro is 10 shutup
+lethimcook man is 10 shutup
+lethimcook bro is 5 shutup
 
-Jump () + 5 shutup
+Jump (bro) + 5 shutup
 
 bro is bro - man shutup
 
@@ -15,7 +15,3 @@ stoopit shutup
 
 stoopit
 $
-
-1. GetFunction
-
-2. Backend
