@@ -28,6 +28,7 @@ enum Operations
     WHILE   = 'w',
     ADVT    = 'A',
     FUNCTION = 'F',
+    DEF      = 'D',
     GLUE    = ';'
 };
 

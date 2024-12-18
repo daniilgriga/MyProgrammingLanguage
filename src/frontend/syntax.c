@@ -60,7 +60,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
     //{
 
 
-    struct Node_t* root = CompoundOperations (context);
+    struct Node_t* root = GetFunctionDef (context);
 
     //}
     //else
@@ -76,7 +76,26 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
 static struct Node_t*  GetFunctionDef  (struct Context_t* context)
 {
+    if ( _IS_OP (ADVT) )
+    {
+        MOVE_POSITION;
 
+        context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+    }
+    else
+    {
+        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
+
+        if ( context->token[Position].type == ID &&
+                context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+            SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
+    }
+
+    struct Node_t* func_name = GetFunctionCall (context);
+
+    struct Node_t* func_body = CompoundOperations (context);
+
+    return _DEF (func_name, func_body);
 }
 
 static struct Node_t*  GetFunctionCall (struct Context_t* context)

@@ -222,13 +222,13 @@ const char* get_name (double enum_value)
         case   EQUAL: return "=";
         case      IF: return "FORREAL";
         case   WHILE: return "MONEY";
-        case    FUNC: return "FUNCTION";
+        case     DEF: return "DEFINITION";
         case    GLUE: return "SHUTUP";
         default:      return "bro, wth...";
     }
 }
 
-void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
+void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* context, FILE* filename)
 {
     assert (node);
     assert (filename);
@@ -251,12 +251,20 @@ void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
 
-    else if (node->type == FUNC)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (FUNC)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#2EE31E\"];\n",
+    else if (node->type == FUNC && node->value == DEF)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (FUNC)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#6F00FF\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
 
+
+    else if (node->type == FUNC)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (FUNC)   | value = '' %.*s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#2EE31E\"];\n",
+                 node, node, node->type,
+                 (int) context->name_table[(int)node->value - 1].name.length,
+                       context->name_table[(int)node->value - 1].name.str_pointer,
+                 node->value, node->left, node->right);
+
     else if (node->type == OP)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#50B2AA\"];\n",
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { [%p] | type = %d (OP)   | value = '' %s ''  (%lg) | { left = [%p] | right = [%p] } }\"; style = filled; fillcolor = \"#00FFDD\"];\n",
                  node, node, node->type, get_name (node->value), node->value, node->left, node->right);
 
     else if (node->type == ID)
@@ -273,12 +281,12 @@ void print_tree_preorder_for_file (struct Node_t* node, FILE* filename)
     if (node->right)
         fprintf (filename, "node%p -> node%p;\n", node, node->right);
 
-    if (node->left)  print_tree_preorder_for_file (node->left , filename);
+    if (node->left)  print_tree_preorder_for_file (node->left , context, filename);
 
-    if (node->right) print_tree_preorder_for_file (node->right, filename);
+    if (node->right) print_tree_preorder_for_file (node->right, context, filename);
 }
 
-int make_graph (struct Node_t* node)
+int make_graph (struct Node_t* node, struct Context_t* context)
 {
     assert (node);
 
@@ -293,7 +301,7 @@ int make_graph (struct Node_t* node)
 
     fprintf (graph_file, "bgcolor=\"transparent\"\n");
 
-    print_tree_preorder_for_file (node, graph_file);
+    print_tree_preorder_for_file (node, context, graph_file);
     fprintf (graph_file, "\n");
 
     fprintf (graph_file, "}");
@@ -304,12 +312,12 @@ int make_graph (struct Node_t* node)
     return 0;
 }
 
-void dump_in_log_file (struct Node_t* node, const char* reason, ...)
+void dump_in_log_file (struct Node_t* node, struct Context_t* context, const char* reason, ...)
 {
     if (node == NULL)
         fprintf (stderr, "got node == NULL in dump, reason = \"%s\"\n", reason);
 
-    make_graph (node);
+    make_graph (node, context);
 
     va_list args;
     va_start (args, reason);

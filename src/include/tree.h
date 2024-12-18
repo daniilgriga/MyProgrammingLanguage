@@ -32,11 +32,11 @@ int buffer_dtor (struct Buffer_t* buffer);
 
 int destructor  (struct Node_t* node, struct Buffer_t* buffer);
 
-void print_tree_preorder_for_file (struct Node_t* node, FILE* filename);
+void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* context, FILE* filename);
 
-int make_graph  (struct Node_t* node);
+int make_graph  (struct Node_t* node, struct Context_t* context);
 
-void dump_in_log_file (struct Node_t* node, const char* reason, ...);
+void dump_in_log_file (struct Node_t* node,  struct Context_t* context, const char* reason, ...);
 
 const char* get_name (double enum_value);
 

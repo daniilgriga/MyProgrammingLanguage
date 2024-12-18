@@ -13,7 +13,8 @@
 #define _EQL(left, right)   new_node (   OP,    EQUAL, (left), (right) )
 #define _IF(left, right)    new_node (   OP,       IF, (left), (right) )
 #define _WHILE(left, right) new_node (   OP,    WHILE, (left), (right) )
-#define _FUNC(value)        new_node ( FUNC, (value) ,   NULL,    NULL )
+#define _FUNC(value)        new_node ( FUNC,  (value),   NULL,    NULL )
 
+#define _DEF(left, right)  new_node ( FUNC,      DEF, (left), (right) )
 
 #define _OP(left, right)  new_node (  OP,    GLUE, (left), (right) )

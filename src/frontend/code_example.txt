@@ -1,13 +1,21 @@
+lethimcook carti ()
+lesssgo
+
 lethimcook man is 20 shutup
 lethimcook bro is 10 shutup
+
+Jump () + 5 shutup
+
 bro is bro - man shutup
+
 forreal (man - 14)
 lesssgo
     man is man - 2 shutup
 stoopit shutup
-lethimcook ded is bro - 5 shutup
+
+stoopit
 $
 
-1. GetWhile >>> fronted -> dirty backend <-----|
-                                               |
-2. backend which is folder --------------------|
+1. GetFunction
+
+2. Backend
