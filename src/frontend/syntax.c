@@ -21,13 +21,13 @@ int Position =  0;
  *    Cond              ::= 'forreal' '('Expression')' Compound_Operator
  *    Cycle             ::= 'money'   '('Expression')' Compound_Operator
  *
- *    FunctionDef       ::= 'lethimcook' Ident '(' 'lethimcook' Ident ')' Compound_Operator // lethimcook <- indicator for params
- *    FunctionCall      ::= Ident '(' Expression ')'
+ *    FunctionDef       ::= 'lethimcook' Ident '(' { 'lethimcook' Ident, }* ')' Compound_Operator // lethimcook <- indicator for params
+ *    FunctionCall      ::= Ident '(' { Expression, }* ')'
  *
  *    Assignment        ::= 'lethimcook' Ident '=' Expression
  *    Expression        ::= Term { ['+''-'] Term }*
  *    Term              ::= P    { ['*''/'] P    }*
- *    Pow               ::= P    { ['^'] P       }*
+ *    Pow               ::= P    { ['^'] P       }*s
  *    P                 ::= '('Expression')' | Ident | Number | FunctionCall
  *
  *
@@ -51,6 +51,7 @@ static struct Node_t*  GetPow          (struct Context_t* context);
 static struct Node_t*  GetP            (struct Context_t* context);
 
 struct Node_t* CompoundOperations (struct Context_t* context);
+struct Node_t* CompoundParameters (struct Context_t* context);
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error);
 void dump_token (struct Context_t* context, int numb_of_token);
@@ -135,7 +136,7 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
         else
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
 
-        node = _CALL (node, node_param);
+        node = _CALL (node, _PRM (node_param, NULL) );
     }
 
     struct Node_t* func_name = node;
@@ -157,15 +158,7 @@ static struct Node_t*  GetFunctionCall (struct Context_t* context)
         MOVE_POSITION;
         MOVE_POSITION;
 
-        dump_token (context, 0);
-        log_printf ("\n" "Im BEFORE GetExpression" "\n" "CURRENT TOKEN TYPE = %d, VALUE = '%c' (%lg)",
-                     context->token[Position].type, (int)context->token[Position].value, context->token[Position].value);
-
-        node_param = GetExpression (context);
-
-        dump_token (context, 0);
-        log_printf ("\n" "Im BEFORE GetExpression" "\n" "CURRENT TOKEN TYPE = %d, VALUE = '%c' (%lg)",
-                     context->token[Position].type, (int)context->token[Position].value, context->token[Position].value);
+        node_param = CompoundParameters (context);
 
         node = _CALL (node, node_param);
 
@@ -465,6 +458,38 @@ struct Node_t* CompoundOperations (struct Context_t* context)
     }
     else
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE_OF_COND_OP);
+}
+
+struct Node_t* CompoundParameters (struct Context_t* context)
+{
+    struct Node_t* node = GetExpression (context);
+
+    struct Node_t* root = _PRM (node, NULL);
+
+    struct Node_t* link = root;
+
+    if ( _IS_OP (COMMA) )
+    {
+        MOVE_POSITION;
+
+        while ( context->token[Position].type  == ID || context->token[Position].type  == NUM )
+        {
+            struct Node_t* node = GetExpression (context);
+
+            struct Node_t* right_node = _PRM  (node, NULL);
+
+            link->right = right_node;
+
+            link = right_node;
+
+            if ( !_IS_OP (COMMA) )
+                break;
+
+            MOVE_POSITION;
+        }
+    }
+
+    return root;
 }
 
 static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)

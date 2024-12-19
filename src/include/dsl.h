@@ -19,4 +19,6 @@
 
 #define _DEF(left, right)   new_node ( FUNC,      DEF, (left), (right) )
 
+#define _PRM(left, right)   new_node ( FUNC,    COMMA, (left), (right) )
+
 #define _OP(left, right)    new_node (   OP,     GLUE, (left), (right) )

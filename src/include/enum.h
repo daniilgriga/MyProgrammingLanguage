@@ -36,6 +36,7 @@ enum Operations
     ADVT    = 'A',
     CALL    = 'C',
     DEF     = 'D',
+    COMMA   = ',',
     GLUE    = ';'
 };
 

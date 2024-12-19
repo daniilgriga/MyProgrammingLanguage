@@ -224,6 +224,7 @@ const char* get_name (double enum_value)
         case   WHILE: return "MONEY";
         case     DEF: return "DEFINITION";
         case    CALL: return "CALL";
+        case   COMMA: return ",";
         case    GLUE: return "SHUTUP";
         default:      return "bro, wth...";
     }
@@ -250,6 +251,10 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
 
     else if (node->type == OP && (int) node->value == WHILE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
+                 node, node->type, get_name (node->value), node->value);
+
+    else if (node->type == FUNC && node->value == COMMA)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#FEAADF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
     else if (node->type == FUNC && node->value == CALL)

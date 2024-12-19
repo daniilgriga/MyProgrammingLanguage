@@ -106,7 +106,7 @@ int tokenization (struct Context_t* context, const char* string)
             continue;
         }
 
-        if (strchr ("+-*/^()={}", string[i]) != NULL)
+        if (strchr ("+-*/^()={},", string[i]) != NULL)
         {
             int value = check_keyword (context, &string[start_i], 1);
 
@@ -260,6 +260,7 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,             "forreal",   IF   , 1, strlen (            "forreal"), 0);
     add_struct_in_keywords (context,               "money",  WHILE , 1, strlen (              "money"), 0);
     add_struct_in_keywords (context,          "lethimcook",  ADVT  , 1, strlen (         "lethimcook"), 0);
+    add_struct_in_keywords (context,                   ",", COMMA  , 1, strlen (                  ","), 0);
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
 
