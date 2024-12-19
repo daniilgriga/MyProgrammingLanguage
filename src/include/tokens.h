@@ -26,6 +26,8 @@ struct Name_t
     int is_keyword;
 
     int added_status;
+
+    int id_type;
 };
 
 struct NameTable_t

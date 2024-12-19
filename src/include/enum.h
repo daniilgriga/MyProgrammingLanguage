@@ -6,14 +6,8 @@ enum Type
     OP   = 2,
     ID   = 3,
     FUNC = 4,
+    PARM = 5,
     ROOT = -1
-};
-
-enum Ident
-{
-    VAR   = 't',
-    FNCT  = 'f',
-    PARAM = 'p'
 };
 
 enum Operations
