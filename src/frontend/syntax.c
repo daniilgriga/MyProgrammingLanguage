@@ -15,19 +15,20 @@ int Position =  0;
 #define MOVE_POSITION Position++
 
 /*========================================= GRAMMAR ========================================= */
-/*    Grammar           ::= FunctionDef '$'
+/*
+*   Grammar                   ::= FunctionDef '$'
  *
  *
- *  CompoundParametersForCall ::= { Expression, }*
- *  CompoundParametersForDef  ::= { 'lethimcook' Ident, }*
- *  Compound_Operator         ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
- *  Cond                      ::= 'forreal' '('Expression')' Compound_Operator
- *  Cycle                     ::= 'money'   '('Expression')' Compound_Operator
+ *    CompoundParametersForCall ::= { Expression, }*
+ *    CompoundParametersForDef  ::= { 'lethimcook' Ident, }*
+ *    Compound_Operator         ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
+ *    Cond                      ::= 'forreal' '('Expression')' Compound_Operator
+ *    Cycle                     ::= 'money'   '('Expression')' Compound_Operator
  *
  *    FunctionDef       ::= 'lethimcook' Ident '(' CompoundParametersForDef ')' Compound_Operator
  *    FunctionCall      ::= Ident '(' CompoundParametersForCall ')'
  *
- *    Assignment        ::= 'lethimcook' Ident '=' Expression
+ *    Assignment        ::= 'lethimcook'? Ident '=' Expression
  *    Expression        ::= Term { ['+''-'] Term }*
  *    Term              ::= P    { ['*''/'] P    }*
  *    Pow               ::= P    { ['^'] P       }*s
@@ -40,24 +41,23 @@ int Position =  0;
 
  // GetParametr
 
-static struct Node_t*  GetAssignment   (struct Context_t* context);
-static struct Node_t*  GetExpression   (struct Context_t* context);
-static struct Node_t*  GetOperation    (struct Context_t* context);
-static struct Node_t*  GetFunctionDef  (struct Context_t* context);
-static struct Node_t*  GetFunctionCall (struct Context_t* context);
-static struct Node_t*  GetNumber       (struct Context_t* context);
-static struct Node_t*  GetIdent        (struct Context_t* context);
-static struct Node_t*  GetCond         (struct Context_t* context);
-static struct Node_t*  GetLoop         (struct Context_t* context);
-static struct Node_t*  GetTerm         (struct Context_t* context);
-static struct Node_t*  GetPow          (struct Context_t* context);
-static struct Node_t*  GetP            (struct Context_t* context);
+static struct Node_t*  GetAssignment            (struct Context_t* context);
+static struct Node_t*  GetExpression            (struct Context_t* context);
+static struct Node_t*  GetOperation             (struct Context_t* context);
+static struct Node_t*  GetFunctionDef           (struct Context_t* context);
+static struct Node_t*  GetFunctionCall          (struct Context_t* context);
+static struct Node_t*  GetNumber                (struct Context_t* context);
+static struct Node_t*  GetIdent                 (struct Context_t* context);
+static struct Node_t*  GetCond                  (struct Context_t* context);
+static struct Node_t*  GetLoop                  (struct Context_t* context);
+static struct Node_t*  GetTerm                  (struct Context_t* context);
+static struct Node_t*  GetPow                   (struct Context_t* context);
+static struct Node_t*  GetP                     (struct Context_t* context);
 
-struct Node_t* CompoundOperations (struct Context_t* context);
-struct Node_t* CompoundParametersForCall (struct Context_t* context);
-struct Node_t* CompoundParametersForDef  (struct Context_t* context);
+static struct Node_t* CompoundParametersForCall (struct Context_t* context);
+static struct Node_t* CompoundParametersForDef  (struct Context_t* context);
+static struct Node_t* CompoundOperations        (struct Context_t* context);
 
-static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error);
 void dump_token (struct Context_t* context, int numb_of_token);
 
 #define _IS_OP(val)  ( context->token[Position].type  == OP && \
@@ -68,8 +68,22 @@ struct Node_t* GetGrammar (struct Context_t* context)
     //if ( _IS_OP (ADVT) )
     //{
 
+    struct Node_t* node = GetFunctionDef (context);
 
-    struct Node_t* root = GetFunctionDef (context);
+    struct Node_t* root = _DEFGL (node, NULL) ;
+
+    struct Node_t* link = root;
+
+    while ( _IS_OP (ADVT) )
+    {
+        struct Node_t* node = GetFunctionDef (context);
+
+        struct Node_t* right_node = _DEFGL (node, NULL);
+
+        link->right = right_node;
+
+        link = right_node;
+    }
 
     //}
     //else
@@ -103,11 +117,12 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
 
+    // current Position is token with function name
     if (context->token[Position].type == ID && context->token[Position + 1].value == OP_BR)
     {
         node = _FUNC (context->token[Position].value);
 
-        fprintf (stderr, "\n\nnodeValue == %lg\n\n",node->value);
+        context->curr_host_func = node->value;
 
         MOVE_POSITION;
 
@@ -179,8 +194,10 @@ struct Node_t* GetOperation  (struct Context_t* context)
 struct Node_t* GetAssignment (struct Context_t* context)
 {
     fprintf (stderr, "\nin GetA starting (Pos = %d): cur: type = %d, value = %lg" "\n" "next: type = %d, value = %lg\n\n", Position,
-                      context->token[Position].type, context->token[Position].value,
-                      context->token[Position+1].type, context->token[Position+1].value );
+                      context->token[Position].type,     context->token[Position].value,
+                      context->token[Position + 1].type, context->token[Position + 1].value );
+
+    struct Node_t* val_1 = NULL;
 
     if (context->token[Position + 1].value != OP_BR)
     {
@@ -189,22 +206,29 @@ struct Node_t* GetAssignment (struct Context_t* context)
             MOVE_POSITION;
 
             context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+
+            val_1 = GetIdent (context);
+
+            context->name_table[(int)val_1->value].name.id_type   = LOCL;
+            context->name_table[(int)val_1->value].name.host_func = context->curr_host_func;
+
+            fprintf (stderr, "\nvalue = %lg", val_1->value);
+            fprintf (stderr, "\nname = '%s'\n", context->name_table[context->name_table[(int)val_1->value].name.host_func].name.str_pointer);
         }
         else
         {
             fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
 
             if ( context->token[Position].type == ID &&
-                 context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+                 context->name_table[ (int) context->token[Position].value ].name.added_status == 0 ||
+                 context->name_table[ (int) context->token[Position].value ].name.host_func != context->curr_host_func)
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
-        }
 
-        struct Node_t* val_1 = GetIdent (context);
+            val_1 = GetIdent (context);
+        }
 
         while ( _IS_OP (EQUAL) )
         {
-            fprintf (stderr, "im in GetA: pos = %d\n", Position);
-
             MOVE_POSITION;
 
             struct Node_t* val_2 = GetExpression (context);
@@ -415,7 +439,7 @@ static struct Node_t*  GetLoop (struct Context_t* context)
         return NULL;
 }
 
-struct Node_t* CompoundOperations (struct Context_t* context)
+static struct Node_t* CompoundOperations (struct Context_t* context)
 {
     if ( _IS_OP (OP_F_BR) )
     {
@@ -449,7 +473,7 @@ struct Node_t* CompoundOperations (struct Context_t* context)
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE_OF_COND_OP);
 }
 
-struct Node_t* CompoundParametersForCall (struct Context_t* context)
+static struct Node_t* CompoundParametersForCall (struct Context_t* context)
 {
     struct Node_t* node = GetExpression (context);
 
@@ -481,7 +505,7 @@ struct Node_t* CompoundParametersForCall (struct Context_t* context)
     return root;
 }
 
-struct Node_t* CompoundParametersForDef  (struct Context_t* context)
+static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 {
     if ( _IS_OP (ADVT) )
     {
@@ -498,9 +522,10 @@ struct Node_t* CompoundParametersForDef  (struct Context_t* context)
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
     }
 
-    log_printf ("IM LOOKING FOR PARAMETER:\n");
     struct Node_t* node = GetIdent (context);
-    dump_in_log_file (node, context, "I GOT UUUUU!!!\n");
+
+    context->name_table[(int)node->value].name.id_type   = PARM;
+    context->name_table[(int)node->value].name.host_func = context->curr_host_func;
 
     struct Node_t* root = _PRM (node, NULL);
 
@@ -509,11 +534,6 @@ struct Node_t* CompoundParametersForDef  (struct Context_t* context)
     if ( _IS_OP (COMMA) )
     {
         MOVE_POSITION;
-
-        dump_token (context, 0);
-        dump_token (context, 1);
-
-        log_printf ("IM LOOKING FOR PARAMETER IN WHILE:\n");
 
         while ( _IS_OP (ADVT) && context->token[Position + 1].type  == ID)
         {
@@ -524,7 +544,9 @@ struct Node_t* CompoundParametersForDef  (struct Context_t* context)
             dump_token (context, 0);
 
             struct Node_t* node = GetIdent (context);
-            dump_in_log_file (node, context, "I GOT UUUUU!!! IN WHIIIILEEEE\n");
+
+            context->name_table[(int)node->value].name.id_type   = PARM;
+            context->name_table[(int)node->value].name.host_func = context->curr_host_func;
 
             struct Node_t* right_node = _PRM  (node, NULL);
 
@@ -536,8 +558,6 @@ struct Node_t* CompoundParametersForDef  (struct Context_t* context)
                 break;
 
             MOVE_POSITION;
-
-            dump_token (context, 0);
         }
     }
 
@@ -546,7 +566,7 @@ struct Node_t* CompoundParametersForDef  (struct Context_t* context)
     return root;
 }
 
-static void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)
+void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)
 {
     fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("SYNTAX ERROR (code = %d) in %d position: "), filename, func, line, error, Position);
 

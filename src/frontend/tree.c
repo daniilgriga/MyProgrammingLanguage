@@ -39,8 +39,8 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
     return node;
 }
 
-//================= BACKEND (WILL BE PLACED IN A SEPARATE FILE) =================//
-int print_tree_postorder (struct Node_t* node)
+//========================== BACKEND (WILL BE PLACED IN A SEPARATE FILE) ==========================//
+int print_tree_postorder (struct Node_t* node, struct Context_t* context)
 {
     static int count_op = 0;
     count_op += 10;
@@ -52,17 +52,37 @@ int print_tree_postorder (struct Node_t* node)
 
     if (node->left  && node->value != EQUAL
                     && node->value != IF
-                    && node->value != WHILE) print_tree_postorder (node->left);
+                    && node->value != WHILE
+                    && node->value != CALL
+                    && node->value != DEF   ) print_tree_postorder (node->left, context);
 
     if (node->right && node->value != EQUAL
                     && node->value != IF
-                    && node->value != WHILE) print_tree_postorder (node->right);
+                    && node->value != WHILE
+                    && node->value != CALL
+                    && node->value != DEF   ) print_tree_postorder (node->right, context);
 
+    else if (node->type == FUNC && node->value == CALL)
+    {
+        fprintf (stderr, "call %lg:\n", node->left->value);
+    }
+    else if (node->type == FUNC && node->value == DEF)
+    {
+        print_tree_postorder (node->left, context);
+
+        fprintf (stderr, "%lg:\n ", node->left->left->value);
+
+        print_tree_postorder (node->right, context);
+
+        fprintf (stderr, "ret\n");
+    }
     if (node->type == NUM)
         fprintf (stderr, "push %lg"    "\n",  node->value);
 
     else if (node->type == ID)
-        fprintf (stderr, "push [%lg]"  "\n",  node->value);
+        fprintf (stderr, "push [%lg]"  "\n" "; name = '%.*s'\n",
+                          node->value, (int)context->name_table[(int)node->value].name.length,
+                           context->name_table[(int)node->value].name.str_pointer);
 
     else if (node->type == OP && (int) node->value == ADD)
         fprintf (stderr, "add" "\n");
@@ -79,16 +99,19 @@ int print_tree_postorder (struct Node_t* node)
     else if (node->type == OP && (int) node->value == EQUAL)
     {
         if (node->right != NULL)
-            print_tree_postorder (node->right);
+            print_tree_postorder (node->right, context);
 
-        fprintf (stderr, "pop [%lg]" "\n",  node->left->value);
+        fprintf (stderr, "pop [%lg]" "\n" "; name = '%.*s'\n",
+        node->left->value,
+        (int)context->name_table[(int)node->left->value].name.length,
+        context->name_table[(int)node->left->value].name.str_pointer);
     }
 
     else if (node->type == OP && (int) node->value == IF)
     {
         fprintf (stderr, "; START 'IF'. COMPILING LEFT" "\n");
         int old_count_op = count_op;
-        print_tree_postorder (node->left);
+        print_tree_postorder (node->left, context);
 
         fprintf (stderr, "; 'IF'. TESTING LEFT" "\n");
 
@@ -98,7 +121,7 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "; 'IF'. COMPILING RIGHT" "\n");
 
-        print_tree_postorder (node->right);
+        print_tree_postorder (node->right, context);
 
         fprintf (stderr, "; END 'IF'. TESTING RIGHT" "\n");
 
@@ -111,7 +134,7 @@ int print_tree_postorder (struct Node_t* node)
         int old_count_op = count_op;
         fprintf (stderr, "%d:" "\n", old_count_op + 1);
 
-        print_tree_postorder (node->left);
+        print_tree_postorder (node->left, context);
 
         fprintf (stderr, "push 0" "\n");
 
@@ -121,7 +144,7 @@ int print_tree_postorder (struct Node_t* node)
 
         fprintf (stderr, "; 'WHILE'. COMPILING RIGHT" "\n");
 
-        print_tree_postorder (node->right);
+        print_tree_postorder (node->right, context);
 
         fprintf (stderr, "; END 'WHILE'. TESTING RIGHT" "\n");
 
@@ -134,16 +157,13 @@ int print_tree_postorder (struct Node_t* node)
         fprintf (stderr, "; NOP"  "\n");
 
     else
-        fprintf (stderr, "%lg"    "\n",  node->value);
-
-    //else if (node->type = OP && node->value == EQUAL)
-    //     fprintf (stderr, "push %lg" "\n",  node->value);
+        fprintf (stderr, "; %lg"    "\n",  node->value);
 
     fprintf (stderr, "; ) type = %d, value = %lg\n", node->type, node->value);
 
     return 0;
 }
-//==============================================================================//
+//========================== BACKEND (WILL BE PLACED IN A SEPARATE FILE) ==========================//
 
 int delete_sub_tree (struct Node_t* node)
 {
@@ -226,6 +246,7 @@ const char* get_name (double enum_value)
         case    CALL: return "CALL";
         case   COMMA: return ",";
         case    GLUE: return "SHUTUP";
+        case FN_GLUE: return "NEXT FUNCTION";
         default:      return "bro, wth...";
     }
 }
@@ -253,6 +274,10 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
+    else if (node->type == FUNC && node->value == FN_GLUE)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#A0A0A0\"];\n",
+                 node, node->type, get_name (node->value), node->value);
+
     else if (node->type == FUNC && node->value == COMMA)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#FEAADF\"];\n",
                  node, node->type, get_name (node->value), node->value);
@@ -269,8 +294,8 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
     else if (node->type == FUNC)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %.*s ''  (%lg) }\"; style = filled; fillcolor = \"#2EE31E\"];\n",
                  node, node->type,
-                 (int) context->name_table[(int)node->value - 1].name.length,
-                       context->name_table[(int)node->value - 1].name.str_pointer,
+                 (int) context->name_table[(int)node->value].name.length,
+                       context->name_table[(int)node->value].name.str_pointer,
                  node->value);
 
     else if (node->type == OP)

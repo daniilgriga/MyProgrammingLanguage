@@ -1,0 +1,23 @@
+lethimcook carti (lethimcook void)
+lesssgo
+
+lethimcook numb   is 5 shutup
+lethimcook result is 1 shutup
+lethimcook old    is 1 shutup
+
+money (numb)
+lesssgo
+    old is numb shutup
+
+    result is result * old shutup
+
+    old is numb - 1 shutup
+
+    numb is numb - 1 shutup
+
+stoopit shutup
+
+result is result shutup
+
+stoopit
+$

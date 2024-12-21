@@ -32,7 +32,7 @@ int main (int argc, const char* argv[])
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
     fprintf (stderr, "\n");
-    print_tree_postorder (root);
+    print_tree_postorder (root, &context);
     fprintf (stderr, "\n");
 
     delete_sub_tree (root);

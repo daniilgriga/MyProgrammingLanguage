@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "stdio.h": "c",
+        "tokens.h": "c",
+        "color_print.h": "c",
+        "enum.h": "c",
+        "optional": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c"
+    }
+}

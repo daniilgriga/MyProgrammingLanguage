@@ -22,3 +22,5 @@
 #define _PRM(left, right)   new_node ( FUNC,    COMMA, (left), (right) )
 
 #define _OP(left, right)    new_node (   OP,     GLUE, (left), (right) )
+
+#define _DEFGL(left, right) new_node ( FUNC,  FN_GLUE, (left), (right) )

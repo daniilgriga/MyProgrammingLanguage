@@ -1,17 +1,19 @@
-lethimcook carti (lethimcook void, lethimcook god, lethimcook damn)
-lesssgo       
-
-lethimcook man  is 10 shutup
-lethimcook bro  is 5  shutup
-lethimcook dude is 20 shutup
-Jump (bro, man, dude) + 5 shutup
-
-bro is bro - man shutup
-
-forreal (man - 14)
+lethimcook carti (lethimcook void)
 lesssgo
-    man is man - 2 shutup
-stoopit shutup
+
+lethimcook bro  is 25 shutup
+lethimcook dude is 10 shutup
+
+bro is eval (dude) shutup
+
+bro is bro shutup
+
+stoopit
+
+lethimcook eval (lethimcook dude)
+lesssgo
+
+    dude is 9 shutup
 
 stoopit
 $

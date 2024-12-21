@@ -22,7 +22,7 @@
 <path fill="#ff5050" stroke="black" d="M12,-0.5C12,-0.5 287,-0.5 287,-0.5 293,-0.5 299,-6.5 299,-12.5 299,-12.5 299,-34.5 299,-34.5 299,-40.5 293,-46.5 287,-46.5 287,-46.5 12,-46.5 12,-46.5 6,-46.5 0,-40.5 0,-34.5 0,-34.5 0,-12.5 0,-12.5 0,-6.5 6,-0.5 12,-0.5"/>
 <text text-anchor="middle" x="149.5" y="-31.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="0,-23.5 299,-23.5 "/>
-<text text-anchor="middle" x="149.5" y="-8.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 28 &#39;&#39;</text>
+<text text-anchor="middle" x="149.5" y="-8.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 23 &#39;&#39;</text>
 </g>
 <!-- node0x503000000af0&#45;&gt;node0x503000000a90 -->
 <g id="edge1" class="edge">
@@ -36,7 +36,7 @@
 <path fill="#ff5050" stroke="black" d="M329,-0.5C329,-0.5 604,-0.5 604,-0.5 610,-0.5 616,-6.5 616,-12.5 616,-12.5 616,-34.5 616,-34.5 616,-40.5 610,-46.5 604,-46.5 604,-46.5 329,-46.5 329,-46.5 323,-46.5 317,-40.5 317,-34.5 317,-34.5 317,-12.5 317,-12.5 317,-6.5 323,-0.5 329,-0.5"/>
 <text text-anchor="middle" x="466.5" y="-31.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="317,-23.5 616,-23.5 "/>
-<text text-anchor="middle" x="466.5" y="-8.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 27 &#39;&#39;</text>
+<text text-anchor="middle" x="466.5" y="-8.3" font-family="Times,serif" font-size="14.00">number of name in name table = &#39;&#39; 22 &#39;&#39;</text>
 </g>
 <!-- node0x503000000af0&#45;&gt;node0x503000000ac0 -->
 <g id="edge2" class="edge">

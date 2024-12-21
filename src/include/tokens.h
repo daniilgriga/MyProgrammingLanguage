@@ -28,6 +28,8 @@ struct Name_t
     int added_status;
 
     int id_type;
+    int host_func;
+    int counter_parms_and_locals;
 };
 
 struct NameTable_t
@@ -43,6 +45,8 @@ struct Context_t
     int table_size;
 
     struct Token_t           token[MAX_SIZE];
+
+    int curr_host_func;
 };
 
 int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length, int added_status);
@@ -53,7 +57,7 @@ int name_table_dump (struct Context_t* context);
 
 int tokenization (struct Context_t* context, const char* string);
 
-int check_keyword (struct Context_t* context, const char* str, int length);
+int find_name (struct Context_t* context, const char* str, int length);
 
 int find_number_of_keyword (struct Context_t* context, const char* str, int length);
 
