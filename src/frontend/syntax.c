@@ -41,11 +41,11 @@ int Position =  0;
 
  // GetParametr
 
+static struct Node_t*  GetFunctionCall          (struct Context_t* context);
+static struct Node_t*  GetFunctionDef           (struct Context_t* context);
 static struct Node_t*  GetAssignment            (struct Context_t* context);
 static struct Node_t*  GetExpression            (struct Context_t* context);
 static struct Node_t*  GetOperation             (struct Context_t* context);
-static struct Node_t*  GetFunctionDef           (struct Context_t* context);
-static struct Node_t*  GetFunctionCall          (struct Context_t* context);
 static struct Node_t*  GetNumber                (struct Context_t* context);
 static struct Node_t*  GetIdent                 (struct Context_t* context);
 static struct Node_t*  GetCond                  (struct Context_t* context);
@@ -107,8 +107,6 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     }
     else
     {
-        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
-
         if ( context->token[Position].type == ID &&
                 context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);

@@ -68,7 +68,7 @@ int tokenization (struct Context_t* context, const char* string)
                     fprintf (stderr, "table_size = %d\n", context->table_size);
 
                     context->token[count_tokens].type  = ID;
-                    context->token[count_tokens].value = context->table_size - 1;
+                    context->token[count_tokens].value = context->table_size - 1; // before 'add_struct' table_size was table_size - 1
                     context->token[count_tokens].str   = &string[start_i];
 
                     fprintf (stderr, "IN ADD STRUCT_IF >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
@@ -194,7 +194,7 @@ int tokens_dump (struct Context_t* context, int old_size)
 
             case ID:
                 fprintf (stderr, BLUE_TEXT("[%.2d] ") GREEN_TEXT("token_type = ID  ||| ADDRESS = [%p] ||| token_value = ") BLUE_TEXT("[%lg]\n"),
-                                 j, context[j].token, context->token[j].value - 1);
+                                 j, context[j].token, context->token[j].value);
 
                 fprintf (stderr, GREEN_TEXT ("     ADDRESS = [%p], name = '%.*s', length = %zu, is_keyword = %d\n\n"),
                                  context[(int)context->token[j].value].name_table, (int) context->name_table[(int)context->token[j].value].name.length,

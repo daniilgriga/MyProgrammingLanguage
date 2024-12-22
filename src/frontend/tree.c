@@ -302,9 +302,17 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#00FFDD\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == ID)
-        fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ID)   | number of name in name table = '' %lg '' }\"; style = filled; fillcolor = \"#FF5050\"];\n",
-                 node, node->type, node->value);
+    else if (node->type == ID && context->name_table[(int)node->value].name.id_type == PARM)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ID)  | name = '' %.*s '' | number in name table = '' %lg '' | id_type = PARM }\"; style = filled; fillcolor = \"#FF5050\"];\n",
+                 node, node->type,
+                 (int) context->name_table[(int)node->value].name.length,
+                       context->name_table[(int)node->value].name.str_pointer, node->value);
+
+    else if (node->type == ID && context->name_table[(int)node->value].name.id_type == LOCL)
+        fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ID)  | name = '' %.*s '' | number in name table = '' %lg '' | id_type = LOCL }\"; style = filled; fillcolor = \"#FF5050\"];\n",
+                 node, node->type,
+                 (int) context->name_table[(int)node->value].name.length,
+                       context->name_table[(int)node->value].name.str_pointer, node->value);
 
     else if (node->type == ROOT)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ROOT) | value = '' %lg '' | { son_node = [%p] } }\"; style = filled; fillcolor = \"#F0FFFF\"];\n",
