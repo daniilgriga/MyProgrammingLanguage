@@ -65,9 +65,6 @@ void dump_token (struct Context_t* context, int numb_of_token);
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
-    //if ( _IS_OP (ADVT) )
-    //{
-
     struct Node_t* node = GetFunctionDef (context);
 
     struct Node_t* root = _DEFGL (node, NULL) ;
@@ -84,10 +81,6 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
         link = right_node;
     }
-
-    //}
-    //else
-    //    SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
     if ( !_IS_OP('$') )
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_END_OF_FILE);
@@ -108,13 +101,12 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     else
     {
         if ( context->token[Position].type == ID &&
-                context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+             context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
     }
 
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
-
     // current Position is token with function name
     if (context->token[Position].type == ID && context->token[Position + 1].value == OP_BR)
     {
@@ -345,7 +337,7 @@ static struct Node_t* GetIdent (struct Context_t* context)
 {
     struct Node_t* node = NULL;
 
-    if ( context->token[Position].type  == ID &&
+    if ( context->token[Position].type      == ID &&
          context->token[Position + 1].value != OP_BR)
     {
         if (context->name_table[ (int) context->token[Position].value ].name.added_status == 0)
@@ -582,15 +574,15 @@ void SyntaxError (struct Context_t* context, const char* filename, const char* f
                 fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " after " WHITE_TEXT("'%c'")    "\n", (int) context->token[Position - 1].value);
             if (context->token[Position - 1].type == ID)
                 fprintf (stderr, "expected " WHITE_TEXT("'shutup'") " after " WHITE_TEXT("'%.*s'")  "\n",
-                                 (int) context->name_table[(int)context->token[Position - 1].value - 1].name.length,
-                                       context->name_table[(int)context->token[Position - 1].value - 1].name.str_pointer);
+                                 (int) context->name_table[(int)context->token[Position - 1].value].name.length,
+                                       context->name_table[(int)context->token[Position - 1].value].name.str_pointer);
 
             break;
 
         case UNDECLARED:
             fprintf (stderr, "undeclared " WHITE_TEXT("'%.*s'")  "\n",
-                             (int) context->name_table[(int)context->token[Position].value - 1].name.length,
-                                   context->name_table[(int)context->token[Position].value - 1].name.str_pointer);
+                             (int) context->name_table[(int)context->token[Position].value].name.length,
+                                   context->name_table[(int)context->token[Position].value].name.str_pointer);
 
             break;
 
