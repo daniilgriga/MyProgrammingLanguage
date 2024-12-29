@@ -31,15 +31,13 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
-    fprintf (stderr, "\n");
-    print_tree_postorder (root, &context);
-    fprintf (stderr, "\n");
+    print_in_asm_file ("asm_code.asm", root, &context);
 
     delete_sub_tree (root);
 
     buffer_dtor (&buffer);
 
-    close_log_file ();
+    close_log_file (LogFile);
 
     return 0;
 }

@@ -22,7 +22,9 @@ struct Buffer_t
 
 struct Node_t* new_node (int type, double value, struct Node_t* node_left, struct Node_t* node_right);
 
-int print_tree_postorder (struct Node_t* node, struct Context_t* context);
+int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* context);
+
+int print_in_asm_file (const char* filename, struct Node_t* node, struct Context_t* context);
 
 int delete_sub_tree       (struct Node_t* node);
 

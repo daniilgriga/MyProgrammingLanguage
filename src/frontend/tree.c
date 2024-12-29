@@ -13,8 +13,6 @@
 
 #define MAX_WORD 100
 
-static struct Node_t* GlobalNode = NULL;
-
 #ifdef DEBUG
     #define ON_DBG(...) __VA_ARGS__
 #else
@@ -40,68 +38,70 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
 }
 
 //========================== BACKEND (WILL BE PLACED IN A SEPARATE FILE) ==========================//
-int print_tree_postorder (struct Node_t* node, struct Context_t* context)
+int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* context)
 {
     static int count_op = 0;
-    count_op += 10;
+    count_op += 13;
 
     if (!node)
         return 1;
 
-    fprintf (stderr, "; ( type = %d, value = %lg\n", node->type, node->value);
+    fprintf (file, "; ( type = %d, value = %lg\n", node->type, node->value);
 
     if (node->left  && node->value != EQUAL
                     && node->value != IF
                     && node->value != WHILE
                     && node->value != CALL
-                    && node->value != DEF   ) print_tree_postorder (node->left, context);
+                    && node->value != DEF   ) print_tree_postorder (file, node->left, context);
 
     if (node->right && node->value != EQUAL
                     && node->value != IF
                     && node->value != WHILE
                     && node->value != CALL
-                    && node->value != DEF   ) print_tree_postorder (node->right, context);
+                    && node->value != DEF   ) print_tree_postorder (file, node->right, context);
 
     else if (node->type == FUNC && node->value == CALL)
     {
-        fprintf (stderr, "call %lg:\n", node->left->value);
+        fprintf (file, "call %lg:\n", node->left->value);
     }
+
     else if (node->type == FUNC && node->value == DEF)
     {
-        print_tree_postorder (node->left, context);
+        print_tree_postorder (file, node->left, context);
 
-        fprintf (stderr, "%lg:\n ", node->left->left->value);
+        fprintf (file, "%lg:\n ", node->left->left->value);
 
-        print_tree_postorder (node->right, context);
+        print_tree_postorder (file, node->right, context);
 
-        fprintf (stderr, "ret\n");
+        fprintf (file, "ret\n");
     }
-    if (node->type == NUM)
-        fprintf (stderr, "push %lg"    "\n",  node->value);
+
+    else if (node->type == NUM)
+        fprintf (file, "push %lg"    "\n",  node->value);
 
     else if (node->type == ID)
-        fprintf (stderr, "push [%lg]"  "\n" "; name = '%.*s'\n",
-                          node->value, (int)context->name_table[(int)node->value].name.length,
+        fprintf (file, "push [%lg]"  "\n" "; name = '%.*s'\n",
+                           node->value, (int)context->name_table[(int)node->value].name.length,
                            context->name_table[(int)node->value].name.str_pointer);
 
     else if (node->type == OP && (int) node->value == ADD)
-        fprintf (stderr, "add" "\n");
+        fprintf (file, "add" "\n");
 
     else if (node->type == OP && (int) node->value == SUB)
-        fprintf (stderr, "sub" "\n");
+        fprintf (file, "sub" "\n");
 
     else if (node->type == OP && (int) node->value == MUL)
-        fprintf (stderr, "mul" "\n");
+        fprintf (file, "mul" "\n");
 
     else if (node->type == OP && (int) node->value == DIV)
-        fprintf (stderr, "div" "\n");
+        fprintf (file, "div" "\n");
 
     else if (node->type == OP && (int) node->value == EQUAL)
     {
         if (node->right != NULL)
-            print_tree_postorder (node->right, context);
+            print_tree_postorder (file, node->right, context);
 
-        fprintf (stderr, "pop [%lg]" "\n" "; name = '%.*s'\n",
+        fprintf (file, "pop [%lg]" "\n" "; name = '%.*s'\n",
         node->left->value,
         (int)context->name_table[(int)node->left->value].name.length,
         context->name_table[(int)node->left->value].name.str_pointer);
@@ -109,60 +109,74 @@ int print_tree_postorder (struct Node_t* node, struct Context_t* context)
 
     else if (node->type == OP && (int) node->value == IF)
     {
-        fprintf (stderr, "; START 'IF'. COMPILING LEFT" "\n");
+        fprintf (file, "; START 'IF'. COMPILING LEFT" "\n");
+
         int old_count_op = count_op;
-        print_tree_postorder (node->left, context);
 
-        fprintf (stderr, "; 'IF'. TESTING LEFT" "\n");
+        print_tree_postorder (file, node->left, context);
 
-        fprintf (stderr, "push 0" "\n");
+        fprintf (file, "; 'IF'. TESTING LEFT" "\n");
 
-        fprintf (stderr, "je %d:" "\n", old_count_op);
+        fprintf (file, "push 0" "\n");
 
-        fprintf (stderr, "; 'IF'. COMPILING RIGHT" "\n");
+        fprintf (file, "je %d:" "\n", old_count_op);
 
-        print_tree_postorder (node->right, context);
+        fprintf (file, "; 'IF'. COMPILING RIGHT" "\n");
 
-        fprintf (stderr, "; END 'IF'. TESTING RIGHT" "\n");
+        print_tree_postorder (file, node->right, context);
 
-        fprintf (stderr, "%d:"    "\n", old_count_op);
+        fprintf (file, "; END 'IF'. TESTING RIGHT" "\n");
+
+        fprintf (file, "%d:"    "\n", old_count_op);
     }
 
     else if (node->type == OP && node->value == WHILE)
     {
-        fprintf (stderr, "; START 'WHILE'. COMPILING LEFT" "\n");
+        fprintf (file, "; START 'WHILE'. COMPILING LEFT" "\n");
         int old_count_op = count_op;
-        fprintf (stderr, "%d:" "\n", old_count_op + 1);
+        fprintf (file, "%d:" "\n", old_count_op + 1);
 
-        print_tree_postorder (node->left, context);
+        print_tree_postorder (file, node->left, context);
 
-        fprintf (stderr, "push 0" "\n");
+        fprintf (file, "push 0" "\n");
 
-        fprintf (stderr, "; 'WHILE'. TESTING LEFT" "\n");
+        fprintf (file, "; 'WHILE'. TESTING LEFT" "\n");
 
-        fprintf (stderr, "je %d:" "\n", old_count_op);
+        fprintf (file, "je %d:" "\n", old_count_op);
 
-        fprintf (stderr, "; 'WHILE'. COMPILING RIGHT" "\n");
+        fprintf (file, "; 'WHILE'. COMPILING RIGHT" "\n");
 
-        print_tree_postorder (node->right, context);
+        print_tree_postorder (file, node->right, context);
 
-        fprintf (stderr, "; END 'WHILE'. TESTING RIGHT" "\n");
+        fprintf (file, "; END 'WHILE'. TESTING RIGHT" "\n");
 
-        fprintf (stderr, "jmp %d:" "\n", old_count_op + 1);
+        fprintf (file, "jmp %d:" "\n", old_count_op + 1);
 
-        fprintf (stderr, "%d:"    "\n", old_count_op);
+        fprintf (file, "%d:"    "\n", old_count_op);
     }
 
     else if (node->type == OP && node->value == GLUE)
-        fprintf (stderr, "; NOP"  "\n");
+        fprintf (file, "; NOP"  "\n");
 
     else
-        fprintf (stderr, "; %lg"    "\n",  node->value);
+        fprintf (file, "; %lg"    "\n",  node->value);
 
-    fprintf (stderr, "; ) type = %d, value = %lg\n", node->type, node->value);
+    fprintf (file, "; ) type = %d, value = %lg\n", node->type, node->value);
 
     return 0;
 }
+
+int print_in_asm_file (const char* filename, struct Node_t* node, struct Context_t* context)
+{
+    FILE* asm_code = open_log_file (filename);
+
+    print_tree_postorder (asm_code, node, context);
+
+    close_log_file (asm_code);
+
+    return 0;
+}
+
 //========================== BACKEND (WILL BE PLACED IN A SEPARATE FILE) ==========================//
 
 int delete_sub_tree (struct Node_t* node)
@@ -207,6 +221,8 @@ int destructor (struct Node_t* node, struct Buffer_t* buffer)
 
     delete_sub_tree (node);
     buffer_dtor (buffer);
+
+    return 0;
 }
 
 int its_func_is_root (struct Node_t* node)

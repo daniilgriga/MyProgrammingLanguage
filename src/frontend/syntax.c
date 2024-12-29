@@ -363,6 +363,8 @@ static struct Node_t* GetNumber (struct Context_t* context)
 
         return node;
     }
+
+    return NULL;
 }
 
 static struct Node_t*  GetCond (struct Context_t* context)

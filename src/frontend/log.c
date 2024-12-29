@@ -16,6 +16,7 @@ void log_vprintf (const char* message, va_list args)
 int log_printf (const char* message, ...)
 {
     va_list args;
+
     va_start (args, message);
 
     log_vprintf (message, args);
@@ -28,19 +29,20 @@ int log_printf (const char* message, ...)
 FILE* open_log_file (const char* filename)
 {
     LOG_FILE = fopen (filename, "wb");
+
     if (LOG_FILE == NULL)
     {
         printf("ERROR");
         return NULL;
     }
 
-    fprintf (LOG_FILE, "<pre>\n");
-
     return LOG_FILE;
 }
 
 int write_log_file (const char* reason, va_list args)
 {
+    log_printf ("<pre>\n");
+
     log_printf ("<body style=\"background-color: #AFEEEE\">");
 
     log_printf ("<hr> <h2>");
@@ -65,7 +67,7 @@ int write_log_file (const char* reason, va_list args)
     return 0;
 }
 
-void close_log_file (void)
+void close_log_file (FILE* file)
 {
-    fclose (LOG_FILE);
+    fclose (file);
 }
