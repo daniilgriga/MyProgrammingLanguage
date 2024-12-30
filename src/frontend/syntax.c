@@ -10,6 +10,7 @@
 #include "assert.h"
 #include "color_print.h"
 
+#pragma GCC diagnostic ignored "-Wfloat-equal"
 int Position =  0;
 
 #define MOVE_POSITION Position++
@@ -60,8 +61,19 @@ static struct Node_t* CompoundOperations        (struct Context_t* context);
 
 void dump_token (struct Context_t* context, int numb_of_token);
 
-#define _IS_OP(val)  ( context->token[Position].type  == OP && \
-                       context->token[Position].value == (val) )
+//========================DSL FOR CURRENT TOKEN && NAME TABLE ACCESS=======================//
+
+#define _CUR_TOKEN  ( context->token[Position]     )
+#define _NEXT_TOKEN ( context->token[Position + 1] )
+
+#define _IS_OP(val) ( _CUR_TOKEN.type  == OP && \
+                      _CUR_TOKEN.value == (val) )
+
+#define _CUR_NAME   ( context->name_table[ (int) _CUR_TOKEN.value ].name )
+
+// CURR.type ; CURR.name ????
+
+//=========================================================================================//
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
@@ -96,21 +108,20 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+        _CUR_NAME.added_status = 1;
     }
     else
     {
-        if ( context->token[Position].type == ID &&
-             context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+        if ( _CUR_TOKEN.type == ID && _CUR_NAME.added_status == 0 )
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
     }
 
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
     // current Position is token with function name
-    if (context->token[Position].type == ID && context->token[Position + 1].value == OP_BR)
+    if (_CUR_TOKEN.type == ID && _NEXT_TOKEN.value == OP_BR)
     {
-        node = _FUNC (context->token[Position].value);
+        node = _FUNC (_CUR_TOKEN.value);
 
         context->curr_host_func = node->value;
 
@@ -121,6 +132,8 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
             MOVE_POSITION;
 
             node_param = CompoundParametersForDef (context);
+
+            dump_in_log_file (node_param, context, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
             if ( !_IS_OP (CL_BR) )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
@@ -145,9 +158,9 @@ static struct Node_t*  GetFunctionCall (struct Context_t* context)
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
 
-    if (context->token[Position].type == ID && context->token[Position + 1].value == OP_BR)
+    if (_CUR_TOKEN.type == ID && _NEXT_TOKEN.value == OP_BR)
     {
-        node = _FUNC (context->token[Position].value);
+        node = _FUNC (_CUR_TOKEN.value);
 
         MOVE_POSITION;
         MOVE_POSITION;
@@ -175,8 +188,10 @@ struct Node_t* GetOperation  (struct Context_t* context)
     dump_token (context, 0);
 
     if (node != NULL)
+    {
         if ( _IS_OP (GLUE) ) MOVE_POSITION;
         else                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_GLUE_MARK);
+    }
 
     return node;
 }
@@ -184,18 +199,18 @@ struct Node_t* GetOperation  (struct Context_t* context)
 struct Node_t* GetAssignment (struct Context_t* context)
 {
     fprintf (stderr, "\nin GetA starting (Pos = %d): cur: type = %d, value = %lg" "\n" "next: type = %d, value = %lg\n\n", Position,
-                      context->token[Position].type,     context->token[Position].value,
-                      context->token[Position + 1].type, context->token[Position + 1].value );
+                      _CUR_TOKEN.type,     _CUR_TOKEN.value,
+                      _NEXT_TOKEN.type, _NEXT_TOKEN.value );
 
     struct Node_t* val_1 = NULL;
 
-    if (context->token[Position + 1].value != OP_BR)
+    if (_NEXT_TOKEN.value != OP_BR)
     {
         if ( _IS_OP (ADVT) )
         {
             MOVE_POSITION;
 
-            context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+            _CUR_NAME.added_status = 1;
 
             val_1 = GetIdent (context);
 
@@ -207,11 +222,11 @@ struct Node_t* GetAssignment (struct Context_t* context)
         }
         else
         {
-            fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
+            fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, _CUR_TOKEN.value, _CUR_NAME.added_status, _CUR_NAME.is_keyword);
 
-            if ( context->token[Position].type == ID &&
-                 context->name_table[ (int) context->token[Position].value ].name.added_status == 0 ||
-                 context->name_table[ (int) context->token[Position].value ].name.host_func != context->curr_host_func)
+            if ( ( _CUR_TOKEN.type == ID &&
+                   _CUR_NAME.added_status == 0 ) ||
+                   _CUR_NAME.host_func != context->curr_host_func)
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
             val_1 = GetIdent (context);
@@ -240,7 +255,7 @@ static struct Node_t* GetExpression (struct Context_t* context)
 
     while ( _IS_OP (ADD) || _IS_OP (SUB) )
     {
-        int op = context->token[Position].value;
+        int op = _CUR_TOKEN.value;
 
         MOVE_POSITION;
 
@@ -266,7 +281,7 @@ static struct Node_t* GetTerm (struct Context_t* context)
 
     while ( _IS_OP (MUL) || _IS_OP (DIV) )
     {
-        int op = context->token[Position].value;
+        int op = _CUR_TOKEN.value;
 
         MOVE_POSITION;
 
@@ -323,7 +338,7 @@ static struct Node_t* GetP (struct Context_t* context)
             struct Node_t* node_F = GetFunctionCall (context);
 
             log_printf ("\n" "Im IN GetP" "\n" "CURRENT TOKEN TYPE = %d, VALUE = '%c' (%lg)",
-                         context->token[Position].type, (int)context->token[Position].value, context->token[Position].value);
+                         _CUR_TOKEN.type, (int)_CUR_TOKEN.value, _CUR_TOKEN.value);
 
             if (node_F != NULL)
                 return node_F;
@@ -337,13 +352,13 @@ static struct Node_t* GetIdent (struct Context_t* context)
 {
     struct Node_t* node = NULL;
 
-    if ( context->token[Position].type      == ID &&
-         context->token[Position + 1].value != OP_BR)
+    if ( _CUR_TOKEN.type      == ID &&
+         _NEXT_TOKEN.value != OP_BR)
     {
-        if (context->name_table[ (int) context->token[Position].value ].name.added_status == 0)
+        if (_CUR_NAME.added_status == 0)
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
-        node = _ID (context->token[Position].value);
+        node = _ID (_CUR_TOKEN.value);
 
         fprintf (stderr, "\nnode [%p]: node->value = %lg\n", node, node->value);
 
@@ -355,9 +370,9 @@ static struct Node_t* GetIdent (struct Context_t* context)
 
 static struct Node_t* GetNumber (struct Context_t* context)
 {
-    if ( context->token[Position].type == NUM )
+    if ( _CUR_TOKEN.type == NUM )
     {
-        struct Node_t* node = _NUM (context->token[Position].value);
+        struct Node_t* node = _NUM (_CUR_TOKEN.value);
 
         MOVE_POSITION;
 
@@ -390,7 +405,6 @@ static struct Node_t*  GetCond (struct Context_t* context)
             GetA = CompoundOperations (context);
 
             return _IF (GetE, GetA);
-
         }
         else
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_OPEN_BRACE);
@@ -443,7 +457,7 @@ static struct Node_t* CompoundOperations (struct Context_t* context)
 
         struct Node_t* link = root;
 
-        while ( context->token[Position].type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) )
+        while ( _CUR_TOKEN.type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) )
         {
             struct Node_t* node = GetOperation (context);
 
@@ -477,7 +491,7 @@ static struct Node_t* CompoundParametersForCall (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        while ( context->token[Position].type  == ID || context->token[Position].type  == NUM )
+        while ( _CUR_TOKEN.type  == ID || _CUR_TOKEN.type  == NUM )
         {
             struct Node_t* node = GetExpression (context);
 
@@ -503,14 +517,14 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+        _CUR_NAME.added_status = 1;
     }
     else
     {
-        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, context->token[Position].value, context->name_table[ (int) context->token[Position].value ].name.added_status, context->name_table[ (int) context->token[Position].value ].name.is_keyword);
+        fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, _CUR_TOKEN.value, _CUR_NAME.added_status, _CUR_NAME.is_keyword);
 
-        if ( context->token[Position].type == ID &&
-             context->name_table[ (int) context->token[Position].value ].name.added_status == 0 )
+        if ( _CUR_TOKEN.type == ID &&
+             _CUR_NAME.added_status == 0 )
             SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
     }
 
@@ -527,11 +541,11 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
     {
         MOVE_POSITION;
 
-        while ( _IS_OP (ADVT) && context->token[Position + 1].type  == ID)
+        while ( _IS_OP (ADVT) && _NEXT_TOKEN.type  == ID)
         {
             MOVE_POSITION;
 
-            context->name_table[ (int) context->token[Position].value ].name.added_status = 1;
+            _CUR_NAME.added_status = 1;
 
             dump_token (context, 0);
 
@@ -583,8 +597,8 @@ void SyntaxError (struct Context_t* context, const char* filename, const char* f
 
         case UNDECLARED:
             fprintf (stderr, "undeclared " WHITE_TEXT("'%.*s'")  "\n",
-                             (int) context->name_table[(int)context->token[Position].value].name.length,
-                                   context->name_table[(int)context->token[Position].value].name.str_pointer);
+                             (int) context->name_table[(int)_CUR_TOKEN.value].name.length,
+                                   context->name_table[(int)_CUR_TOKEN.value].name.str_pointer);
 
             break;
 

@@ -1,10 +1,14 @@
 SOURCES=main.c log.c syntax.c tokens.c tree.c buffer.c
 EXE=lang
 
-CC=gcc
+BUILD=./build/
+
+CC=gccc
 CFLAGS=-Wall -g -lm -fsanitize=address
 
 OBJS=$(SOURCES:.c=.o)
+
+#OBJS=$(patsubst %.c,$(BUILD)%.o,$(SOURCES))
 
 .PHONY: all clean
 
@@ -12,10 +16,13 @@ all: $(EXE)
 
 
 clean:
-	rm -rf *.o $(EXE)
+	cd $(BUILD); rm -rf *.o $(EXE)
 
-$(EXE): $(OBJS)
-	@$(CC) $(CFLAGS) $(OBJS) -o $@
+$(EXE): $(OBJS) 
+	cd $(BUILD); $(CC) $(CFLAGS) $(OBJS) -o $@
+
+#$(EXE): $(OBJS) 
+#	cd build; @$(CC) $(CFLAGS) $(OBJS) -o $@
 
 .c.o:
-	@$(CC) -I ../include -c $(CFLAGS) $< -o $@
+	@$(CC) -I ../include -c $(CFLAGS) $< -o $(BUILD)$@
