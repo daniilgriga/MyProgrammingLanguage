@@ -19,10 +19,10 @@ clean:
 	cd $(BUILD); rm -rf *.o $(EXE)
 
 $(EXE): $(OBJS) 
-	cd $(BUILD); $(CC) $(CFLAGS) $(OBJS) -o $@
-
-#$(EXE): $(OBJS) 
-#	cd build; @$(CC) $(CFLAGS) $(OBJS) -o $@
+	@cd $(BUILD); $(CC) $(CFLAGS) $(OBJS) -o $@
 
 .c.o:
 	@$(CC) -I ../include -c $(CFLAGS) $< -o $(BUILD)$@
+
+run:
+	$(BUILD)$(EXE)

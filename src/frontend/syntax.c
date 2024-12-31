@@ -85,7 +85,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
 
     while ( _IS_OP (ADVT) )
     {
-        struct Node_t* node = GetFunctionDef (context);
+        node = GetFunctionDef (context);
 
         struct Node_t* right_node = _DEFGL (node, NULL);
 
@@ -118,12 +118,14 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
 
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
+
     // current Position is token with function name
-    if (_CUR_TOKEN.type == ID && _NEXT_TOKEN.value == OP_BR)
+    if ( _CUR_TOKEN.type   == ID &&
+         _NEXT_TOKEN.value == OP_BR )
     {
         node = _FUNC (_CUR_TOKEN.value);
 
-        context->curr_host_func = node->value;
+        context->curr_host_func = (int) node->value;
 
         MOVE_POSITION;
 
@@ -132,8 +134,6 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
             MOVE_POSITION;
 
             node_param = CompoundParametersForDef (context);
-
-            dump_in_log_file (node_param, context, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
             if ( !_IS_OP (CL_BR) )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
@@ -158,7 +158,8 @@ static struct Node_t*  GetFunctionCall (struct Context_t* context)
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
 
-    if (_CUR_TOKEN.type == ID && _NEXT_TOKEN.value == OP_BR)
+    if ( _CUR_TOKEN.type   == ID &&
+         _NEXT_TOKEN.value == OP_BR )
     {
         node = _FUNC (_CUR_TOKEN.value);
 
@@ -204,7 +205,7 @@ struct Node_t* GetAssignment (struct Context_t* context)
 
     struct Node_t* val_1 = NULL;
 
-    if (_NEXT_TOKEN.value != OP_BR)
+    if ( _NEXT_TOKEN.value != OP_BR )
     {
         if ( _IS_OP (ADVT) )
         {
@@ -224,9 +225,9 @@ struct Node_t* GetAssignment (struct Context_t* context)
         {
             fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, _CUR_TOKEN.value, _CUR_NAME.added_status, _CUR_NAME.is_keyword);
 
-            if ( ( _CUR_TOKEN.type == ID &&
+            if ( ( _CUR_TOKEN.type        == ID &&
                    _CUR_NAME.added_status == 0 ) ||
-                   _CUR_NAME.host_func != context->curr_host_func)
+                   _CUR_NAME.host_func    != context->curr_host_func )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
 
             val_1 = GetIdent (context);
@@ -255,7 +256,7 @@ static struct Node_t* GetExpression (struct Context_t* context)
 
     while ( _IS_OP (ADD) || _IS_OP (SUB) )
     {
-        int op = _CUR_TOKEN.value;
+        int op = (int) _CUR_TOKEN.value;
 
         MOVE_POSITION;
 
@@ -281,7 +282,7 @@ static struct Node_t* GetTerm (struct Context_t* context)
 
     while ( _IS_OP (MUL) || _IS_OP (DIV) )
     {
-        int op = _CUR_TOKEN.value;
+        int op = (int) _CUR_TOKEN.value;
 
         MOVE_POSITION;
 
@@ -352,7 +353,7 @@ static struct Node_t* GetIdent (struct Context_t* context)
 {
     struct Node_t* node = NULL;
 
-    if ( _CUR_TOKEN.type      == ID &&
+    if ( _CUR_TOKEN.type   == ID &&
          _NEXT_TOKEN.value != OP_BR)
     {
         if (_CUR_NAME.added_status == 0)
@@ -413,7 +414,7 @@ static struct Node_t*  GetCond (struct Context_t* context)
         return NULL;
 }
 
-static struct Node_t*  GetLoop (struct Context_t* context)
+static struct Node_t* GetLoop (struct Context_t* context)
 {
     struct Node_t* GetE = NULL;
     struct Node_t* GetA = NULL;
@@ -459,7 +460,7 @@ static struct Node_t* CompoundOperations (struct Context_t* context)
 
         while ( _CUR_TOKEN.type  == ID || _IS_OP (ADVT) || _IS_OP (IF) || _IS_OP (WHILE) )
         {
-            struct Node_t* node = GetOperation (context);
+            node = GetOperation (context);
 
             struct Node_t* right_node = _OP  (node, NULL);
 
@@ -493,7 +494,7 @@ static struct Node_t* CompoundParametersForCall (struct Context_t* context)
 
         while ( _CUR_TOKEN.type  == ID || _CUR_TOKEN.type  == NUM )
         {
-            struct Node_t* node = GetExpression (context);
+            node = GetExpression (context);
 
             struct Node_t* right_node = _PRM  (node, NULL);
 
@@ -549,7 +550,7 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
             dump_token (context, 0);
 
-            struct Node_t* node = GetIdent (context);
+            node = GetIdent (context);
 
             context->name_table[(int)node->value].name.id_type   = PARM;
             context->name_table[(int)node->value].name.host_func = context->curr_host_func;
@@ -572,7 +573,7 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
     return root;
 }
 
-void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)
+[[noreturn]] void SyntaxError (struct Context_t* context, const char* filename, const char* func, int line, int error)
 {
     fprintf (stderr, "\n" PURPLE_TEXT("%s: %s:%d: ") RED_TEXT("SYNTAX ERROR (code = %d) in %d position: "), filename, func, line, error, Position);
 

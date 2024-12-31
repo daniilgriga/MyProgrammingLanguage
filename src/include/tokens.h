@@ -20,7 +20,7 @@ struct Token_t
 struct Name_t
 {
     const char* str_pointer;
-    size_t length;
+    int length;
 
     enum Operations code;
     int is_keyword;
@@ -61,6 +61,6 @@ int find_name (struct Context_t* context, const char* str, int length);
 
 int find_number_of_keyword (struct Context_t* context, const char* str, int length);
 
-int tokens_dump (struct Context_t* context, int old_count);
+int tokens_dump (struct Context_t* context);
 
 int skip_spaces (const char* string, int length, int current_i);

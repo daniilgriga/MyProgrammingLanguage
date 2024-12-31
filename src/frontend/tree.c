@@ -48,24 +48,24 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
 
     fprintf (file, "; ( type = %d, value = %lg\n", node->type, node->value);
 
-    if (node->left  && node->value != EQUAL
-                    && node->value != IF
-                    && node->value != WHILE
-                    && node->value != CALL
-                    && node->value != DEF   ) print_tree_postorder (file, node->left, context);
+    if (node->left  && (int) node->value != EQUAL
+                    && (int) node->value != IF
+                    && (int) node->value != WHILE
+                    && (int) node->value != CALL
+                    && (int) node->value != DEF   ) print_tree_postorder (file, node->left, context);
 
-    if (node->right && node->value != EQUAL
-                    && node->value != IF
-                    && node->value != WHILE
-                    && node->value != CALL
-                    && node->value != DEF   ) print_tree_postorder (file, node->right, context);
+    if (node->right && (int) node->value != EQUAL
+                    && (int) node->value != IF
+                    && (int) node->value != WHILE
+                    && (int) node->value != CALL
+                    && (int) node->value != DEF   ) print_tree_postorder (file, node->right, context);
 
-    else if (node->type == FUNC && node->value == CALL)
+    else if (node->type == FUNC && (int) node->value == CALL)
     {
         fprintf (file, "call %lg:\n", node->left->value);
     }
 
-    else if (node->type == FUNC && node->value == DEF)
+    else if (node->type == FUNC && (int) node->value == DEF)
     {
         print_tree_postorder (file, node->left, context);
 
@@ -130,7 +130,7 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
         fprintf (file, "%d:"    "\n", old_count_op);
     }
 
-    else if (node->type == OP && node->value == WHILE)
+    else if (node->type == OP && (int) node->value == WHILE)
     {
         fprintf (file, "; START 'WHILE'. COMPILING LEFT" "\n");
         int old_count_op = count_op;
@@ -155,7 +155,7 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
         fprintf (file, "%d:"    "\n", old_count_op);
     }
 
-    else if (node->type == OP && node->value == GLUE)
+    else if (node->type == OP && (int) node->value == GLUE)
         fprintf (file, "; NOP"  "\n");
 
     else
@@ -225,23 +225,6 @@ int destructor (struct Node_t* node, struct Buffer_t* buffer)
     return 0;
 }
 
-int its_func_is_root (struct Node_t* node)
-{
-    assert (node);
-    fprintf (stderr, BLUE_TEXT("IN its_func_is_root ") "node = [%p]\n", node);
-
-    if (node->type == OP && (int) node->value == SIN)
-        return 1;
-
-    if (node->type == OP && (int) node->value == COS)
-        return 1;
-
-    if (node->type == OP && (int) node->value == LN)
-        return 1;
-
-    return 0;
-}
-
 const char* get_name (double enum_value)
 {
     switch ( (enum Operations) enum_value)
@@ -263,6 +246,12 @@ const char* get_name (double enum_value)
         case   COMMA: return ",";
         case    GLUE: return "SHUTUP";
         case FN_GLUE: return "NEXT FUNCTION";
+        case     SIN: return "SIN";
+        case     COS: return "COS";
+        case      LN: return "LN";
+        case    SQRT: return "SQRT";
+        case    ADVT: return "LETHIMCOOK";
+
         default:      return "bro, wth...";
     }
 }
@@ -290,19 +279,19 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && node->value == FN_GLUE)
+    else if (node->type == FUNC && (int) node->value == FN_GLUE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#A0A0A0\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && node->value == COMMA)
+    else if (node->type == FUNC && (int) node->value == COMMA)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#FEAADF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && node->value == CALL)
+    else if (node->type == FUNC && (int) node->value == CALL)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#F069F5\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && node->value == DEF)
+    else if (node->type == FUNC && (int) node->value == DEF)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#755CF7\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
