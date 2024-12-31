@@ -11,6 +11,9 @@
 
 int tokenization (struct Context_t* context, const char* string)
 {
+    assert (context);
+    assert (string);
+
     int length_string = (int) strlen (string);
 
     fprintf (stderr, PURPLE_TEXT("\n\nSTART_STRING = <<< %s >>>\n\n"), string);
@@ -235,14 +238,15 @@ int name_table_dump (struct Context_t* context)
                              context->name_table[j].name.str_pointer);
         else
             fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %d, is_keyword = %d, added_status = %d"
-                             "\n" "id_type = %d, host_func = %d, counter_parms_and_locals = %d\n\n",
+                             "\n" "id_type = %d, host_func = %d, counter_params = %d, counter_locals = %d\n\n",
                              j, context[j].name_table, context->name_table[j].name.length,
                              context->name_table[j].name.str_pointer, context->name_table[j].name.length,
                              context->name_table[j].name.is_keyword,
                              context->name_table[j].name.added_status,
                              context->name_table[j].name.id_type,
                              context->name_table[j].name.host_func,
-                             context->name_table[j].name.counter_parms_and_locals);
+                             context->name_table[j].name.counter_params,
+                             context->name_table[j].name.counter_locals);
         j++;
     }
 

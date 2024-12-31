@@ -29,7 +29,8 @@ struct Name_t
 
     int id_type;
     int host_func;
-    int counter_parms_and_locals;
+    int counter_params;
+    int counter_locals;
 };
 
 struct NameTable_t

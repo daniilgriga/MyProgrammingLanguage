@@ -55,8 +55,8 @@ call 24:
 ; ( type = 1, value = 9
 push 9
 ; ) type = 1, value = 9
-pop [23]
-; name = 'dude'
+pop [25]
+; name = 'man'
 ; ) type = 2, value = 61
 ; NOP
 ; ) type = 2, value = 59

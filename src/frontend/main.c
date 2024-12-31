@@ -10,6 +10,8 @@ int main (int argc, const char* argv[])
 {
     const char* LogFileName = (argc >= 2)? argv[1] : "../../build/TreeGraph.html";
 
+    // TODO getenv ("LOGDIR") !!!
+
     FILE* LogFile = open_log_file (LogFileName);
 
     struct  Buffer_t  buffer = {};

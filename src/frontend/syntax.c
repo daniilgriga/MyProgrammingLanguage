@@ -61,6 +61,8 @@ static struct Node_t* CompoundOperations        (struct Context_t* context);
 
 void dump_token (struct Context_t* context, int numb_of_token);
 
+int count_parms_and_locls (struct Context_t* context);
+
 //========================DSL FOR CURRENT TOKEN && NAME TABLE ACCESS=======================//
 
 #define _CUR_TOKEN  ( context->token[Position]     )
@@ -135,6 +137,7 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
 
             node_param = CompoundParametersForDef (context);
 
+
             if ( !_IS_OP (CL_BR) )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
 
@@ -151,6 +154,17 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     struct Node_t* func_body = CompoundOperations (context);
 
     return _DEF (func_name, func_body);
+}
+
+int count_parms_and_locls (struct Context_t* context)
+{
+    int counter = 0;
+
+    for (int i = 0; i < context->table_size; i++)
+        if (context->name_table[i].name.host_func == context->curr_host_func)
+            counter++;
+
+    return counter;
 }
 
 static struct Node_t*  GetFunctionCall (struct Context_t* context)
@@ -217,6 +231,7 @@ struct Node_t* GetAssignment (struct Context_t* context)
 
             context->name_table[(int)val_1->value].name.id_type   = LOCL;
             context->name_table[(int)val_1->value].name.host_func = context->curr_host_func;
+            context->name_table[context->curr_host_func].name.counter_locals++;
 
             fprintf (stderr, "\nvalue = %lg", val_1->value);
             fprintf (stderr, "\nname = '%s'\n", context->name_table[context->name_table[(int)val_1->value].name.host_func].name.str_pointer);
@@ -533,6 +548,9 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
     context->name_table[(int)node->value].name.id_type   = PARM;
     context->name_table[(int)node->value].name.host_func = context->curr_host_func;
+    context->name_table[context->curr_host_func].name.counter_params++;
+
+    fprintf (stderr, YELLOW_TEXT("\nhost func = %d\n"), context->curr_host_func);
 
     struct Node_t* root = _PRM (node, NULL);
 
@@ -554,6 +572,7 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
             context->name_table[(int)node->value].name.id_type   = PARM;
             context->name_table[(int)node->value].name.host_func = context->curr_host_func;
+            context->name_table[context->curr_host_func].name.counter_params++;
 
             struct Node_t* right_node = _PRM  (node, NULL);
 
