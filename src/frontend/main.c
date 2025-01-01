@@ -29,7 +29,7 @@ int main (int argc, const char* argv[])
     struct Node_t* root = GetGrammar (&context);
 
     fprintf (stderr, "\nNAME TABLE AFTER GetGrammar:\n");
-    name_table_dump (&context);
+    name_table_dump (stderr, &context);
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 

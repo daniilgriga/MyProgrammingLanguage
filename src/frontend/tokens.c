@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/io.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -137,7 +138,7 @@ int tokenization (struct Context_t* context, const char* string)
 
     fprintf (stderr, BLUE_TEXT("\n\nNAME TABLE DUMP:\n\n"));
 
-    name_table_dump (context);
+    name_table_dump (stderr, context);
 
     return 0;
 }
@@ -221,32 +222,75 @@ int tokens_dump (struct Context_t* context)
     return 0;
 }
 
-int name_table_dump (struct Context_t* context)
+int name_table_dump (FILE* file, struct Context_t* context)
 {
     if (context == NULL)
     {
-        fprintf (stderr, "context is NULL\n");
+        fprintf (file, "context is NULL\n");
         return 1;
     }
 
+    // NOTE - istty (fileno(file));
+
     int j = 0;
+    char* str = "";
+
+    if (file != stderr)
+    {
+        str = ";";
+
+        int i = 0;
+        while (i < context->table_size)
+        {
+            if (context->name_table[i].name.code == SPACE)
+                break;
+
+            i++;
+        }
+
+        j = i + 1;
+    }
+
     while ( context->name_table[j].name.str_pointer != NULL)
     {
-        if (context->name_table[j].name.code == 0)
-            fprintf (stderr, YELLOW_TEXT("[%.2d]: ADDRESS = [%p], name = '%.*s'\n"),
-                             j, context[j].name_table, (int) context->name_table[j].name.length,
-                             context->name_table[j].name.str_pointer);
+        if (context->name_table[j].name.code == SPACE)
+            fprintf (file,  "\n" "%s" YELLOW_TEXT("[%.2d]: ADDRESS = [%p], name = '%.*s'") "\n\n",
+                            str, j, context[j].name_table,
+                              (int) context->name_table[j].name.length,
+                                    context->name_table[j].name.str_pointer);
         else
-            fprintf (stderr, BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %d, is_keyword = %d, added_status = %d"
-                             "\n" "id_type = %d, host_func = %d, counter_params = %d, counter_locals = %d\n\n",
-                             j, context[j].name_table, context->name_table[j].name.length,
-                             context->name_table[j].name.str_pointer, context->name_table[j].name.length,
-                             context->name_table[j].name.is_keyword,
-                             context->name_table[j].name.added_status,
-                             context->name_table[j].name.id_type,
-                             context->name_table[j].name.host_func,
-                             context->name_table[j].name.counter_params,
-                             context->name_table[j].name.counter_locals);
+        {
+            if (file == stderr)
+                fprintf (file,  "%s" BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %d, is_keyword = %d, added_status = %d"
+                                "\n" "%s" "id_type = %d, host_func = %d, counter_params = %d, counter_locals = %d, offset = %d\n\n",
+                                str, j, context[j].name_table,
+                                        context->name_table[j].name.length,
+                                        context->name_table[j].name.str_pointer,
+                                        context->name_table[j].name.length,
+                                        context->name_table[j].name.is_keyword,
+                                        context->name_table[j].name.added_status,
+                                str,    context->name_table[j].name.id_type,
+                                        context->name_table[j].name.host_func,
+                                        context->name_table[j].name.counter_params,
+                                        context->name_table[j].name.counter_locals,
+                                        context->name_table[j].name.offset);
+            else // dump for asm file
+                fprintf (file,  "%s" BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', %*s lngth = %d, keywrd = %d, added_stts = %d "
+                                "id_type = %d, host_fnc = %02d, cntr_prms = %d, cntr_lcls = %d, offset = %d\n",
+                                str, j, context[j].name_table,
+                                        context->name_table[j].name.length,
+                                        context->name_table[j].name.str_pointer,
+                                    5 - context->name_table[j].name.length, "",
+                                        context->name_table[j].name.length,
+                                        context->name_table[j].name.is_keyword,
+                                        context->name_table[j].name.added_status,
+                                        context->name_table[j].name.id_type,
+                                        context->name_table[j].name.host_func,
+                                        context->name_table[j].name.counter_params,
+                                        context->name_table[j].name.counter_locals,
+                                        context->name_table[j].name.offset);
+        }
+
         j++;
     }
 
@@ -274,9 +318,9 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,             "forreal",   IF   , 1, strlen (            "forreal"), 0);
     add_struct_in_keywords (context,               "money",  WHILE , 1, strlen (              "money"), 0);
     add_struct_in_keywords (context,          "lethimcook",  ADVT  , 1, strlen (         "lethimcook"), 0);
-    add_struct_in_keywords (context,                   ",", COMMA  , 1, strlen (                  ","), 0);
+    add_struct_in_keywords (context,                   ",",  COMMA , 1, strlen (                  ","), 0);
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
-    add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",    0   , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
+    add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",  SPACE , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
 
     return 0;
 }

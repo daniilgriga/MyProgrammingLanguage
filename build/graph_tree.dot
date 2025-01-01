@@ -7,6 +7,7 @@ node0x5030000004c0 -> node0x5030000006a0;
 node0x503000000490 [shape=Mrecord; label = " { type = 4 (FUNC) | value = '' DEFINITION ''  (68) }"; style = filled; fillcolor = "#755CF7"];
 node0x503000000490 -> node0x5030000000d0;
 node0x503000000490 -> node0x503000000190;
+node0x5030000003a0 [shape=Mrecord; label = " { type = 4 (FUNC) | value = '' NEXT FUNCTION ''  (64) }"; style = filled; fillcolor = "#A0A0A0"];
 node0x5030000000d0 [shape=Mrecord; label = " { type = 4 (FUNC) | value = '' CALL ''  (67) }"; style = filled; fillcolor = "#F069F5"];
 node0x5030000000d0 -> node0x503000000040;
 node0x5030000000d0 -> node0x5030000000a0;

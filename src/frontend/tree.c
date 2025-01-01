@@ -6,9 +6,10 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include "log.h"
 #include "tree.h"
 #include "enum.h"
-#include "log.h"
+#include "tokens.h"
 #include "color_print.h"
 
 #define MAX_WORD 100
@@ -38,6 +39,9 @@ struct Node_t* new_node (int type, double value, struct Node_t* node_left, struc
 }
 
 //========================== BACKEND (WILL BE PLACED IN A SEPARATE FILE) ==========================//
+
+#define _IMIT(format, ...) fprintf(file, "; %s:%d:" "\n" format, __FILE__, __LINE__, ##__VA_ARGS__)
+
 int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* context)
 {
     static int count_op = 0;
@@ -46,129 +50,165 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
     if (!node)
         return 1;
 
-    fprintf (file, "; ( type = %d, value = %lg\n", node->type, node->value);
+    _IMIT ("; ( type = %d, value = %lg\n", node->type, node->value);
 
     if (node->left  && (int) node->value != EQUAL
                     && (int) node->value != IF
                     && (int) node->value != WHILE
                     && (int) node->value != CALL
-                    && (int) node->value != DEF   ) print_tree_postorder (file, node->left, context);
+                    && (int) node->value != DEF
+                    && (int) node->value != COMMA   ) print_tree_postorder (file, node->left, context);
 
     if (node->right && (int) node->value != EQUAL
                     && (int) node->value != IF
                     && (int) node->value != WHILE
                     && (int) node->value != CALL
-                    && (int) node->value != DEF   ) print_tree_postorder (file, node->right, context);
+                    && (int) node->value != DEF
+                    && (int) node->value != COMMA   ) print_tree_postorder (file, node->right, context);
 
     else if (node->type == FUNC && (int) node->value == CALL)
     {
-        fprintf (file, "call %lg:\n", node->left->value);
+        _IMIT ("push bx"   "\n");
+        _IMIT ("push bx"   "\n");
+        _IMIT ("push %d"   "\n", context->name_table[context->curr_host_func].name.counter_locals);
+        _IMIT ("add"       "\n");
+
+        print_tree_postorder (file, node->right, context);
+
+        _IMIT ("pop bx"    "\n\n");
+
+        _IMIT ("call %lg:" "\n\n", node->left->value);
+
+        _IMIT ("pop bx"    "\n\n");
     }
 
     else if (node->type == FUNC && (int) node->value == DEF)
     {
-        print_tree_postorder (file, node->left, context);
+        context->curr_host_func = (int) node->left->left->value;
 
-        fprintf (file, "%lg:\n ", node->left->left->value);
+        _IMIT ("%lg:\n", node->left->left->value);
 
         print_tree_postorder (file, node->right, context);
 
-        fprintf (file, "ret\n");
+        _IMIT ("ret\n");
+    }
+
+    else if (node->type == FUNC && (int) node->value == COMMA)
+    {
+        print_tree_postorder (file, node->left, context);
+
+        _IMIT ("; name = '%.*s'" "\n" "pop [bx + %d]"  "\n",
+                        (int)context->name_table[(int)node->left->value].name.length,
+                             context->name_table[(int)node->left->value].name.str_pointer,
+                             context->name_table[(int)node->left->value].name.offset + context->name_table[context->curr_host_func].name.counter_locals - 1);
+
+        if (node->right != NULL)
+            print_tree_postorder (file, node->right, context);
     }
 
     else if (node->type == NUM)
-        fprintf (file, "push %lg"    "\n",  node->value);
+        _IMIT ("push %lg"    "\n",  node->value);
 
     else if (node->type == ID)
-        fprintf (file, "push [%lg]"  "\n" "; name = '%.*s'\n",
-                           node->value, (int)context->name_table[(int)node->value].name.length,
-                           context->name_table[(int)node->value].name.str_pointer);
+    {
+        _IMIT ("; name = '%.*s'" "\n" "push [bx + %d]"  "\n",
+                        (int)context->name_table[(int)node->value].name.length,
+                             context->name_table[(int)node->value].name.str_pointer,
+                             context->name_table[(int)node->value].name.offset);
+    }
 
     else if (node->type == OP && (int) node->value == ADD)
-        fprintf (file, "add" "\n");
+        _IMIT ("add" "\n");
 
     else if (node->type == OP && (int) node->value == SUB)
-        fprintf (file, "sub" "\n");
+        _IMIT ("sub" "\n");
 
     else if (node->type == OP && (int) node->value == MUL)
-        fprintf (file, "mul" "\n");
+        _IMIT ("mul" "\n");
 
     else if (node->type == OP && (int) node->value == DIV)
-        fprintf (file, "div" "\n");
+        _IMIT ("div" "\n");
 
     else if (node->type == OP && (int) node->value == EQUAL)
     {
         if (node->right != NULL)
             print_tree_postorder (file, node->right, context);
 
-        fprintf (file, "pop [%lg]" "\n" "; name = '%.*s'\n",
-        node->left->value,
-        (int)context->name_table[(int)node->left->value].name.length,
-        context->name_table[(int)node->left->value].name.str_pointer);
+        _IMIT ("; name = '%.*s'" "\n" "pop  [bx + %d]"  "\n",
+                        (int)context->name_table[(int)node->left->value].name.length,
+                             context->name_table[(int)node->left->value].name.str_pointer,
+                             context->name_table[(int)node->left->value].name.offset);
     }
 
     else if (node->type == OP && (int) node->value == IF)
     {
-        fprintf (file, "; START 'IF'. COMPILING LEFT" "\n");
+        _IMIT ("; START 'IF'. COMPILING LEFT" "\n");
 
         int old_count_op = count_op;
 
         print_tree_postorder (file, node->left, context);
 
-        fprintf (file, "; 'IF'. TESTING LEFT" "\n");
+        _IMIT ("; 'IF'. TESTING LEFT" "\n");
 
-        fprintf (file, "push 0" "\n");
+        _IMIT ("push 0" "\n");
 
-        fprintf (file, "je %d:" "\n", old_count_op);
+        _IMIT ("je %d:" "\n", old_count_op);
 
-        fprintf (file, "; 'IF'. COMPILING RIGHT" "\n");
+        _IMIT ("; 'IF'. COMPILING RIGHT" "\n");
 
         print_tree_postorder (file, node->right, context);
 
-        fprintf (file, "; END 'IF'. TESTING RIGHT" "\n");
+        _IMIT ("; END 'IF'. TESTING RIGHT" "\n");
 
-        fprintf (file, "%d:"    "\n", old_count_op);
+        _IMIT ("%d:"    "\n", old_count_op);
     }
 
     else if (node->type == OP && (int) node->value == WHILE)
     {
-        fprintf (file, "; START 'WHILE'. COMPILING LEFT" "\n");
+        _IMIT ("; START 'WHILE'. COMPILING LEFT" "\n");
         int old_count_op = count_op;
-        fprintf (file, "%d:" "\n", old_count_op + 1);
+        _IMIT ("%d:" "\n", old_count_op + 1);
 
         print_tree_postorder (file, node->left, context);
 
-        fprintf (file, "push 0" "\n");
+        _IMIT ("push 0" "\n");
 
-        fprintf (file, "; 'WHILE'. TESTING LEFT" "\n");
+        _IMIT ("; 'WHILE'. TESTING LEFT" "\n");
 
-        fprintf (file, "je %d:" "\n", old_count_op);
+        _IMIT ("je %d:" "\n", old_count_op);
 
-        fprintf (file, "; 'WHILE'. COMPILING RIGHT" "\n");
+        _IMIT ("; 'WHILE'. COMPILING RIGHT" "\n");
 
         print_tree_postorder (file, node->right, context);
 
-        fprintf (file, "; END 'WHILE'. TESTING RIGHT" "\n");
+        _IMIT ("; END 'WHILE'. TESTING RIGHT" "\n");
 
-        fprintf (file, "jmp %d:" "\n", old_count_op + 1);
+        _IMIT ("jmp %d:" "\n", old_count_op + 1);
 
-        fprintf (file, "%d:"    "\n", old_count_op);
+        _IMIT ("%d:"    "\n", old_count_op);
     }
 
     else if (node->type == OP && (int) node->value == GLUE)
-        fprintf (file, "; NOP"  "\n");
+        _IMIT ("; NOP"  "\n");
 
     else
-        fprintf (file, "; %lg"    "\n",  node->value);
+        _IMIT ("; %lg"    "\n",  node->value);
 
-    fprintf (file, "; ) type = %d, value = %lg\n", node->type, node->value);
+    _IMIT ("; ) type = %d, value = %lg\n", node->type, node->value);
 
     return 0;
 }
 
+#undef _IMIT
+
 int print_in_asm_file (const char* filename, struct Node_t* node, struct Context_t* context)
 {
     FILE* asm_code = open_log_file (filename);
+
+    name_table_dump (asm_code, context);
+
+    fprintf (asm_code, "push 5" "\n");
+    fprintf (asm_code, "pop bx" "\n" "; bx = 5" "\n\n");
 
     print_tree_postorder (asm_code, node, context);
 
@@ -229,6 +269,7 @@ const char* get_name (double enum_value)
 {
     switch ( (enum Operations) enum_value)
     {
+        case   SPACE: return ""; // for fixing warning
         case     ADD: return "PLUS";
         case     SUB: return "SUB";
         case     DIV: return "DIV";

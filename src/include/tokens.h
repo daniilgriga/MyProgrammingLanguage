@@ -31,6 +31,8 @@ struct Name_t
     int host_func;
     int counter_params;
     int counter_locals;
+
+    int offset;
 };
 
 struct NameTable_t
@@ -54,7 +56,7 @@ int add_struct_in_keywords (struct Context_t* context, const char* str, enum Ope
 
 int ctor_keywords (struct Context_t* context);
 
-int name_table_dump (struct Context_t* context);
+int name_table_dump (FILE* file, struct Context_t* context);
 
 int tokenization (struct Context_t* context, const char* string);
 

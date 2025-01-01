@@ -17,7 +17,7 @@ int Position =  0;
 
 /*========================================= GRAMMAR ========================================= */
 /*
-*   Grammar                   ::= FunctionDef '$'
+ *    Grammar                   ::= { FunctionDef }* '$'
  *
  *
  *    CompoundParametersForCall ::= { Expression, }*
@@ -61,7 +61,7 @@ static struct Node_t* CompoundOperations        (struct Context_t* context);
 
 void dump_token (struct Context_t* context, int numb_of_token);
 
-int count_parms_and_locls (struct Context_t* context);
+void local_variable_offset_counter (struct Context_t* context);
 
 //========================DSL FOR CURRENT TOKEN && NAME TABLE ACCESS=======================//
 
@@ -100,6 +100,8 @@ struct Node_t* GetGrammar (struct Context_t* context)
         SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_END_OF_FILE);
 
     MOVE_POSITION;
+
+    local_variable_offset_counter (context);
 
     return root;
 }
@@ -156,15 +158,27 @@ static struct Node_t*  GetFunctionDef  (struct Context_t* context)
     return _DEF (func_name, func_body);
 }
 
-int count_parms_and_locls (struct Context_t* context)
+void local_variable_offset_counter (struct Context_t* context)
 {
-    int counter = 0;
+    int count = 0;
 
     for (int i = 0; i < context->table_size; i++)
-        if (context->name_table[i].name.host_func == context->curr_host_func)
-            counter++;
+    {
+        if (context->name_table[i].name.is_keyword == 0 && context->name_table[i].name.id_type == 0)
+        {
+            for (int j = i; j < context->table_size; j++)
+            {
+                if ( context->name_table[j].name.id_type == 6 ||                                       // 20 - name table code of 'main' func
+                   ( context->name_table[j].name.id_type == 5 && context->name_table[j].name.host_func != 20 ) )
+                {
+                    context->name_table[j].name.offset = count;
+                    count++;
+                }
+            }
 
-    return counter;
+            count = 0;
+        }
+    }
 }
 
 static struct Node_t*  GetFunctionCall (struct Context_t* context)
@@ -549,8 +563,6 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
     context->name_table[(int)node->value].name.id_type   = PARM;
     context->name_table[(int)node->value].name.host_func = context->curr_host_func;
     context->name_table[context->curr_host_func].name.counter_params++;
-
-    fprintf (stderr, YELLOW_TEXT("\nhost func = %d\n"), context->curr_host_func);
 
     struct Node_t* root = _PRM (node, NULL);
 

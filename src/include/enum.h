@@ -13,6 +13,7 @@ enum Type
 
 enum Operations
 {
+    SPACE   =  0 ,
     ADD     = '+',
     SUB     = '-',
     DIV     = '/',
