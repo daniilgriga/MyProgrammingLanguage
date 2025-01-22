@@ -66,7 +66,7 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
                     && (int) node->value != DEF
                     && (int) node->value != COMMA   ) print_tree_postorder (file, node->right, context);
 
-    else if (node->type == FUNC && (int) node->value == CALL)
+    if (node->type == FUNC && (int) node->value == CALL)
     {
         _IMIT ("push bx"   "\n");
         _IMIT ("push bx"   "\n");
@@ -85,6 +85,11 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
     else if (node->type == FUNC && (int) node->value == DEF)
     {
         context->curr_host_func = (int) node->left->left->value;
+
+        if (strncmp (context->name_table[context->curr_host_func].name.str_pointer, "carti", (size_t) context->name_table[context->curr_host_func].name.length) == 0)
+        {
+            _IMIT ("call %lg:" "\n" "hlt" "\n", node->left->left->value);
+        }
 
         _IMIT ("%lg:\n", node->left->left->value);
 
@@ -106,9 +111,6 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
             print_tree_postorder (file, node->right, context);
     }
 
-    else if (node->type == NUM)
-        _IMIT ("push %lg"    "\n",  node->value);
-
     else if (node->type == ID)
     {
         _IMIT ("; name = '%.*s'" "\n" "push [bx + %d]"  "\n",
@@ -128,6 +130,9 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
 
     else if (node->type == OP && (int) node->value == DIV)
         _IMIT ("div" "\n");
+
+    else if (node->type == NUM)
+        _IMIT ("push %lg"    "\n",  node->value);
 
     else if (node->type == OP && (int) node->value == EQUAL)
     {
@@ -207,9 +212,9 @@ int print_in_asm_file (const char* filename, struct Node_t* node, struct Context
 
     name_table_dump (asm_code, context);
 
-    fprintf (asm_code, "push 5" "\n");
-    fprintf (asm_code, "pop bx" "\n" "; bx = 5" "\n\n");
-
+    fprintf (asm_code, "push 5" "\n");                     // bx offset not working for params of funcs ---|
+    fprintf (asm_code, "pop bx" "\n" "; bx = 5" "\n\n");  // TODO - start main code <----------------------|
+                                                         //
     print_tree_postorder (asm_code, node, context);
 
     close_log_file (asm_code);
