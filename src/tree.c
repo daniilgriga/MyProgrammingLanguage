@@ -384,7 +384,7 @@ int make_graph (struct Node_t* node, struct Context_t* context)
 {
     assert (node);
 
-    FILE* graph_file = fopen ("../../build/graph_tree.dot", "wb");
+    FILE* graph_file = fopen ("log/graph_tree.dot", "wb");
     if (graph_file == NULL)
     {
         fprintf(stderr, "\n" RED_TEXT("ERROR open graph_file") "\n");

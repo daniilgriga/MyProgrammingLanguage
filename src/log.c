@@ -54,9 +54,9 @@ int write_log_file (const char* reason, va_list args)
     static char  filename[50] = {};
     char    command_name[200] = {};
 
-    sprintf (way, "../../build/");
+    sprintf (way, "log/");
     sprintf (filename, "graph_tree%d.svg", dump_number++);
-    sprintf (command_name, "dot ../../build/graph_tree.dot -Tsvg -o %s%s", way, filename);
+    sprintf (command_name, "dot log/graph_tree.dot -Tsvg -o %s%s", way, filename);
 
     system  (command_name);
 

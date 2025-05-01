@@ -26,17 +26,17 @@ int print_tree_postorder (FILE* file, struct Node_t* node, struct Context_t* con
 
 int print_in_asm_file (const char* filename, struct Node_t* node, struct Context_t* context);
 
-int delete_sub_tree       (struct Node_t* node);
+int delete_sub_tree (struct Node_t* node);
 
 int delete_node (struct Node_t* node);
 
 int buffer_dtor (struct Buffer_t* buffer);
 
-int destructor  (struct Node_t* node, struct Buffer_t* buffer);
+int destructor (struct Node_t* node, struct Buffer_t* buffer);
 
 void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* context, FILE* filename);
 
-int make_graph  (struct Node_t* node, struct Context_t* context);
+int make_graph (struct Node_t* node, struct Context_t* context);
 
 void dump_in_log_file (struct Node_t* node,  struct Context_t* context, const char* reason, ...);
 
