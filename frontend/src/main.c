@@ -17,7 +17,7 @@ int main (int argc, const char* argv[])
 
     ctor_keywords (&context);
 
-    const char* string = file_reader (&buffer, "src/code_example.txt");
+    const char* string = file_reader (&buffer, "frontend/src/code_example.txt");
 
     int error = tokenization (&context, string);
 
@@ -31,7 +31,7 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
-    print_in_asm_file ("src/asm_code.asm", root, &context);
+    print_in_asm_file ("asm_code.asm", root, &context);
 
     delete_sub_tree (root);
     buffer_dtor (&buffer);

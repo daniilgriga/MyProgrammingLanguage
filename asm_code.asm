@@ -1,9 +1,9 @@
-;[1;34m[20]: [0mADDRESS = [0x7ffcf0e2a9e0], name = 'carti',  lngth = 5, keywrd = 0, added_stts = 1 id_type = 0, host_fnc = 00, cntr_prms = 2, cntr_lcls = 2, offset = 0
-;[1;34m[21]: [0mADDRESS = [0x7ffcf0e2d290], name = 'void',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
-;[1;34m[22]: [0mADDRESS = [0x7ffcf0e2fb40], name = 'loh',    lngth = 3, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
-;[1;34m[23]: [0mADDRESS = [0x7ffcf0e323f0], name = 'bro',    lngth = 3, keywrd = 0, added_stts = 1 id_type = 6, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
-;[1;34m[24]: [0mADDRESS = [0x7ffcf0e34ca0], name = 'dude',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 25, cntr_prms = 0, cntr_lcls = 0, offset = 1
-;[1;34m[25]: [0mADDRESS = [0x7ffcf0e37550], name = 'eval',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 0, host_fnc = 00, cntr_prms = 1, cntr_lcls = 0, offset = 0
+;[1;34m[20]: [0mADDRESS = [0x7ffcf9d1c1a0], name = 'carti',  lngth = 5, keywrd = 0, added_stts = 1 id_type = 0, host_fnc = 00, cntr_prms = 2, cntr_lcls = 2, offset = 0
+;[1;34m[21]: [0mADDRESS = [0x7ffcf9d1ea50], name = 'void',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
+;[1;34m[22]: [0mADDRESS = [0x7ffcf9d21300], name = 'loh',    lngth = 3, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
+;[1;34m[23]: [0mADDRESS = [0x7ffcf9d23bb0], name = 'bro',    lngth = 3, keywrd = 0, added_stts = 1 id_type = 6, host_fnc = 20, cntr_prms = 0, cntr_lcls = 0, offset = 0
+;[1;34m[24]: [0mADDRESS = [0x7ffcf9d26460], name = 'dude',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 5, host_fnc = 25, cntr_prms = 0, cntr_lcls = 0, offset = 1
+;[1;34m[25]: [0mADDRESS = [0x7ffcf9d28d10], name = 'eval',   lngth = 4, keywrd = 0, added_stts = 1 id_type = 0, host_fnc = 00, cntr_prms = 1, cntr_lcls = 0, offset = 0
 push 5
 pop bx
 ; bx = 5
