@@ -8,7 +8,7 @@ enum Type
     FUNC = 4,
     PARM = 5,
     LOCL = 6,
-    ROOT = -1
+    ROOT =-1
 };
 
 enum Operations

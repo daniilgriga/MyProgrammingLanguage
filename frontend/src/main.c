@@ -5,6 +5,7 @@
 #include "tokens.h"
 #include "syntax.h"
 #include "buffer.h"
+#include "ir_gen.h"
 
 int main (int argc, const char* argv[])
 {
@@ -31,7 +32,12 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
-    print_in_asm_file ("asm_code.asm", root, &context);
+    struct IRGenerator gen = {};
+    initial_ir_generator (&gen);
+    bypass (&gen, root->left->right->left, &context);
+
+    for (int i = 0; i < gen.instr_count; i++)
+        fprintf (stderr, "%s\n", gen.instructions[i]);
 
     delete_sub_tree (root);
     buffer_dtor (&buffer);

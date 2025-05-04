@@ -42,18 +42,18 @@ int Position =  0;
 
  // GetParametr
 
-static struct Node_t*  GetFunctionCall          (struct Context_t* context);
-static struct Node_t*  GetFunctionDef           (struct Context_t* context);
-static struct Node_t*  GetAssignment            (struct Context_t* context);
-static struct Node_t*  GetExpression            (struct Context_t* context);
-static struct Node_t*  GetOperation             (struct Context_t* context);
-static struct Node_t*  GetNumber                (struct Context_t* context);
-static struct Node_t*  GetIdent                 (struct Context_t* context);
-static struct Node_t*  GetCond                  (struct Context_t* context);
-static struct Node_t*  GetLoop                  (struct Context_t* context);
-static struct Node_t*  GetTerm                  (struct Context_t* context);
-static struct Node_t*  GetPow                   (struct Context_t* context);
-static struct Node_t*  GetP                     (struct Context_t* context);
+static struct Node_t* GetFunctionCall           (struct Context_t* context);
+static struct Node_t* GetFunctionDef            (struct Context_t* context);
+static struct Node_t* GetAssignment             (struct Context_t* context);
+static struct Node_t* GetExpression             (struct Context_t* context);
+static struct Node_t* GetOperation              (struct Context_t* context);
+static struct Node_t* GetNumber                 (struct Context_t* context);
+static struct Node_t* GetIdent                  (struct Context_t* context);
+static struct Node_t* GetCond                   (struct Context_t* context);
+static struct Node_t* GetLoop                   (struct Context_t* context);
+static struct Node_t* GetTerm                   (struct Context_t* context);
+static struct Node_t* GetPow                    (struct Context_t* context);
+static struct Node_t* GetP                      (struct Context_t* context);
 
 static struct Node_t* CompoundParametersForCall (struct Context_t* context);
 static struct Node_t* CompoundParametersForDef  (struct Context_t* context);
@@ -63,7 +63,7 @@ void dump_token (struct Context_t* context, int numb_of_token);
 
 void local_variable_offset_counter (struct Context_t* context);
 
-//========================DSL FOR CURRENT TOKEN && NAME TABLE ACCESS=======================//
+//======================== DSL FOR CURRENT TOKEN && NAME TABLE ACCESS =======================//
 
 #define _CUR_TOKEN  ( context->token[Position]     )
 #define _NEXT_TOKEN ( context->token[Position + 1] )
@@ -75,7 +75,7 @@ void local_variable_offset_counter (struct Context_t* context);
 
 // CURR.type ; CURR.name ????
 
-//=========================================================================================//
+//===========================================================================================//
 
 struct Node_t* GetGrammar (struct Context_t* context)
 {
@@ -106,7 +106,7 @@ struct Node_t* GetGrammar (struct Context_t* context)
     return root;
 }
 
-static struct Node_t*  GetFunctionDef  (struct Context_t* context)
+static struct Node_t* GetFunctionDef (struct Context_t* context)
 {
     if ( _IS_OP (ADVT) )
     {
@@ -181,7 +181,7 @@ void local_variable_offset_counter (struct Context_t* context)
     }
 }
 
-static struct Node_t*  GetFunctionCall (struct Context_t* context)
+static struct Node_t* GetFunctionCall (struct Context_t* context)
 {
     struct Node_t* node       = NULL;
     struct Node_t* node_param = NULL;
@@ -204,7 +204,7 @@ static struct Node_t*  GetFunctionCall (struct Context_t* context)
     return node;
 }
 
-struct Node_t* GetOperation  (struct Context_t* context)
+struct Node_t* GetOperation (struct Context_t* context)
 {
     struct Node_t*    node = GetAssignment (context);
 
