@@ -34,7 +34,7 @@ int main (int argc, const char* argv[])
 
     struct IRGenerator gen = {};
     initial_ir_generator (&gen);
-    bypass (&gen, root->left->right->left, &context);
+    bypass (&gen, root, &context);
 
     for (int i = 0; i < gen.instr_count; i++)
         fprintf (stderr, "%s\n", gen.instructions[i]);

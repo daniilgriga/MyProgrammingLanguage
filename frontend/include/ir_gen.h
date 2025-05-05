@@ -6,7 +6,7 @@
 #define MAX_VAR_NAME   32
 #define MAX_IR_INSTR  256
 #define MAX_INSTR_LEN 128
-#define MAX_SYMBOLS    64
+#define MAX_SYMBOLS    32
 
 struct Symbol
 {
@@ -25,7 +25,7 @@ struct IRGenerator
 
 void initial_ir_generator (struct IRGenerator* gen);
 
-void new_register(struct IRGenerator* gen, char* buffer, size_t size);
+void new_register (struct IRGenerator* gen, char* buffer, size_t size);
 
 char* get_or_add_symbol (struct IRGenerator* gen, const char* name);
 

@@ -13,6 +13,9 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		-Wno-varargs -Wstack-protector                                                				  \
 		-fstack-protector -fstrict-overflow -flto -fno-omit-frame-pointer             				  \
 		-pie -fPIE -Werror=vla                                                        				  \
+		-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
+		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,$\
+		returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 CFLAGS = -c $(FLAGS)
 LDFLAGS = $(FLAGS) -lm
