@@ -37,7 +37,7 @@ char* get_or_add_symbol (struct IRGenerator* gen, const char* name)
         exit(1);
     }
 
-    char reg[16];
+    char* reg = calloc (16, sizeof(char));
     new_register (gen, reg, sizeof(reg));
     //fprintf (stderr, "IN get_or_add_symbol: name = <%s>\n", name);
     strncpy (gen->symbols[gen->symbol_count].name, name, MAX_VAR_NAME);
@@ -85,8 +85,11 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                 case DEF:
                 {
                     const char* func_name = context->name_table[(int)node->left->left->value].name.str_pointer;
+                    int length = context->name_table[(int)node->left->left->value].name.length;
+                    fprintf (stderr, "length = %d\n", length);
                     char instr[MAX_INSTR_LEN] = {};
-                    snprintf (instr, sizeof(instr), "function %s", func_name);
+
+                    snprintf (instr, sizeof(instr), "function " "%.*s", length, func_name);
                     add_instruction (gen, instr);
 
                     bypass (gen, node->right, context);
@@ -100,8 +103,9 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                 case CALL:
                 {
                     const char* func_name = context->name_table[(int)node->left->value].name.str_pointer;
+                    int length = context->name_table[(int)node->left->value].name.length;
                     char instr[MAX_INSTR_LEN] = {};
-                    snprintf (instr, sizeof(instr), "call %s", func_name);
+                    snprintf (instr, sizeof(instr), "call " "%.*s", length, func_name);
                     add_instruction (gen, instr);
 
                     bypass (gen, node->right, context);
@@ -136,7 +140,7 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                     const char* var_name = context->name_table[(int)node->left->value].name.str_pointer;
                     char* value_reg = bypass (gen, node->right, context);
 
-                    fprintf (stderr, "node = '%0.f' | node->left = '%.0f'\n\n", node->value, node->left->value);
+                    fprintf (stderr, "| node->left = '%.0f' | node = '%0.f' | node->right = %0.f |\n", node->left->value, node->value, node->right->value);
                     char* var_reg = get_or_add_symbol (gen, var_name);
 
                     char instr[MAX_INSTR_LEN] = {};
