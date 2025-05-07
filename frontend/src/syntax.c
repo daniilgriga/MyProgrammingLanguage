@@ -560,6 +560,9 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
     struct Node_t* node = GetIdent (context);
 
+    if (context->name_table[(int)node->value].name.id_type == LOCL)
+        SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, UNDECLARED);
+
     context->name_table[(int)node->value].name.id_type   = PARM;
     context->name_table[(int)node->value].name.host_func = context->curr_host_func;
     context->name_table[context->curr_host_func].name.counter_params++;
