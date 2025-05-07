@@ -1,0 +1,18 @@
+function carti
+param void, r1
+param loh, r2
+set r3, 25
+store bro, r3
+set r4, 10
+store dude, r4
+push r4
+call eval
+pop 4
+set r5, r7
+store bro, r5
+end_function
+function eval
+param yamal, r6
+set r7, 9
+store yamal, r7
+end_function

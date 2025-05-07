@@ -36,8 +36,7 @@ int main (int argc, const char* argv[])
     initial_ir_generator (&gen);
     bypass (&gen, root, &context);
 
-    for (int i = 0; i < gen.instr_count; i++)
-        fprintf (stderr, "%s\n", gen.instructions[i]);
+    save_ir_to_file (&gen, "backend/program.ir");
 
     delete_sub_tree (root);
     buffer_dtor (&buffer);

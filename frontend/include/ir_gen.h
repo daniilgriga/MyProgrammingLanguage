@@ -34,3 +34,5 @@ void add_symbol_with_reg (struct IRGenerator* gen, const char* name, const char*
 void add_instruction (struct IRGenerator* gen, const char* instr);
 
 char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* context);
+
+int save_ir_to_file (struct IRGenerator* gen, const char* filename);

@@ -29,7 +29,7 @@ char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length)
     for (int i = 0; i < gen->symbol_count; i++)
     {
         fprintf (stderr, "COMPARE: {%d}: [%.10s] | [%.10s]\n", i, gen->symbols[i].name, name);
-        if (strncmp(gen->symbols[i].name, name, length) == 0)
+        if (strncmp(gen->symbols[i].name, name, (size_t) length) == 0)
         {
             char* reg_copy = calloc (MAX_VAR_NAME, sizeof(char));
             if (!reg_copy)
@@ -38,7 +38,7 @@ char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length)
                 exit(1);
             }
 
-            fprintf (stderr, "get_or_add_symbol: existing reg = <%s> for name = <%s>\n", reg_copy, name);
+            fprintf (stderr, "get_or_add_symbol: existing reg = <%s> for name = <%.10s>\n", reg_copy, name);
             strncpy (reg_copy, gen->symbols[i].reg, MAX_VAR_NAME);
             return reg_copy;
         }
@@ -163,7 +163,13 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                         }
                     }
 
-                    bypass (gen, node->right, context);
+                    char* result_reg = bypass (gen, node->right, context);
+                    if (result_reg)
+                    {
+                        snprintf (instr, sizeof(instr), "set r7, %s", result_reg);
+                        add_instruction (gen, instr);
+                        free (result_reg);
+                    }
 
                     snprintf (instr, sizeof(instr), "end_function");
                     add_instruction (gen, instr);
@@ -218,11 +224,13 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                     char* result = calloc (MAX_VAR_NAME, sizeof(char));
                     if (!result)
                     {
-                        fprintf(stderr, "Memory allocation failed\n");
+                        fprintf (stderr, "Memory allocation failed\n");
                         exit(1);
                     }
 
-                    snprintf (result, MAX_VAR_NAME, "r7");
+                    new_register (gen, result, MAX_VAR_NAME);
+                    snprintf (instr, sizeof(instr), "set %s, r7", result);
+                    add_instruction (gen, instr);
 
                     return result;
                 }
@@ -263,22 +271,36 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                             add_symbol_with_reg (gen, var_name, value_reg);
 
                             snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, value_reg);
-                            add_instruction(gen, instr);
+                            add_instruction (gen, instr);
 
                             return value_reg;
                         }
+                        else if (node->right->type == ID &&                                                                          // |
+                                strncmp(context->name_table[(int)node->left->value].name.str_pointer,                                // |
+                                        context->name_table[(int)node->right->value].name.str_pointer,                               // |
+                                        var_length > context->name_table[(int)node->right->value].name.length ?                      // |
+                                        (size_t)var_length : (size_t)context->name_table[(int)node->right->value].name.length) == 0) // | (MIDDLEEND)
+                        {                                                                                                            // |
+                            free (value_reg);                                                                                        // |
+                            return get_or_add_symbol (gen, var_name, var_length);                                                    // |
+                        }                                                                                                            // |
                         else
                         {
-                            char* var_reg = get_or_add_symbol (gen, var_name, var_length);
-                            snprintf (instr, sizeof(instr), "set %s, %s", var_reg, value_reg);
+                            add_symbol_with_reg( gen, var_name, value_reg);
+
+                            snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, value_reg);
                             add_instruction (gen, instr);
 
-                            snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, var_reg);
-                            add_instruction (gen, instr);
-                            add_symbol_with_reg (gen, var_name, var_reg);
-
+                            char* result = calloc (MAX_VAR_NAME, sizeof(char));
+                            if (result == NULL)
+                            {
+                                fprintf (stderr, "Memory allocation failed\n");
+                                exit(1);
+                            }
+                            strncpy (result, value_reg, MAX_VAR_NAME);
                             free (value_reg);
-                            return var_reg;
+
+                            return result;
                         }
                     }
                     else
@@ -335,7 +357,7 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
         }
 
         case ID:
-            return get_or_add_symbol (gen, context->name_table[(int)node->value].name.str_pointer, context->name_table[(int)node->value].name.length);
+            return get_or_add_symbol (gen, context->name_table[(int)node->value .name.str_pointer, context->name_table[(int)node->value].name.length);
 
         case NUM:
         {
@@ -360,4 +382,21 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
             fprintf (stderr, "Unknown node type: %d\n", node->type);
             exit(1);
     }
+}
+
+int save_ir_to_file (struct IRGenerator* gen, const char* filename)
+{
+    FILE* file = fopen (filename, "wb");
+    if (!file)
+    {
+        fprintf (stderr, "Error: Cannot open file %s for writing\n", filename);
+        return 1;
+    }
+
+    for (int i = 0; i < gen->instr_count; i++)
+        fprintf (file, "%s\n", gen->instructions[i]);
+
+    fclose (file);
+
+    return 0;
 }

@@ -262,7 +262,7 @@
 <polyline fill="none" stroke="black" points="566,-433.5 803,-433.5 "/>
 <text text-anchor="middle" x="684.5" y="-418.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 24 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="566,-410.5 803,-410.5 "/>
-<text text-anchor="middle" x="684.5" y="-395.3" font-family="Times,serif" font-size="14.00">id_type = PARM</text>
+<text text-anchor="middle" x="684.5" y="-395.3" font-family="Times,serif" font-size="14.00">id_type = LOCL</text>
 </g>
 <!-- node0x503000000280&#45;&gt;node0x503000000220 -->
 <g id="edge16" class="edge">
@@ -396,7 +396,7 @@
 <polyline fill="none" stroke="black" points="924,-46.5 1161,-46.5 "/>
 <text text-anchor="middle" x="1042.5" y="-31.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 24 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="924,-23.5 1161,-23.5 "/>
-<text text-anchor="middle" x="1042.5" y="-8.3" font-family="Times,serif" font-size="14.00">id_type = PARM</text>
+<text text-anchor="middle" x="1042.5" y="-8.3" font-family="Times,serif" font-size="14.00">id_type = LOCL</text>
 </g>
 <!-- node0x503000000370&#45;&gt;node0x503000000340 -->
 <g id="edge24" class="edge">
@@ -516,9 +516,9 @@
 <path fill="#ff5050" stroke="black" d="M1360,-387.5C1360,-387.5 1573,-387.5 1573,-387.5 1579,-387.5 1585,-393.5 1585,-399.5 1585,-399.5 1585,-467.5 1585,-467.5 1585,-473.5 1579,-479.5 1573,-479.5 1573,-479.5 1360,-479.5 1360,-479.5 1354,-479.5 1348,-473.5 1348,-467.5 1348,-467.5 1348,-399.5 1348,-399.5 1348,-393.5 1354,-387.5 1360,-387.5"/>
 <text text-anchor="middle" x="1466.5" y="-464.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="1348,-456.5 1585,-456.5 "/>
-<text text-anchor="middle" x="1466.5" y="-441.3" font-family="Times,serif" font-size="14.00">name = &#39;&#39; dude &#39;&#39;</text>
+<text text-anchor="middle" x="1466.5" y="-441.3" font-family="Times,serif" font-size="14.00">name = &#39;&#39; yamal &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="1348,-433.5 1585,-433.5 "/>
-<text text-anchor="middle" x="1466.5" y="-418.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 24 &#39;&#39;</text>
+<text text-anchor="middle" x="1466.5" y="-418.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 26 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="1348,-410.5 1585,-410.5 "/>
 <text text-anchor="middle" x="1466.5" y="-395.3" font-family="Times,serif" font-size="14.00">id_type = PARM</text>
 </g>
@@ -534,9 +534,9 @@
 <path fill="#ff5050" stroke="black" d="M1615,-387.5C1615,-387.5 1828,-387.5 1828,-387.5 1834,-387.5 1840,-393.5 1840,-399.5 1840,-399.5 1840,-467.5 1840,-467.5 1840,-473.5 1834,-479.5 1828,-479.5 1828,-479.5 1615,-479.5 1615,-479.5 1609,-479.5 1603,-473.5 1603,-467.5 1603,-467.5 1603,-399.5 1603,-399.5 1603,-393.5 1609,-387.5 1615,-387.5"/>
 <text text-anchor="middle" x="1721.5" y="-464.3" font-family="Times,serif" font-size="14.00">type = 3 (ID)</text>
 <polyline fill="none" stroke="black" points="1603,-456.5 1840,-456.5 "/>
-<text text-anchor="middle" x="1721.5" y="-441.3" font-family="Times,serif" font-size="14.00">name = &#39;&#39; dude &#39;&#39;</text>
+<text text-anchor="middle" x="1721.5" y="-441.3" font-family="Times,serif" font-size="14.00">name = &#39;&#39; yamal &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="1603,-433.5 1840,-433.5 "/>
-<text text-anchor="middle" x="1721.5" y="-418.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 24 &#39;&#39;</text>
+<text text-anchor="middle" x="1721.5" y="-418.3" font-family="Times,serif" font-size="14.00">number in name table = &#39;&#39; 26 &#39;&#39;</text>
 <polyline fill="none" stroke="black" points="1603,-410.5 1840,-410.5 "/>
 <text text-anchor="middle" x="1721.5" y="-395.3" font-family="Times,serif" font-size="14.00">id_type = PARM</text>
 </g>
