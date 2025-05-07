@@ -357,7 +357,7 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
         }
 
         case ID:
-            return get_or_add_symbol (gen, context->name_table[(int)node->value .name.str_pointer, context->name_table[(int)node->value].name.length);
+            return get_or_add_symbol (gen, context->name_table[(int)node->value].name.str_pointer, context->name_table[(int)node->value].name.length);
 
         case NUM:
         {
