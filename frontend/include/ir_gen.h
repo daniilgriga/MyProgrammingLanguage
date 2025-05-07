@@ -27,7 +27,9 @@ void initial_ir_generator (struct IRGenerator* gen);
 
 void new_register (struct IRGenerator* gen, char* buffer, size_t size);
 
-char* get_or_add_symbol (struct IRGenerator* gen, const char* name);
+char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length);
+
+void add_symbol_with_reg (struct IRGenerator* gen, const char* name, const char* reg);
 
 void add_instruction (struct IRGenerator* gen, const char* instr);
 
