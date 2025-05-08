@@ -1,0 +1,220 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "backend.h"
+
+struct Token
+{
+    char value[32];
+    int is_register; // 1 - register, 0 - no register
+};
+
+struct IR_Transformation
+{
+    const char* ir_op;          // op name     (example: "set")
+    const char* x86_op;         // op_x86_name (example: "mov")
+    int arg_count;              // count of arguments
+    int is_variable_target;     // 1, if first  arg - var
+    int is_number_allowed;      // 1, if second arg may be num
+};
+
+struct IR_Transformation transformations[] = {
+    {   "set",       "mov",   2, 0, 1}, // < set rX, rY or set rX, NUM >
+    {   "store",     "mov",   2, 1, 0}, // < store VAR, rX >
+    {   "push",      "push",  1, 0, 0}, // < push rX   >
+    {   "call",      "call",  1, 0, 0}, // < call FUNC >
+    {   "pop",       "add",   1, 0, 1}, // < pop N     > (clean stack, equals add <rsp, N>)
+    { "function",    "label", 1, 0, 0}, // < function FUNC >
+    {"end_function", "ret",   0, 0, 0}, // < end_function >
+    {NULL,            NULL,   0, 0, 0}  //   end of table
+};
+
+struct Variable
+{
+    char name[32];
+};
+
+const char* reg_map[MAX_REGISTERS] = {
+    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "r8",
+    "r9" , "r10", "r11", "r12", "r13", "r14", "r15"
+};
+
+struct Variable variables[MAX_VARIABLES];
+int variable_count = 0;
+
+static int is_number (const char* str)
+{
+    char* endptr;
+    strtol (str, &endptr, 10);
+    return (*endptr == '\0');
+}
+
+static int is_register (const char* str)
+{
+    return (strlen(str) > 1 && str[0] == 'r' && is_number(str + 1));
+}
+
+static void add_variable (const char* name)
+{
+    for (int i = 0; i < variable_count; i++)
+        if (strcmp(variables[i].name, name) == 0) return;
+
+    if (variable_count < MAX_VARIABLES)
+    {
+        strncpy (variables[variable_count].name, name, 31); // TODO: add const
+        variable_count++;
+    }
+    else
+    {
+        fprintf (stderr, "Error: Too many variables\n");
+        exit(1);
+    }
+}
+
+static int tokenize_line (const char* line, struct Token* tokens)
+{
+    char* line_copy = strdup (line);
+    char* token = strtok (line_copy, " ,");
+    int token_count = 0;
+
+    while (token && token_count < MAX_TOKENS)
+    {
+        strncpy (tokens[token_count].value, token, 31);
+        tokens[token_count].is_register = is_register (token);
+        token = strtok (NULL, " ,");
+        token_count++;
+    }
+
+    free (line_copy);
+
+    return token_count;
+}
+
+static int get_reg_index (const char* reg_str)
+{
+    if (strlen(reg_str) < 2 || reg_str[0] != 'r') return -1;
+
+    int idx = atoi (reg_str + 1) - 1;
+
+    return (idx >= 0 && idx < MAX_REGISTERS) ? idx : -1;
+}
+
+static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_count)
+{
+    if (token_count == 0) return;
+
+    for (int i = 0; transformations[i].ir_op; i++)
+    {
+        if (strcmp(tokens[0].value, transformations[i].ir_op) == 0)
+        {
+            if (token_count - 1 != transformations[i].arg_count)
+            {
+                fprintf (stderr, "Error: Wrong number of arguments for %s\n", tokens[0].value);
+                return;
+            }
+
+            if (strcmp(transformations[i].x86_op, "label") == 0)
+            {
+                fprintf (asm_file, "\n%s:\n", tokens[1].value);
+                fprintf (asm_file, "    push rbp\n");
+                fprintf (asm_file, "    mov rbp, rsp\n");
+            }
+            else if (strcmp(transformations[i].x86_op, "ret") == 0)
+            {
+                fprintf (asm_file, "    mov rsp, rbp\n");
+                fprintf (asm_file, "    pop rbp\n");
+                fprintf (asm_file, "    ret\n");
+            }
+            else if (strcmp(transformations[i].x86_op, "mov") == 0)
+            {
+                int reg1_idx = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
+                int reg2_idx = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
+
+                if (transformations[i].is_variable_target && !tokens[1].is_register)
+                {
+                    // store VAR, rX
+                    add_variable (tokens[1].value);
+                    if (reg2_idx >= 0 && reg2_idx < MAX_REGISTERS)
+                        fprintf (asm_file, "    mov [%s], %s\n", tokens[1].value, reg_map[reg2_idx]);
+                }
+                else if (reg1_idx >= 0 && reg1_idx < MAX_REGISTERS)
+                {
+                    // set rX, rY or set rX, NUM
+                    if (reg2_idx >= 0 && reg2_idx < MAX_REGISTERS)
+                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_idx], reg_map[reg2_idx]);
+
+                    else if (transformations[i].is_number_allowed && is_number(tokens[2].value))
+                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_idx], tokens[2].value);
+                }
+            }
+            else if (strcmp(transformations[i].x86_op, "push") == 0)
+            {
+                int reg_idx = get_reg_index (tokens[1].value);
+
+                if (reg_idx >= 0 && reg_idx < MAX_REGISTERS)
+                    fprintf (asm_file, "    push %s\n", reg_map[reg_idx]);
+            }
+            else if (strcmp(transformations[i].x86_op, "call") == 0)
+            {
+                fprintf (asm_file, "    call %s\n", tokens[1].value);
+            }
+            else if (strcmp(transformations[i].x86_op, "add") == 0)
+            {
+                if (is_number(tokens[1].value))
+                    fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 2);
+            }
+
+            break;
+        }
+    }
+}
+
+void generate_x86_backend (const char* ir_filename, const char* asm_filename)
+{
+    FILE* ir_file  = fopen (ir_filename, "rb");
+    FILE* asm_file = fopen (asm_filename, "wb");
+
+    if (ir_file == NULL || asm_file == NULL)
+    {
+        fprintf (stderr, "Error: Cannot open files\n");
+        exit(1);
+    }
+
+    char line[MAX_LINE] = {};
+    struct Token tokens[MAX_TOKENS] = {};
+
+    fprintf (asm_file, "section .data\n");
+    while (fgets(line, MAX_LINE, ir_file))
+    {
+        line[strcspn(line, "\n")] = 0;
+        int token_count = tokenize_line (line, tokens);
+        if (token_count > 1 && strcmp(tokens[0].value, "store") == 0 && !tokens[1].is_register)
+            add_variable (tokens[1].value);
+    }
+
+    rewind (ir_file);
+
+    for (int i = 0; i < variable_count; i++)
+        fprintf (asm_file, "    %s dq 0\n", variables[i].name);
+
+    fprintf (asm_file, "\nsection .text\n");
+    fprintf (asm_file, "global _start\n");
+
+    while (fgets(line, MAX_LINE, ir_file))
+    {
+        line[strcspn(line, "\n")] = 0;
+        int token_count = tokenize_line (line, tokens);
+        if (token_count > 0)
+            transform_to_x86 (asm_file, tokens, token_count);
+    }
+
+    fprintf (asm_file, "\n_start:\n");
+    fprintf (asm_file, "    call carti\n");
+    fprintf (asm_file, "    mov rax, 60\n");
+    fprintf (asm_file, "    xor rdi, rdi\n");
+    fprintf (asm_file, "    syscall\n");
+
+    fclose (ir_file);
+    fclose (asm_file);
+}

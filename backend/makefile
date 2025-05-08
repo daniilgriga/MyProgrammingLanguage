@@ -36,5 +36,9 @@ $(EXECUTABLE): $(OBJECTS)
 build/%.o: src/%.c
 	@$(CC) -I./include $(CFLAGS) -MMD -MP $< -o $@
 
+nasm:
+	nasm -g -f elf64 src/program.nasm -o build/output_nasm.o
+	ld -m elf_x86_64 build/output_nasm.o -o build/nasm_test
+
 clean:
 	rm -f build/*.o $(EXECUTABLE)
