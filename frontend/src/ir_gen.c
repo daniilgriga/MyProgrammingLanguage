@@ -350,6 +350,32 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                     return var_reg;
                 }
 
+                case WHILE:
+                {
+                    char label[32]; //TODO - const
+                    snprintf (label, sizeof(label), "body%d", rand() % 1000);
+
+                    char* counter_reg = bypass (gen, node->left, context);
+                    if (counter_reg == NULL)
+                    {
+                        fprintf (stderr, "Error: Counter register is NULL for MONEY\n");
+                        return NULL;
+                    }
+
+                    char instr[MAX_INSTR_LEN] = {};
+
+                    snprintf (instr, sizeof(instr), "money %s > 0, %s", counter_reg, label);
+                    add_instruction (gen, instr);
+                    free (counter_reg);
+
+                    bypass (gen, node->right, context);
+
+                    snprintf (instr, sizeof(instr), "end_money");
+                    add_instruction (gen, instr);
+
+                    return NULL;
+                }
+
                 default:
                     fprintf (stderr, "Unknown node value in OP node type: %.0f\n", node->value);
                     return NULL;

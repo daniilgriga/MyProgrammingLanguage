@@ -7,6 +7,8 @@
 #include "buffer.h"
 #include "ir_gen.h"
 
+#define PROGRAM "frontend/src/factorial_loop.txt"
+
 int main (int argc, const char* argv[])
 {
     const char* LogFileName = (argc >= 2)? argv[1] : "log/TreeGraph.html";
@@ -18,7 +20,7 @@ int main (int argc, const char* argv[])
 
     ctor_keywords (&context);
 
-    const char* string = file_reader (&buffer, "frontend/src/code_example.txt");
+    const char* string = file_reader (&buffer, PROGRAM);
 
     int error = tokenization (&context, string);
 

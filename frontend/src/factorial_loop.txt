@@ -1,4 +1,4 @@
-lethimcook carti (lethimcook void)
+lethimcook carti (lethimcook argc)
 lesssgo
 
 lethimcook numb   is 5 shutup
