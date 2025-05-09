@@ -6,7 +6,7 @@ set r3, 1
 store result, r3
 set r4, 1
 store old, r4
-money r2 > 0, body383
+while r2 > 0, body383
 store old, r2
 mul r3, r4
 store result, r3
@@ -16,5 +16,5 @@ store old, r2
 set r6, 1
 sub r2, r6
 store numb, r2
-end_money
+end_while
 end_function

@@ -359,13 +359,13 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
                     char instr[MAX_INSTR_LEN] = {};
 
-                    snprintf (instr, sizeof(instr), "money %s > 0, %s", counter_reg, label);
+                    snprintf (instr, sizeof(instr), "while %s > 0, %s", counter_reg, label);
                     add_instruction (gen, instr);
                     free (counter_reg);
 
                     bypass (gen, node->right, context);
 
-                    snprintf (instr, sizeof(instr), "end_money");
+                    snprintf (instr, sizeof(instr), "end_while");
                     add_instruction (gen, instr);
 
                     return NULL;
