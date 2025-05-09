@@ -5,14 +5,14 @@
 
 #include "ir_gen.h"
 
-void initial_ir_generator (struct IRGenerator* gen)
+void initial_ir_generator (struct IRGenerator_t* gen)
 {
     gen->symbol_count = 0;
     gen->instr_count = 0;
     gen->reg_count = 0;
 }
 
-void new_register (struct IRGenerator* gen, char* buffer, size_t size)
+void new_register (struct IRGenerator_t* gen, char* buffer, size_t size)
 {
     assert (gen);
     assert (buffer);
@@ -21,7 +21,7 @@ void new_register (struct IRGenerator* gen, char* buffer, size_t size)
     fprintf (stderr, "in new_register: new reg: [r%d]\n", gen->reg_count);
 }
 
-char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length)
+char* get_or_add_symbol (struct IRGenerator_t* gen, const char* name, int length)
 {
     assert (gen);
     assert (name);
@@ -69,7 +69,7 @@ char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length)
     return reg_copy;
 }
 
-void add_symbol_with_reg (struct IRGenerator* gen, const char* name, const char* reg)
+void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const char* reg)
 {
     assert (gen);
     assert (name);
@@ -98,7 +98,7 @@ void add_symbol_with_reg (struct IRGenerator* gen, const char* name, const char*
     fprintf (stderr, "add_symbol_with_reg: new reg = <%s> for name = <%.10s>\n", reg, name);
 }
 
-void add_instruction (struct IRGenerator* gen, const char* instr)
+void add_instruction (struct IRGenerator_t* gen, const char* instr)
 {
     assert (gen);
     assert (instr);
@@ -114,7 +114,7 @@ void add_instruction (struct IRGenerator* gen, const char* instr)
     }
 }
 
-char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* context)
+char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* context)
 {
     assert (gen);
     assert (context);
@@ -253,8 +253,12 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
             switch ((int)node->value)
             {
                 case GLUE:
-                    bypass (gen, node->left, context);
-                    bypass (gen, node->right, context);
+                    char* should_free_1 = bypass (gen, node->left, context);
+                    free (should_free_1);
+
+                    char* should_free_2 = bypass (gen, node->right, context);
+                    free (should_free_2);
+
                     return NULL;
 
                 case EQUAL:
@@ -291,16 +295,7 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
                             snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, value_reg);
                             add_instruction (gen, instr);
 
-                            char* result = calloc (MAX_VAR_NAME, sizeof(char));
-                            if (result == NULL)
-                            {
-                                fprintf (stderr, "Memory allocation failed\n");
-                                exit(1);
-                            }
-                            strncpy (result, value_reg, MAX_VAR_NAME);
-                            free (value_reg);
-
-                            return result;
+                            return value_reg;
                         }
                     }
                     else
@@ -410,7 +405,7 @@ char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* co
     }
 }
 
-int save_ir_to_file (struct IRGenerator* gen, const char* filename)
+int save_ir_to_file (struct IRGenerator_t* gen, const char* filename)
 {
     FILE* file = fopen (filename, "wb");
     if (!file)

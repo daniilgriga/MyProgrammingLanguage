@@ -14,7 +14,7 @@ struct Symbol
     char reg[MAX_VAR_NAME];
 };
 
-struct IRGenerator
+struct IRGenerator_t
 {
     struct Symbol symbols[MAX_SYMBOLS];
     int symbol_count;
@@ -23,16 +23,16 @@ struct IRGenerator
     int reg_count;
 };
 
-void initial_ir_generator (struct IRGenerator* gen);
+void initial_ir_generator (struct IRGenerator_t* gen);
 
-void new_register (struct IRGenerator* gen, char* buffer, size_t size);
+void new_register (struct IRGenerator_t* gen, char* buffer, size_t size);
 
-char* get_or_add_symbol (struct IRGenerator* gen, const char* name, int length);
+char* get_or_add_symbol (struct IRGenerator_t* gen, const char* name, int length);
 
-void add_symbol_with_reg (struct IRGenerator* gen, const char* name, const char* reg);
+void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const char* reg);
 
-void add_instruction (struct IRGenerator* gen, const char* instr);
+void add_instruction (struct IRGenerator_t* gen, const char* instr);
 
-char* bypass (struct IRGenerator* gen, struct Node_t* node, struct Context_t* context);
+char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* context);
 
-int save_ir_to_file (struct IRGenerator* gen, const char* filename);
+int save_ir_to_file (struct IRGenerator_t* gen, const char* filename);

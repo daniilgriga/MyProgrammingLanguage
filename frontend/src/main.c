@@ -34,7 +34,7 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
-    struct IRGenerator gen = {};
+    struct IRGenerator_t gen = {};
     initial_ir_generator (&gen);
     bypass (&gen, root, &context);
 
