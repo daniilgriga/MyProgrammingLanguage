@@ -1,7 +1,7 @@
 section .data
-    bro dq 0
-    dude dq 0
-    yamal dq 0
+    numb dq 0
+    result dq 0
+    old dq 0
 
 section .text
 global _start
@@ -9,24 +9,24 @@ global _start
 carti:
     push rbp
     mov rbp, rsp
-    mov rcx, 25
-    mov [bro], rcx
-    mov rdx, 10
-    mov [dude], rdx
-    push rdx
-    call eval
-    add rsp, 8
-    mov rsi, r8
-    mov [bro], rsi
-    mov rsp, rbp
-    pop rbp
-    ret
+    mov rbx, 5
+    mov [numb], rbx
+    mov rcx, 1
+    mov [result], rcx
+    mov rdx, 1
+    mov [old], rdx
+loop_body383:
+    cmp rbx, 0
+    jle end_loop_body383
+    mov [old], rbx
+    mov [result], rcx
+    mov rsi, 1
+    mov [old], rbx
+    mov rdi, 1
+    mov [numb], rbx
+    jmp loop_body383
 
-eval:
-    push rbp
-    mov rbp, rsp
-    mov r8, 9
-    mov [yamal], r8
+end_loop_body383:
     mov rsp, rbp
     pop rbp
     ret
