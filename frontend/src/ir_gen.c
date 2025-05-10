@@ -217,7 +217,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                             arg = arg->right;
                         }
 
-                        snprintf (instr, sizeof(instr), "pop %d", arg_count * 4);
+                        snprintf (instr, sizeof(instr), "pop %d", arg_count);
                         add_instruction (gen, instr);
                     }
 

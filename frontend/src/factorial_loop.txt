@@ -7,11 +7,8 @@ lethimcook old    is 1 shutup
 
 money (numb)
 lesssgo
-    old is numb shutup
 
-    result is result * old shutup
-
-    old is numb - 1 shutup
+    result is result * numb shutup
 
     numb is numb - 1 shutup
 
