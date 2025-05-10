@@ -18,11 +18,10 @@ carti:
 loop_body383:
     cmp rbx, 0
     jle end_loop_body383
-    mov [old], rbx
+    imul rcx, rbx
     mov [result], rcx
     mov rsi, 1
-    mov [old], rbx
-    mov rdi, 1
+    sub rbx, rsi
     mov [numb], rbx
     jmp loop_body383
 

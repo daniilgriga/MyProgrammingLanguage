@@ -31,12 +31,16 @@ struct IR_Transformation transformations[] = {
     {"store",        "mov",     2, 1, 0}, // < store VAR, rX >
     {"push",         "push",    1, 0, 0}, // < push rX   >
     {"call",         "call",    1, 0, 0}, // < call FUNC >
-    {"pop",          "add",     1, 0, 1}, // < pop N     > (clean stack, equals add <rsp, N>)
+    {"pop",          "pop",     1, 0, 1}, // < pop N     > (clean stack, equals add <rsp, N>)
     {"function",     "label",   1, 0, 0}, // < function FUNC >
     {"end_function", "ret",     0, 0, 0}, // < end_function >
     {"while",        "loop",    2, 0, 0}, // < money (condition, body_label) >
-    {"end_while",    "endloop", 0, 0, 0}, // end of cycle
-    {NULL,           NULL,      0, 0, 0}  //   end of table
+    {"end_while",    "endloop", 0, 0, 0}, // < endloop > (end of cycle)
+    {"add",          "add",     2, 0, 0}, // < add rX, rY >
+    {"sub",          "sub",     2, 0, 0}, // < sub rX, rY >
+    {"mul",          "imul",    2, 0, 0}, // < mul rX, rY >
+    {"div",          "idiv",    2, 0, 0}, // < div rX, rY >
+    {NULL,           NULL,      0, 0, 0}  //  end of table
 };
 
 struct Variable
@@ -179,24 +183,24 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "mov") == 0)
             {
-                int reg1_idx = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
-                int reg2_idx = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
+                int reg1_index = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
+                int reg2_index = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
 
                 if (transformations[i].is_variable_target && !tokens[1].is_register)
                 {
                     // store VAR, rX
                     add_variable (tokens[1].value);
-                    if (reg2_idx >= 0 && reg2_idx < MAX_REGISTERS)
-                        fprintf (asm_file, "    mov [%s], %s\n", tokens[1].value, reg_map[reg2_idx]);
+                    if (reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                        fprintf (asm_file, "    mov [%s], %s\n", tokens[1].value, reg_map[reg2_index]);
                 }
-                else if (reg1_idx >= 0 && reg1_idx < MAX_REGISTERS)
+                else if (reg1_index >= 0 && reg1_index < MAX_REGISTERS)
                 {
                     // set rX, rY or set rX, NUM
-                    if (reg2_idx >= 0 && reg2_idx < MAX_REGISTERS)
-                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_idx], reg_map[reg2_idx]);
+                    if (reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
 
                     else if (transformations[i].is_number_allowed && is_number(tokens[2].value))
-                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_idx], tokens[2].value);
+                        fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_index], tokens[2].value);
                 }
             }
             else if (strcmp(transformations[i].x86_op, "push") == 0)
@@ -210,10 +214,42 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             {
                 fprintf (asm_file, "    call %s\n", tokens[1].value);
             }
-            else if (strcmp(transformations[i].x86_op, "add") == 0)
+            else if (strcmp(transformations[i].x86_op, "pop") == 0)
             {
                 if (is_number(tokens[1].value))
-                    fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 2);
+                    fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 8);     // 8 byte <=> 1 addr
+            }
+            else if (strcmp(transformations[i].x86_op, "add") == 0)
+            {
+                int reg1_index = get_reg_index (tokens[1].value);
+                int reg2_index = get_reg_index (tokens[2].value);
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                    fprintf (asm_file, "    add %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+            }
+            else if (strcmp(transformations[i].x86_op, "sub") == 0)
+            {
+                int reg1_index = get_reg_index (tokens[1].value);
+                int reg2_index = get_reg_index (tokens[2].value);
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                    fprintf (asm_file, "    sub %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+            }
+            else if (strcmp(transformations[i].x86_op, "imul") == 0)
+            {
+                int reg1_index = get_reg_index (tokens[1].value);
+                int reg2_index = get_reg_index (tokens[2].value);
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                    fprintf (asm_file, "    imul %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+            }
+            else if (strcmp(transformations[i].x86_op, "idiv") == 0)
+            {
+                int reg1_index = get_reg_index (tokens[1].value); // dividend
+                int reg2_index = get_reg_index (tokens[2].value); // divisor
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                {
+                    fprintf (asm_file, "    mov rax, %s\n", reg_map[reg1_index]);
+                    fprintf (asm_file, "    idiv %s\n", reg_map[reg2_index]);
+                    fprintf (asm_file, "    mov %s, rax\n", reg_map[reg1_index]);
+                }
             }
             else if (strcmp(transformations[i].x86_op, "loop") == 0)
             {
