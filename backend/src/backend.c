@@ -129,7 +129,7 @@ static int tokenize_line (const char* line, struct Token* tokens)
 
             token = strtok (NULL, " ,");
         }
-        else                                                                    // std tokenization
+        else                                                                    // std tokenization:
         {
             strncpy (tokens[token_count].value, token, MAX_LENGTH_NAME - 1);
             tokens[token_count].is_register = is_register (token);
@@ -169,19 +169,19 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                 return;
             }
 
-            if (strcmp(transformations[i].x86_op, "label") == 0)
+            if (strcmp(transformations[i].x86_op, "label") == 0)                                            // | LABEL | //
             {
                 fprintf (asm_file, "\n%s:\n", tokens[1].value);
                 fprintf (asm_file, "    push rbp\n");
                 fprintf (asm_file, "    mov rbp, rsp\n");
             }
-            else if (strcmp(transformations[i].x86_op, "ret") == 0)
+            else if (strcmp(transformations[i].x86_op, "ret") == 0)                                         // | RET | //
             {
                 fprintf (asm_file, "    mov rsp, rbp\n");
                 fprintf (asm_file, "    pop rbp\n");
                 fprintf (asm_file, "    ret\n");
             }
-            else if (strcmp(transformations[i].x86_op, "mov") == 0)
+            else if (strcmp(transformations[i].x86_op, "mov") == 0)                                         // | MOVE | //
             {
                 int reg1_index = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
                 int reg2_index = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
@@ -203,55 +203,60 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                         fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_index], tokens[2].value);
                 }
             }
-            else if (strcmp(transformations[i].x86_op, "push") == 0)
+            else if (strcmp(transformations[i].x86_op, "push") == 0)                                        // | PUSH | //
             {
                 int reg_idx = get_reg_index (tokens[1].value);
 
                 if (reg_idx >= 0 && reg_idx < MAX_REGISTERS)
                     fprintf (asm_file, "    push %s\n", reg_map[reg_idx]);
             }
-            else if (strcmp(transformations[i].x86_op, "call") == 0)
+            else if (strcmp(transformations[i].x86_op, "call") == 0)                                        // | CALL | //
             {
                 fprintf (asm_file, "    call %s\n", tokens[1].value);
             }
-            else if (strcmp(transformations[i].x86_op, "pop") == 0)
+            else if (strcmp(transformations[i].x86_op, "pop") == 0)                                         // | POP | //
             {
                 if (is_number(tokens[1].value))
                     fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 8);     // 8 byte <=> 1 addr
             }
-            else if (strcmp(transformations[i].x86_op, "add") == 0)
+            else if (strcmp(transformations[i].x86_op, "add") == 0 ||                                       // | ADD | SUB | IMUL | //
+                     strcmp(transformations[i].x86_op, "sub") == 0 ||
+                     strcmp(transformations[i].x86_op, "imul") == 0)
             {
                 int reg1_index = get_reg_index (tokens[1].value);
                 int reg2_index = get_reg_index (tokens[2].value);
-                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
-                    fprintf (asm_file, "    add %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS &&
+                    reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                {
+                    if (strcmp(transformations[i].x86_op, "add") == 0)                                      // | ADD | //
+                    {
+                        fprintf(asm_file, "    add %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+                    }
+                    else if (strcmp(transformations[i].x86_op, "sub") == 0)                                 // | SUB | //
+                    {
+                        fprintf(asm_file, "    sub %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+                    }
+                    else if (strcmp(transformations[i].x86_op, "imul") == 0)                                // | IMUL | //
+                    {
+                        fprintf(asm_file, "    imul %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
+                    }
+                }
             }
-            else if (strcmp(transformations[i].x86_op, "sub") == 0)
+            else if (strcmp(transformations[i].x86_op, "idiv") == 0)                                        // | IDIV | //
             {
-                int reg1_index = get_reg_index (tokens[1].value);
-                int reg2_index = get_reg_index (tokens[2].value);
-                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
-                    fprintf (asm_file, "    sub %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
-            }
-            else if (strcmp(transformations[i].x86_op, "imul") == 0)
-            {
-                int reg1_index = get_reg_index (tokens[1].value);
-                int reg2_index = get_reg_index (tokens[2].value);
-                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
-                    fprintf (asm_file, "    imul %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
-            }
-            else if (strcmp(transformations[i].x86_op, "idiv") == 0)
-            {
-                int reg1_index = get_reg_index (tokens[1].value); // dividend
-                int reg2_index = get_reg_index (tokens[2].value); // divisor
-                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                int reg1_index = get_reg_index(tokens[1].value);            // dividend
+                int reg2_index = get_reg_index(tokens[2].value);            // divisor
+
+                if (reg1_index >= 0 && reg1_index < MAX_REGISTERS &&
+                    reg2_index >= 0 && reg2_index < MAX_REGISTERS)
                 {
                     fprintf (asm_file, "    mov rax, %s\n", reg_map[reg1_index]);
                     fprintf (asm_file, "    idiv %s\n", reg_map[reg2_index]);
                     fprintf (asm_file, "    mov %s, rax\n", reg_map[reg1_index]);
                 }
             }
-            else if (strcmp(transformations[i].x86_op, "loop") == 0)
+            else if (strcmp(transformations[i].x86_op, "loop") == 0)                                        // | LOOP | //
             {
                 char* condition  = tokens[1].value;     // condition
                 char* body_label = tokens[2].value;     // body of cycle
@@ -284,7 +289,7 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                     fprintf (asm_file, "    jle end_loop_%s\n", body_label);
                 }
             }
-            else if (strcmp(transformations[i].x86_op, "endloop") == 0)
+            else if (strcmp(transformations[i].x86_op, "endloop") == 0)                                     // | ENDLOOP | //
             {
                 if (stack_depth > 0)
                 {
