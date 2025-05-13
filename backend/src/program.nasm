@@ -1,7 +1,7 @@
 section .data
-    numb dq 0
-    result dq 0
-    old dq 0
+    numb       dq 0
+    result     dq 0
+    old        dq 0
 
 section .text
 global _start
@@ -15,6 +15,7 @@ carti:
     mov [result], rcx
     mov rdx, 1
     mov [old], rdx
+
 loop_body383:
     cmp rbx, 0
     jle end_loop_body383

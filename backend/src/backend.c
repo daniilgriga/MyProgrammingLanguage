@@ -272,7 +272,7 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                     return;
                 }
 
-                fprintf (asm_file, "loop_%s:\n", body_label);
+                fprintf (asm_file, "\nloop_%s:\n", body_label);
 
                 char reg_str[3] = {};
                 int num = 0;
@@ -329,7 +329,7 @@ void generate_x86_backend (const char* ir_filename, const char* asm_filename)
     fprintf (asm_file, "section .data\n");
     while (fgets(line, MAX_LINE, ir_file))
     {
-        line[strcspn(line, "\n")] = 0;
+        line[strcspn(line, "\n")] = 0;x
         int token_count = tokenize_line (line, tokens);
         if (token_count > 1 && strcmp(tokens[0].value, "store") == 0 && !tokens[1].is_register)
             add_variable (tokens[1].value);
@@ -338,7 +338,7 @@ void generate_x86_backend (const char* ir_filename, const char* asm_filename)
     rewind (ir_file);
 
     for (int i = 0; i < variable_count; i++)
-        fprintf (asm_file, "    %s dq 0\n", variables[i].name);
+        fprintf (asm_file, "    %-*s dq 0\n", 10, variables[i].name);
 
     fprintf (asm_file, "\nsection .text\n");
     fprintf (asm_file, "global _start\n");
