@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "backend.h"
 
@@ -63,6 +64,8 @@ int stack_depth = 0;
 
 static int is_number (const char* str)
 {
+    assert (str);
+
     char* endptr;
     strtol (str, &endptr, 10);
     return (*endptr == '\0');
@@ -75,6 +78,8 @@ static int is_register (const char* str)
 
 static void add_variable (const char* name)
 {
+    assert (name);
+
     for (int i = 0; i < variable_count; i++)
         if (strcmp(variables[i].name, name) == 0) return;
 
@@ -92,6 +97,9 @@ static void add_variable (const char* name)
 
 static int tokenize_line (const char* line, struct Token* tokens)
 {
+    assert (line);
+    assert (tokens);
+
     char* line_copy = strdup (line);
     char* token = strtok (line_copy, " ,");
     int token_count = 0;
@@ -148,6 +156,8 @@ static int tokenize_line (const char* line, struct Token* tokens)
 
 static int get_reg_index (const char* reg_str)
 {
+    assert (reg_str);
+
     if (strlen(reg_str) < 2 || reg_str[0] != 'r') return -1;
 
     int index = atoi (reg_str + 1) - 1;
@@ -157,6 +167,9 @@ static int get_reg_index (const char* reg_str)
 
 static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_count)
 {
+    assert (asm_file);
+    assert (tokens);
+
     if (token_count == 0) return;
 
     for (int i = 0; transformations[i].ir_op; i++)
@@ -314,6 +327,9 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
 
 void generate_x86_backend (const char* ir_filename, const char* asm_filename)
 {
+    assert (ir_filename);
+    assert (asm_filename);
+
     FILE* ir_file  = fopen (ir_filename, "rb");
     FILE* asm_file = fopen (asm_filename, "wb");
 
@@ -329,7 +345,7 @@ void generate_x86_backend (const char* ir_filename, const char* asm_filename)
     fprintf (asm_file, "section .data\n");
     while (fgets(line, MAX_LINE, ir_file))
     {
-        line[strcspn(line, "\n")] = 0;x
+        line[strcspn(line, "\n")] = 0;
         int token_count = tokenize_line (line, tokens);
         if (token_count > 1 && strcmp(tokens[0].value, "store") == 0 && !tokens[1].is_register)
             add_variable (tokens[1].value);
