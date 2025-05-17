@@ -17,7 +17,7 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 CFLAGS = -c $(FLAGS)
 LDFLAGS = $(FLAGS) -lm
 
-SOURCES_LIST = main.c backend.c
+SOURCES_LIST = main.c backend.c tools.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
 OBJECTS = $(SOURCES_LIST:%.c=build/%.o)

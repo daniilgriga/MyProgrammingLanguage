@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "backend.h"
+#include "errors.h"
 
 #define MAX_LINE        256
 #define MAX_TOKENS      100
@@ -325,7 +326,7 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
     }
 }
 
-void generate_x86_backend (const char* ir_filename, const char* asm_filename)
+enum Errors generate_x86_backend (const char* ir_filename, const char* asm_filename)
 {
     assert (ir_filename);
     assert (asm_filename);
@@ -335,8 +336,8 @@ void generate_x86_backend (const char* ir_filename, const char* asm_filename)
 
     if (ir_file == NULL || asm_file == NULL)
     {
-        fprintf (stderr, "Error: Cannot open files\n");
-        exit(1);
+        fprintf (stderr, "Error: Cannot open files [%s] or [%s]\n", ir_filename, asm_filename);
+        return FILE_OPEN_ERROR;
     }
 
     char line[MAX_LINE] = {};
@@ -375,4 +376,6 @@ void generate_x86_backend (const char* ir_filename, const char* asm_filename)
 
     fclose (ir_file);
     fclose (asm_file);
+
+    return NO_ERROR;
 }
