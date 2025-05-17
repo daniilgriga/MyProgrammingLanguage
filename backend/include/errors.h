@@ -7,6 +7,8 @@ enum Errors
     NO_ERROR,
     NULL_PTR_ERROR,
     FILE_OPEN_ERROR,
+    FILE_CLOSE_ERROR,
+    FWRITE_ERROR,
 };
 
 const char* ErrorsMessenger (enum Errors status);
