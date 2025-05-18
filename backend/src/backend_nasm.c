@@ -3,11 +3,11 @@
 #include <string.h>
 #include <assert.h>
 
-#include "backend.h"
+#include "backend_nasm.h"
 #include "errors.h"
 
 #define MAX_LINE        256
-#define MAX_TOKENS      100
+#define MAX_TOKENS      10
 #define MAX_REGISTERS   14
 #define MAX_VARIABLES   50
 #define MAX_LENGTH_NAME 32
@@ -16,33 +16,33 @@
 struct Token
 {
     char value[MAX_LENGTH_NAME];
-    int is_register;                    // 1 - register, 0 - no register
+    int is_register;                        // 1 - register, 0 - no register
 };
 
 struct IR_Transformation
 {
-    const char* ir_op;                  // op name     (example: "set")
-    const char* x86_op;                 // op_x86_name (example: "mov")
-    int arg_count;                      // count of arguments
-    int is_variable_target;             // 1, if first  arg - var
-    int is_number_allowed;              // 1, if second arg may be num
+    const char* ir_op;                      // op name     (example: "set")
+    const char* x86_op;                     // op_x86_name (example: "mov")
+    int arg_count;                          // count of arguments
+    int is_variable_target;                 // 1, if first  arg - var
+    int is_number_allowed;                  // 1, if second arg may be num
 };
 
 struct IR_Transformation transformations[] = {
-    {"set",          "mov",     2, 0, 1}, // < set rX, rY or set rX, NUM >
-    {"store",        "mov",     2, 1, 0}, // < store VAR, rX >
-    {"push",         "push",    1, 0, 0}, // < push rX   >
-    {"call",         "call",    1, 0, 0}, // < call FUNC >
-    {"pop",          "pop",     1, 0, 1}, // < pop N     > (clean stack, equals add <rsp, N>)
-    {"function",     "label",   1, 0, 0}, // < function FUNC >
-    {"end_function", "ret",     0, 0, 0}, // < end_function >
-    {"while",        "loop",    2, 0, 0}, // < money (condition, body_label) >
-    {"end_while",    "endloop", 0, 0, 0}, // < endloop > (end of cycle)
-    {"add",          "add",     2, 0, 0}, // < add rX, rY >
-    {"sub",          "sub",     2, 0, 0}, // < sub rX, rY >
-    {"mul",          "imul",    2, 0, 0}, // < mul rX, rY >
-    {"div",          "idiv",    2, 0, 0}, // < div rX, rY >
-    {NULL,           NULL,      0, 0, 0}  //  end of table
+    {"set",          "mov",     2, 0, 1},   // < set rX, rY or set rX, NUM >
+    {"store",        "mov",     2, 1, 0},   // < store VAR, rX >
+    {"push",         "push",    1, 0, 0},   // < push rX   >
+    {"call",         "call",    1, 0, 0},   // < call FUNC >
+    {"pop",          "pop",     1, 0, 1},   // < pop N     > (clean stack, equals add <rsp, N>)
+    {"function",     "label",   1, 0, 0},   // < function FUNC >
+    {"end_function", "ret",     0, 0, 0},   // < end_function >
+    {"while",        "loop",    2, 0, 0},   // < money (condition, body_label) >
+    {"end_while",    "endloop", 0, 0, 0},   // < endloop > (end of cycle)
+    {"add",          "add",     2, 0, 0},   // < add rX, rY >
+    {"sub",          "sub",     2, 0, 0},   // < sub rX, rY >
+    {"mul",          "imul",    2, 0, 0},   // < mul rX, rY >
+    {"div",          "idiv",    2, 0, 0},   // < div rX, rY >
+    {NULL,           NULL,      0, 0, 0}    //  end of table
 };
 
 struct Variable
@@ -58,8 +58,8 @@ const char* reg_map[MAX_REGISTERS] = {
 struct Variable variables[MAX_VARIABLES];
 int variable_count = 0;
 
-char stack_labels[MAX_STACK_DEPTH][MAX_LENGTH_NAME]; // stack for labels
-int stack_depth = 0;
+static char stack_labels[MAX_STACK_DEPTH][MAX_LENGTH_NAME]; // stack for labels
+static int stack_depth = 0;
 
 //=#############################################################=//
 
@@ -326,7 +326,7 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
     }
 }
 
-enum Errors generate_x86_backend (const char* ir_filename, const char* asm_filename)
+enum Errors generate_x86_nasm (const char* ir_filename, const char* asm_filename)
 {
     assert (ir_filename);
     assert (asm_filename);

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "backend.h"
+#include "backend_nasm.h"
+#include "backend_bin.h"
 #include "errors.h"
 #include "create_elf.h"
 #include "file.h"
@@ -16,9 +17,12 @@ int main (int argc, char* argv[])
         return 1;
     }
 
-    enum Errors error = generate_x86_backend (argv[1], argv[2]);
-    if (error != NO_ERROR)
-        ERROR_CHECK_RET_STATUS (error)
+    //enum Errors error = generate_x86_nasm (argv[1], argv[2]);
+    //if (error != NO_ERROR)
+    //    ERROR_CHECK_RET_STATUS (error)
+
+    parse_IR_to_array (argv[1]);
+    print_IR_array();
 
     Elf64_Ehdr header = {};
     memset (&header, 0, sizeof(header));
@@ -36,7 +40,9 @@ int main (int argc, char* argv[])
         return 1;
     }
 
-    fclose (exe_file);
+    enum Errors close_err = CloseFile (exe_file);
+    if (close_err != NO_ERROR)
+        return 1;
 
     return 0;
 }
