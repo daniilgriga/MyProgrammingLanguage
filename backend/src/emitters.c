@@ -52,9 +52,9 @@ enum Errors code_buffer_write (struct CodeBuffer_t* cb, const uint8_t* bytes, si
 //==================== Emitter for mov reg, imm ====================//
 void emit_mov_reg_imm (struct CodeBuffer_t* cb, int reg_num, int64_t imm)
 {
-    uint8_t rex = 0x48;                         // REX-prefix: REX.W (64bit operation)
-    uint8_t opcode = 0xC7;                      // opcode:    "writing a value to a register"
-    uint8_t modrm = (uint8_t) (0xC0 | reg_num); // ModR/M:    "a byte that specifies which register is used" | '0xC0' - mask
+    uint8_t rex = 0x48;                                 // REX-prefix: REX.W (64bit operation)
+    uint8_t opcode = 0xC7;                              // opcode:    "writing a value to a register"
+    uint8_t modrm = (uint8_t) (0xC0 | reg_num);         // ModR/M:    "a byte that specifies which register is used" | '0xC0' - mask
     uint8_t bytes[] = { rex, opcode, modrm };
     code_buffer_write (cb, bytes, 3);
     code_buffer_write (cb, (uint8_t*)&imm, 4);
@@ -97,6 +97,16 @@ void emit_sub_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg)
 {
     uint8_t rex = 0x48;                                 // REX.W
     uint8_t opcode = 0x2B;                              // opcode: sub when subtracting a register from a register.
+    uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | dest_reg);
+    uint8_t bytes[] = { rex, opcode, modrm };
+    code_buffer_write (cb, bytes, 3);
+}
+
+//==================== Emitter for add reg, reg ====================//
+void emit_add_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg)
+{
+    uint8_t rex = 0x48;                                 // REX.W
+    uint8_t opcode = 0x01;                              // opcode: add register to register
     uint8_t modrm = (uint8_t) (0xC0 | (src_reg << 3) | dest_reg);
     uint8_t bytes[] = { rex, opcode, modrm };
     code_buffer_write (cb, bytes, 3);

@@ -24,6 +24,7 @@ void emit_mov_mem_reg (struct CodeBuffer_t* cb, uint32_t addr, int reg_num);
 void emit_mov_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg);
 void emit_imul_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg);
 void emit_sub_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg);
+void emit_add_reg_reg (struct CodeBuffer_t* cb, int dest_reg, int src_reg);
 void emit_cmp_jle (struct CodeBuffer_t* cb, int reg_num, int32_t imm, uint64_t target_addr);
 void emit_jmp (struct CodeBuffer_t* cb, uint64_t target_addr);
 void emit_ret (struct CodeBuffer_t* cb);
