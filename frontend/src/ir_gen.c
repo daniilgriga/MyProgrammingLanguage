@@ -371,6 +371,32 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     return NULL;
                 }
 
+                case IF:
+                {
+                    char label[32];
+                    snprintf (label, sizeof(label), "if_body%d", rand() % 1000);
+
+                    char* condition_reg = bypass(gen, node->left, context);
+                    if (condition_reg == NULL)
+                    {
+                        fprintf (stderr, "Error: Condition register is NULL for IF\n");
+                        return NULL;
+                    }
+
+                    char instr[MAX_INSTR_LEN] = {};
+
+                    snprintf (instr, sizeof(instr), "if %s != 0, %s", condition_reg, label);
+                    add_instruction (gen, instr);
+                    free (condition_reg);
+
+                    bypass (gen, node->right, context);
+
+                    snprintf (instr, sizeof(instr), "end_if");
+                    add_instruction (gen, instr);
+
+                    return NULL;
+                }
+
                 default:
                     fprintf (stderr, "Unknown node value in OP node type: %.0f\n", node->value);
                     return NULL;
