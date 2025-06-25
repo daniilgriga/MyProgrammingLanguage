@@ -14,7 +14,7 @@ lesssgo
 
 stoopit shutup
 
-result is result shutup
+result is sqrt result shutup
 
 stoopit
 $

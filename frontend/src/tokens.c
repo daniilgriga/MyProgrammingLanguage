@@ -124,7 +124,6 @@ int tokenization (struct Context_t* context, const char* string)
             count_tokens++;
             i++;
         }
-
     }
 
     context->token[count_tokens].type  =  OP;

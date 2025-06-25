@@ -1,7 +1,7 @@
 #pragma once
 
-#define MAX_SIZE           100
-#define MAX_SIZE_OPERATOR  20
+#define MAX_SIZE           1000
+#define MAX_SIZE_OPERATOR  200
 
 #include "enum.h"
 

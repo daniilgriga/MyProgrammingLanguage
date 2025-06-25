@@ -15,32 +15,26 @@ int Position =  0;
 
 #define MOVE_POSITION Position++
 
-/*========================================= GRAMMAR ========================================= */
-/*
- *    Grammar                   ::= { FunctionDef }* '$'
- *
- *
- *    CompoundParametersForCall ::= { Expression, }*
- *    CompoundParametersForDef  ::= { 'lethimcook' Ident, }*
- *    Compound_Operator         ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
- *    Cond                      ::= 'forreal' '('Expression')' Compound_Operator
- *    Cycle                     ::= 'money'   '('Expression')' Compound_Operator
- *
- *    FunctionDef       ::= 'lethimcook' Ident '(' CompoundParametersForDef ')' Compound_Operator
- *    FunctionCall      ::= Ident '(' CompoundParametersForCall ')'
- *
- *    Assignment        ::= 'lethimcook'? Ident '=' Expression
- *    Expression        ::= Term { ['+''-'] Term }*
- *    Term              ::= P    { ['*''/'] P    }*
- *    Pow               ::= P    { ['^'] P       }*s
- *    P                 ::= '('Expression')' | Ident | Number | FunctionCall
- *
- *
- *    Ident            ::= ['a'-'z']+
- *    Number           ::= ['0'-'9']+
- */
-
- // GetParametr
+// ========================================= GRAMMAR ========================================= //
+//    Grammar                   ::= { FunctionDef }* '$'
+//
+//    CompoundParametersForCall ::= { Expression, }*
+//    CompoundParametersForDef  ::= { 'lethimcook' Ident, }*
+//    Compound_Operator         ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
+//    Cond                      ::= 'forreal' '('Expression')' Compound_Operator
+//    Cycle                     ::= 'money'   '('Expression')' Compound_Operator
+//
+//    FunctionDef               ::= 'lethimcook' Ident '(' CompoundParametersForDef ')' Compound_Operator
+//    FunctionCall              ::= Ident '(' CompoundParametersForCall ')'
+//
+//    Assignment                ::= 'lethimcook'? Ident '=' Expression
+//    Expression                ::= Term { ['+''-'] Term }*
+//    Term                      ::= |sqrt| P    { ['*''/''sqrt'] P    }*
+//    P                         ::= '('Expression')' | Ident | Number | FunctionCall
+//
+//    Ident                     ::= ['a'-'z']+
+//    Number                    ::= ['0'-'9']+
+//
 
 static struct Node_t* GetFunctionCall           (struct Context_t* context);
 static struct Node_t* GetFunctionDef            (struct Context_t* context);
@@ -52,7 +46,6 @@ static struct Node_t* GetIdent                  (struct Context_t* context);
 static struct Node_t* GetCond                   (struct Context_t* context);
 static struct Node_t* GetLoop                   (struct Context_t* context);
 static struct Node_t* GetTerm                   (struct Context_t* context);
-static struct Node_t* GetPow                    (struct Context_t* context);
 static struct Node_t* GetP                      (struct Context_t* context);
 
 static struct Node_t* CompoundParametersForCall (struct Context_t* context);
@@ -228,7 +221,7 @@ struct Node_t* GetOperation (struct Context_t* context)
 struct Node_t* GetAssignment (struct Context_t* context)
 {
     fprintf (stderr, "\nin GetA starting (Pos = %d): cur: type = %d, value = %lg" "\n" "next: type = %d, value = %lg\n\n", Position,
-                      _CUR_TOKEN.type,     _CUR_TOKEN.value,
+                       _CUR_TOKEN.type,  _CUR_TOKEN.value,
                       _NEXT_TOKEN.type, _NEXT_TOKEN.value );
 
     struct Node_t* val_1 = NULL;
@@ -307,39 +300,30 @@ static struct Node_t* GetExpression (struct Context_t* context)
 
 static struct Node_t* GetTerm (struct Context_t* context)
 {
-    struct Node_t* val = GetPow (context);
+    struct Node_t* val = GetP (context);
 
-    while ( _IS_OP (MUL) || _IS_OP (DIV) )
+    while ( _IS_OP (MUL) || _IS_OP (DIV) || _IS_OP (SQRT) )
     {
         int op = (int) _CUR_TOKEN.value;
 
         MOVE_POSITION;
 
-        struct Node_t* val2 = GetPow (context);
+        struct Node_t* val2 = GetP (context);
 
-        if (op == MUL)
-            val = _MUL (val, val2);
+        if (op == SQRT)
+        {
+            val = _SQRT (val2);
+        }
         else
-            val = _DIV (val, val2);
+        {
+            if (op == MUL)
+                val = _MUL (val, val2);
+            else
+                val = _DIV (val, val2);
+        }
     }
 
     return val;
-}
-
-static struct Node_t* GetPow (struct Context_t* context)
-{
-    struct Node_t* node = GetP (context);
-
-    while ( _IS_OP (POW) )
-    {
-        MOVE_POSITION;
-
-        struct Node_t* exp = GetP (context);
-
-        node = _POW (node, exp);
-    }
-
-    return node;
 }
 
 static struct Node_t* GetP (struct Context_t* context)
@@ -412,7 +396,7 @@ static struct Node_t* GetNumber (struct Context_t* context)
     return NULL;
 }
 
-static struct Node_t*  GetCond (struct Context_t* context)
+static struct Node_t* GetCond (struct Context_t* context)
 {
     struct Node_t* GetE = NULL;
     struct Node_t* GetA = NULL;

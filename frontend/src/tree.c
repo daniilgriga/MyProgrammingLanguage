@@ -123,75 +123,75 @@ void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* contex
 
     assert (node->type == NUM || node->type == OP || node->type == ID || node->type == FUNC);
 
-    if (node->type == NUM)
+    if (node && node->type == NUM)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (NUM)  | value = '' %g '' }\"; style = filled; fillcolor = \"#FFD700\"];\n",
                  node, node->type, node->value);
 
-    else if (node->type == OP && (int) node->value == GLUE)
+    else if (node && node->type == OP && (int) node->value == GLUE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#E0E0E0\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == OP && (int) node->value == IF)
+    else if (node && node->type == OP && (int) node->value == IF)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#68F29D\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == OP && (int) node->value == WHILE)
+    else if (node && node->type == OP && (int) node->value == WHILE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#DF73DF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && (int) node->value == FN_GLUE)
+    else if (node && node->type == FUNC && (int) node->value == FN_GLUE)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#A0A0A0\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && (int) node->value == COMMA)
+    else if (node && node->type == FUNC && (int) node->value == COMMA)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#FEAADF\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && (int) node->value == CALL)
+    else if (node && node->type == FUNC && (int) node->value == CALL)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#F069F5\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == FUNC && (int) node->value == DEF)
+    else if (node && node->type == FUNC && (int) node->value == DEF)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#755CF7\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
 
-    else if (node->type == FUNC)
+    else if (node && node->type == FUNC)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (FUNC) | value = '' %.*s ''  (%lg) }\"; style = filled; fillcolor = \"#2EE31E\"];\n",
                  node, node->type,
                  (int) context->name_table[(int)node->value].name.length,
                        context->name_table[(int)node->value].name.str_pointer,
                  node->value);
 
-    else if (node->type == OP)
+    else if (node && node->type == OP)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (OP)   | value = '' %s ''  (%lg) }\"; style = filled; fillcolor = \"#00FFDD\"];\n",
                  node, node->type, get_name (node->value), node->value);
 
-    else if (node->type == ID && context->name_table[(int)node->value].name.id_type == PARM)
+    else if (node && node->type == ID && context->name_table[(int)node->value].name.id_type == PARM)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ID)  | name = '' %.*s '' | number in name table = '' %lg '' | id_type = PARM }\"; style = filled; fillcolor = \"#FF5050\"];\n",
                  node, node->type,
                  (int) context->name_table[(int)node->value].name.length,
                        context->name_table[(int)node->value].name.str_pointer, node->value);
 
-    else if (node->type == ID && context->name_table[(int)node->value].name.id_type == LOCL)
+    else if (node && node->type == ID && context->name_table[(int)node->value].name.id_type == LOCL)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ID)  | name = '' %.*s '' | number in name table = '' %lg '' | id_type = LOCL }\"; style = filled; fillcolor = \"#FF5050\"];\n",
                  node, node->type,
                  (int) context->name_table[(int)node->value].name.length,
                        context->name_table[(int)node->value].name.str_pointer, node->value);
 
-    else if (node->type == ROOT)
+    else if (node && node->type == ROOT)
         fprintf (filename, "node%p [shape=Mrecord; label = \" { type = %d (ROOT) | value = '' %lg '' | { son_node = [%p] } }\"; style = filled; fillcolor = \"#F0FFFF\"];\n",
                  node, node->type, node->value, node->left);
 
-    if (node->left)
+    if (node && node->left)
         fprintf (filename, "node%p -> node%p;\n", node, node->left);
 
-    if (node->right)
+    if (node && node->right)
         fprintf (filename, "node%p -> node%p;\n", node, node->right);
 
-    if (node->left)  print_tree_preorder_for_file (node->left , context, filename);
+    if (node && node->left)  print_tree_preorder_for_file (node->left , context, filename);
 
-    if (node->right) print_tree_preorder_for_file (node->right, context, filename);
+    if (node && node->right) print_tree_preorder_for_file (node->right, context, filename);
 }
 
 int make_graph (struct Node_t* node, struct Context_t* context)

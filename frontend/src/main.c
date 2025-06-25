@@ -5,7 +5,6 @@
 #include "tokens.h"
 #include "syntax.h"
 #include "buffer.h"
-#include "ir_gen.h"
 
 #define PROGRAM "frontend/src/factorial_loop.txt"
 
@@ -33,12 +32,6 @@ int main (int argc, const char* argv[])
     name_table_dump (stderr, &context);
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
-
-    struct IRGenerator_t gen = {};
-    initial_ir_generator (&gen);
-    bypass (&gen, root, &context);
-
-    save_ir_to_file (&gen, "backend/program.ir");
 
     delete_sub_tree (root);
     buffer_dtor (&buffer);
