@@ -33,6 +33,8 @@ int main (int argc, const char* argv[])
 
     dump_in_log_file (root, &context, "TEST OF PROGRAMM");
 
+    create_file_for_middle_end (root, &context, "middle_end/AST_tree.txt", 0);
+
     delete_sub_tree (root);
     buffer_dtor (&buffer);
     close_log_file (LogFile);

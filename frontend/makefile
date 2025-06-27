@@ -17,27 +17,37 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,$\
 		returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-CFLAGS = -c $(FLAGS)
+CFLAGS = -c $(FLAGS) -I./include -I../tools/include
 LDFLAGS = $(FLAGS) -lm
 
-SOURCES_LIST = main.c log.c syntax.c tokens.c tree.c buffer.c
+BUILD_DIR = build
+
+SOURCES_LIST = main.c syntax.c tokens.c tree.c buffer.c
+SOURCES_TOOL_LIST = log.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
-OBJECTS = $(SOURCES_LIST:%.c=build/%.o)
-DEPS = $(OBJECTS:%.o=%.d)
-EXECUTABLE = build/frontend
+
+TOOL_OBJECTS = $(SOURCES_TOOL_LIST:%.c=../tools/build/%.o)
+OBJECTS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.o) $(TOOL_OBJECTS)
+
+DEPS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.d) $(SOURCES_TOOL_LIST:%.c=../tools/build/%.d)
+
+EXECUTABLE = $(BUILD_DIR)/frontend
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 .PHONY: all clean
 
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
-	@$(CC) $(LDFLAGS) $^ -o $@
+$(EXECUTABLE): $(OBJECTS) | $(BUILD_DIR)
+	$(CC) $(LDFLAGS) $^ -o $@
+
+$(BUILD_DIR)/%.o: src/%.c makefile | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -MMD -MP $< -o $@
 
 -include $(DEPS)
-
-build/%.o: src/%.c
-	@$(CC) -I./include $(CFLAGS) -MMD -MP $< -o $@
 
 clean:
 	rm -f build/*.o $(EXECUTABLE)

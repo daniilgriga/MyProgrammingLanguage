@@ -116,6 +116,22 @@ const char* get_name (double enum_value)
     }
 }
 
+const char* get_type (int type)
+{
+    switch (type)
+    {
+        case NUM:   return "NUM";
+        case OP:    return "OP";
+        case ID:    return "ID";
+        case FUNC:  return "FUNC";
+        case PARM:  return "PARM";
+        case LOCL:  return "LOCL";
+        case ROOT:  return "ROOT";
+
+        default:    return "UNKNOWN";
+    }
+}
+
 void print_tree_preorder_for_file (struct Node_t* node, struct Context_t* context, FILE* filename)
 {
     assert (node);
@@ -238,4 +254,67 @@ void dump_in_log_file (struct Node_t* node, struct Context_t* context, const cha
 void clean_buffer(void)
 {
     while((getchar()) != '\n') {;}
+}
+
+void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level)
+{
+    fprintf (file, "%*s{ ", level * 4, "");
+
+    switch (root->type)
+    {
+        case NUM: fprintf (file, " NUM: \"%d\" ", (int) root->value); break;
+        case OP:  fprintf (file, " OP:  \"%c\" ", (int) root->value); break;
+        case ID:  fprintf (file, " ID:  \"%.*s\" ", ыcontext->name_table[(int) root->value].name.length,
+                                                    context->name_table[(int) root->value].name.str_pointer); break;
+        case FUNC:
+        {
+            switch ((int) root->value)
+            {
+                case DEF:     fprintf (file, "FUNC: \"DEFENITION\"");    break;
+                case CALL:    fprintf (file, "FUNC: \"CALL\"");          break;
+                case FN_GLUE: fprintf (file, "FUNC: \"NEXT_FUNCTION\""); break;
+
+                default:      fprintf (file, "FUNC: \"%.*s\"", context->name_table[(int) root->value].name.length,
+                                                               context->name_table[(int) root->value].name.str_pointer);
+            }
+
+            break;
+        }
+
+        case PARM: fprintf (file, "PARM: \"%.*s\"", context->name_table[(int) root->value].name.length,
+                                                    context->name_table[(int) root->value].name.str_pointer); break;
+        case LOCL: fprintf (file, "LOCL: \"%.*s\"", context->name_table[(int) root->value].name.length,
+                                                    context->name_table[(int) root->value].name.str_pointer); break;
+
+        default: fprintf (file, "ERROR: unknwon type[%d]\n", root->type);
+    }
+
+    if (root->left)
+        fprintf (file, "\n");
+
+    if (root->left)  print_tree_preorder (root->left, context, file, level + 1);
+
+    if (root->right) print_tree_preorder (root->right, context, file, level + 1);
+
+    fprintf (file, "%*s} \n", (root->left) ? level * 4 : 0, "");
+}
+
+int create_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level)
+{
+    if (!root)
+    {
+        fprintf (stderr, RED_TEXT("ERROR: ") "File for middle-end not created - tree root not found\n");
+        return 1;
+    }
+
+    FILE* file = fopen (filename, "wb");
+    if (file == NULL)
+    {
+        fprintf (stderr, "\n" "Could not find the '%s' to be opened!" "\n", filename);
+        return 1;
+    }
+
+    print_tree_preorder (root, context, file, level);
+
+    return 0;
 }

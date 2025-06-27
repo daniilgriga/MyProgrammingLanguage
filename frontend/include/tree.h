@@ -38,4 +38,10 @@ void dump_in_log_file (struct Node_t* node,  struct Context_t* context, const ch
 
 const char* get_name (double enum_value);
 
+const char* get_type (int type);
+
 void clean_buffer (void);
+
+void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
+
+int create_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level);
