@@ -1,4 +1,4 @@
-SUBDIRS = frontend backend
+SUBDIRS = tools frontend middle_end backend
 
 .PHONY: all clean $(SUBDIRS)
 
