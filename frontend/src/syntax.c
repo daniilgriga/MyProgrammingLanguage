@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "color.h"
 #include "dsl.h"
 #include "log.h"
 #include "tree.h"
@@ -8,7 +9,6 @@
 #include "tokens.h"
 #include "syntax.h"
 #include "assert.h"
-#include "color_print.h"
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
 int Position =  0;

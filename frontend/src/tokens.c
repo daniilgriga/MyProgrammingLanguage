@@ -8,7 +8,7 @@
 #include "tokens.h"
 #include "syntax.h"
 #include "assert.h"
-#include "color_print.h"
+#include "color.h"
 
 int tokenization (struct Context_t* context, const char* string)
 {
@@ -260,7 +260,7 @@ int name_table_dump (FILE* file, struct Context_t* context)
         else
         {
             if (file == stderr)
-                fprintf (file,  "%s" BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', length = %d, is_keyword = %d, added_status = %d"
+                fprintf (file,  "%s" "[%.2d]: " "ADDRESS = [%p], name = '%.*s', length = %d, is_keyword = %d, added_status = %d"
                                 "\n" "%s" "id_type = %d, host_func = %d, counter_params = %d, counter_locals = %d, offset = %d\n\n",
                                 str, j, context[j].name_table,
                                         context->name_table[j].name.length,
@@ -274,7 +274,7 @@ int name_table_dump (FILE* file, struct Context_t* context)
                                         context->name_table[j].name.counter_locals,
                                         context->name_table[j].name.offset);
             else // dump for asm file
-                fprintf (file,  "%s" BLUE_TEXT("[%.2d]: ") "ADDRESS = [%p], name = '%.*s', %*s lngth = %d, keywrd = %d, added_stts = %d "
+                fprintf (file,  "%s" "[%.2d]: " "ADDRESS = [%p], name = '%.*s', %*s lngth = %d, keywrd = %d, added_stts = %d "
                                 "id_type = %d, host_fnc = %02d, cntr_prms = %d, cntr_lcls = %d, offset = %d\n",
                                 str, j, context[j].name_table,
                                         context->name_table[j].name.length,
@@ -320,6 +320,8 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,                   ",",  COMMA , 1, strlen (                  ","), 0);
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",  SPACE , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
+
+    context->keywords_offset = context->table_size;
 
     return 0;
 }

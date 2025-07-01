@@ -5,7 +5,7 @@
 
 #include "tree.h"
 #include "buffer.h"
-#include "color_print.h"
+#include "color.h"
 
 char* file_reader (struct Buffer_t* buffer, const char* filename)
 {
