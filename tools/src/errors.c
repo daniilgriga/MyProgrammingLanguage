@@ -9,6 +9,7 @@ const char* ErrorsMessenger (enum Errors status)
         case NO_ERROR:          return "No errors, for real";
         case NULL_PTR_ERROR:    return "NULL pointer detected";
         case FILE_OPEN_ERROR:   return "File failed to open";
+        case FILE_SIZE_ERROR:   return "File size error";
         case FILE_CLOSE_ERROR:  return "File failed to close";
         case FWRITE_ERROR:      return "fwrite not worked well";
         case CALLOC_ERROR:      return "error in calloc";

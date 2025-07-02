@@ -1,4 +1,5 @@
 /build
 /frontend/build
+/middle_end/build
 /backend/build
 /tools/build

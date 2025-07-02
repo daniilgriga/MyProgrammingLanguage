@@ -6,6 +6,7 @@ enum Errors
 {
     NO_ERROR,
     NULL_PTR_ERROR,
+    FILE_SIZE_ERROR,
     FILE_OPEN_ERROR,
     FILE_CLOSE_ERROR,
     FWRITE_ERROR,

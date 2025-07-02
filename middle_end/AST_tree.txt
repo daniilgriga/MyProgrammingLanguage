@@ -1,0 +1,75 @@
+{ FUNC: "NEXT_FUNCTION"
+    { FUNC: "DEFENITION"
+
+        { FUNC: "CALL"
+
+            { FUNC: "carti"} 
+            { FUNC: ""
+                {  ID:  "argc" } 
+            } 
+        } 
+        {  OP:  ";" 
+
+            {  OP:  "=" 
+
+                {  ID:  "numb" } 
+                {  NUM: "5" } 
+            } 
+            {  OP:  ";" 
+
+                {  OP:  "=" 
+
+                    {  ID:  "result" } 
+                    {  NUM: "1" } 
+                } 
+                {  OP:  ";" 
+
+                    {  OP:  "=" 
+
+                        {  ID:  "old" } 
+                        {  NUM: "1" } 
+                    } 
+                    {  OP:  ";" 
+
+                        {  OP:  "w" 
+
+                            {  ID:  "numb" } 
+                            {  OP:  ";" 
+
+                                {  OP:  "=" 
+
+                                    {  ID:  "result" } 
+                                    {  OP:  "*" 
+
+                                        {  ID:  "result" } 
+                                        {  ID:  "numb" } 
+                                    } 
+                                } 
+                                {  OP:  ";" 
+                                    {  OP:  "=" 
+
+                                        {  ID:  "numb" } 
+                                        {  OP:  "-" 
+
+                                            {  ID:  "numb" } 
+                                            {  NUM: "1" } 
+                                        } 
+                                    } 
+                                } 
+                            } 
+                        } 
+                        {  OP:  ";" 
+                            {  OP:  "=" 
+
+                                {  ID:  "result" } 
+                                {  OP:  "S" 
+                                    {  ID:  "result" } 
+} 
+                            } 
+                        } 
+                    } 
+                } 
+            } 
+        } 
+    } 
+} 

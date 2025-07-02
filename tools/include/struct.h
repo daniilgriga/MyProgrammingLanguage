@@ -5,6 +5,7 @@
 
 #define MAX_SIZE           1000
 #define MAX_SIZE_OPERATOR  200
+#define MAX_NAME_LENGTH    50
 
 struct Token_t
 {

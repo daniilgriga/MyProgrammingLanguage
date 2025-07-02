@@ -342,7 +342,7 @@ int create_name_table_file_for_middle_end (struct Context_t* context, const char
     }
 
     for (int i = context->keywords_offset; i < context->table_size; i++)
-        fprintf (file, "[%d]: \"%.*s\" %d %d %d %d %d %d %d %d \n", i,
+        fprintf (file, "\"%.*s\" %d %d %d %d %d %d %d %d \n",
                 context->name_table[i].name.length,
                 context->name_table[i].name.str_pointer,
                 context->name_table[i].name.length,
