@@ -14,7 +14,9 @@ lesssgo
 
 stoopit shutup
 
-result is sqrt result shutup
+result is result * 1 shutup
+
+old is 3 * 5 shutup
 
 stoopit
 $

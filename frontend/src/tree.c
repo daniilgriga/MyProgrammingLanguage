@@ -264,34 +264,7 @@ void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* 
 
     fprintf (file, "%*s{ ", level * 4, "");
 
-    switch (root->type)
-    {
-        case NUM: fprintf (file, " NUM: \"%d\" ", (int) root->value); break;
-        case OP:  fprintf (file, " OP:  \"%c\" ", (int) root->value); break;
-        case ID:  fprintf (file, " ID:  \"%.*s\" ", context->name_table[(int) root->value].name.length,
-                                                    context->name_table[(int) root->value].name.str_pointer); break;
-        case FUNC:
-        {
-            switch ((int) root->value)
-            {
-                case DEF:     fprintf (file, "FUNC: \"DEFENITION\"");    break;
-                case CALL:    fprintf (file, "FUNC: \"CALL\"");          break;
-                case FN_GLUE: fprintf (file, "FUNC: \"NEXT_FUNCTION\""); break;
-
-                default:      fprintf (file, "FUNC: \"%.*s\"", context->name_table[(int) root->value].name.length,
-                                                               context->name_table[(int) root->value].name.str_pointer);
-            }
-
-            break;
-        }
-
-        case PARM: fprintf (file, "PARM: \"%.*s\"", context->name_table[(int) root->value].name.length,
-                                                    context->name_table[(int) root->value].name.str_pointer); break;
-        case LOCL: fprintf (file, "LOCL: \"%.*s\"", context->name_table[(int) root->value].name.length,
-                                                    context->name_table[(int) root->value].name.str_pointer); break;
-
-        default: fprintf (file, "ERROR: unknwon type[%d]\n", root->type);
-    }
+    fprintf (file, "%d: \"%g\" ", root->type, root->value);
 
     if (root->left)
         fprintf (file, "\n");
@@ -311,7 +284,7 @@ int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* cont
     assert (context);
     assert (filename);
 
-    if (!root)
+    if (root == NULL)
     {
         fprintf (stderr, RED_TEXT("ERROR: ") "File for middle-end not created - tree root not found\n");
         return 1;
