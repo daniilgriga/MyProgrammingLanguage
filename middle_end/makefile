@@ -1,7 +1,7 @@
 CC = gcc
 
 FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-optimizations         \
-	   	-Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts             				  \
+	   	-Wmissing-declarations -Wcast-align -Wchar-subscripts     			        				  \
 		-Wconversion -Wempty-body -Wfloat-equal										  				  \
 		-Wformat-nonliteral -Wformat-security -Wformat-signedness -Wformat=2 -Winline 				  \
 		-Wlogical-op -Wopenmp-simd -Wpacked                                           				  \
@@ -13,13 +13,16 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		-Wno-varargs -Wstack-protector                                                				  \
 		-fstack-protector -fstrict-overflow -flto -fno-omit-frame-pointer             				  \
 		-pie -fPIE -Werror=vla                                                        				  \
+		-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
+		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,$\
+		returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
 CFLAGS = -c $(FLAGS) -I./include -I../tools/include
 LDFLAGS = $(FLAGS) -lm
 
 BUILD_DIR = build
 
-SOURCES_LIST = main.c tree.c
+SOURCES_LIST = main.c tree.c simplification.c
 SOURCES_TOOL_LIST = errors.c file.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
@@ -39,7 +42,7 @@ $(BUILD_DIR):
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS) | $(BUILD_DIR)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(OBJECTS) $(FLAGS) -lm -o $@
 
 $(BUILD_DIR)/%.o: src/%.c makefile | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -MMD -MP $< -o $@

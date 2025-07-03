@@ -3,6 +3,7 @@
 #include "file.h"
 #include "tree.h"
 #include "log.h"
+#include "simplification.h"
 
 #define NAME_T_FILENAME "middle_end/Name_Table.txt"
 #define TREE_FILENAME "middle_end/AST_tree.txt"
@@ -19,11 +20,22 @@ int main ()
 
     name_table_dump (stderr, &context);
 
-    // read tree
+    struct Buffer_t buffer = {};
 
-    // optimization
+    struct Node_t* root = read_tree (&buffer, &context, TREE_FILENAME);
+    if (root == NULL)
+    {
+        fprintf (stderr, "ERROR: root is NULL\n");
+        return 1;
+    }
 
-    // write tree in backend
+    simplification_of_expression (root, NULL);
+
+    create_tree_file_for_middle_end (root, &context, "middle_end/AST_tree_optimized.txt", 0);
+
+    destructor (root, &buffer, &context);
+
+    // files to backend
 
     return 0;
 }
