@@ -57,7 +57,20 @@ int write_log_file (const char* reason, va_list args)
     sprintf (filename, "graph_tree%d.svg", dump_number++);
     sprintf (command_name, "dot log/graph_tree.dot -Tsvg -o %s%s", way, filename);
 
-    system  (command_name);
+    int result = system( command_name);
+    if (result == -1)
+    {
+        fprintf (stderr, "Error: Failed to execute command '%s'\n", command_name);
+        return 1;
+    }
+    else if (result > 0)
+    {
+        fprintf (stderr, "Warning: Command '%s' exited with error code %d\n", command_name, result);
+    }
+    else
+    {
+        fprintf (stderr, "Command '%s' executed successfully\n", command_name);
+    }
 
     log_printf ("\n\n<img src=\"%s\">", filename);
 

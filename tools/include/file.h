@@ -1,5 +1,7 @@
 #pragma once
 
+#include "errors.h"
+
 FILE* OpenFile (const char* filename, const char* mode);
 
 long FileSize (FILE* file_ptr);

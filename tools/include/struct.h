@@ -1,19 +1,19 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#include "../../frontend/include/enum.h"
+#include "enum.h"
 
 #define MAX_SIZE           1000
 #define MAX_SIZE_OPERATOR  200
-#define MAX_NAME_LENGTH    50
+#define MAX_NAME_LENGTH    100
 
 struct Token_t
 {
     int type;
 
     const char* str;
-    int         length;
-    double      value;
+    int length;
+    double value;
 
     struct Token_t* left;
     struct Token_t* right;
@@ -50,7 +50,7 @@ struct Context_t
     int table_size;
     int keywords_offset;
 
-    struct Token_t           token[MAX_SIZE];
+    struct Token_t token[MAX_SIZE];
 
     int curr_host_func;
 };
