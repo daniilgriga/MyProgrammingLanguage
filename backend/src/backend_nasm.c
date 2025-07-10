@@ -38,10 +38,13 @@ struct IR_Transformation transformations[] = {
     {"end_function", "ret",     0, 0, 0},   // < end_function >
     {"while",        "loop",    2, 0, 0},   // < money (condition, body_label) >
     {"end_while",    "endloop", 0, 0, 0},   // < endloop > (end of cycle)
+    {"if",           "cond",    2, 0, 0},
+    {"end_if",       "endcond", 2, 0, 0},
     {"add",          "add",     2, 0, 0},   // < add rX, rY >
     {"sub",          "sub",     2, 0, 0},   // < sub rX, rY >
     {"mul",          "imul",    2, 0, 0},   // < mul rX, rY >
     {"div",          "idiv",    2, 0, 0},   // < div rX, rY >
+                                            // < sqrt ???   >
     {NULL,           NULL,      0, 0, 0}    //  end of table
 };
 
@@ -51,7 +54,7 @@ struct Variable
 };
 
 const char* reg_map[MAX_REGISTERS] = {
-    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "r8",
+    "rax", "rbx", "rcx", "rdx", "rsi", "r8",
     "r9" , "r10", "r11", "r12", "r13", "r14", "r15"
 };
 
@@ -67,13 +70,15 @@ static int is_number (const char* str)
 {
     assert (str);
 
-    char* endptr;
+    char* endptr = NULL;
     strtol (str, &endptr, 10);
     return (*endptr == '\0');
 }
 
 static int is_register (const char* str)
 {
+    assert (str);
+
     return (strlen(str) > 1 && str[0] == 'r' && is_number(str + 1));
 }
 
@@ -107,7 +112,7 @@ static int tokenize_line (const char* line, struct Token* tokens)
 
     while (token && token_count < MAX_TOKENS)
     {
-        if (strcmp(token, "while") == 0)                                        // for 'loop'
+        if (strcmp(token, "while") == 0 || strcmp(token, "if") == 0)            // for 'loop'
         {
             fprintf (stderr, "%d: [%s]\n",token_count, token);
             strncpy (tokens[token_count].value, token, MAX_LENGTH_NAME - 1);
@@ -197,22 +202,35 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "mov") == 0)                                         // | MOVE | //
             {
+                fprintf (stderr, "Processing move: %s %s %s, is_reg1: %d, is_reg2: %d\n",
+                         tokens[0].value, tokens[1].value, tokens[2].value,
+                         tokens[1].is_register, tokens[2].is_register);
+
                 int reg1_index = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
                 int reg2_index = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
 
                 if (transformations[i].is_variable_target && !tokens[1].is_register)
                 {
-                    // store VAR, rX
                     add_variable (tokens[1].value);
                     if (reg2_index >= 0 && reg2_index < MAX_REGISTERS)
                         fprintf (asm_file, "    mov [%s], %s\n", tokens[1].value, reg_map[reg2_index]);
                 }
+                else if (strcmp(tokens[1].value, "rdi") == 0)
+                {
+                    if (tokens[2].is_register && reg2_index >= 0 && reg2_index < MAX_REGISTERS)
+                        fprintf (asm_file, "    mov rdi, %s\n", reg_map[reg2_index]);
+                    else if (is_number(tokens[2].value))
+                        fprintf (asm_file, "    mov rdi, %s\n", tokens[2].value);
+                    else
+                    {
+                        add_variable (tokens[2].value);
+                        fprintf (asm_file, "    mov rdi, [%s]\n", tokens[2].value);
+                    }
+                }
                 else if (reg1_index >= 0 && reg1_index < MAX_REGISTERS)
                 {
-                    // set rX, rY or set rX, NUM
                     if (reg2_index >= 0 && reg2_index < MAX_REGISTERS)
                         fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_index], reg_map[reg2_index]);
-
                     else if (transformations[i].is_number_allowed && is_number(tokens[2].value))
                         fprintf (asm_file, "    mov %s, %s\n", reg_map[reg1_index], tokens[2].value);
                 }
@@ -226,12 +244,15 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "call") == 0)                                        // | CALL | //
             {
-                fprintf (asm_file, "    call %s\n", tokens[1].value);
+                if (strcmp(tokens[1].value, "printf") == 0)
+                    fprintf (asm_file, "    call out_syscall\n");
+                else
+                    fprintf (asm_file, "    call %s\n", tokens[1].value);
             }
             else if (strcmp(transformations[i].x86_op, "pop") == 0)                                         // | POP | //
             {
                 if (is_number(tokens[1].value))
-                    fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 8);     // 8 byte <=> 1 addr
+                    fprintf (asm_file, "    add rsp, %d\n", atoi(tokens[1].value) * 8);                     // 8 byte <=> 1 addr
             }
             else if (strcmp(transformations[i].x86_op, "add") == 0 ||                                       // | ADD | SUB | IMUL | //
                      strcmp(transformations[i].x86_op, "sub") == 0 ||
@@ -272,8 +293,8 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "loop") == 0)                                        // | LOOP | //
             {
-                char* condition  = tokens[1].value;     // condition
-                char* body_label = tokens[2].value;     // body of cycle
+                char* condition  = tokens[1].value;                         // condition
+                char* body_label = tokens[2].value;                         // body of cycle
 
                 if (stack_depth < MAX_STACK_DEPTH)
                 {
@@ -303,7 +324,7 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                     fprintf (asm_file, "    jle end_loop_%s\n", body_label);
                 }
             }
-            else if (strcmp(transformations[i].x86_op, "endloop") == 0)                                     // | ENDLOOP | //
+            else if (strcmp(transformations[i].x86_op, "endloop") == 0)                                         // | ENDLOOP | //
             {
                 if (stack_depth > 0)
                 {
@@ -320,61 +341,95 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                     return;
                 }
             }
+            else if (strcmp(transformations[i].x86_op, "cond") == 0)
+            {
+                char* condition = tokens[1].value;
+                char* body_label = tokens[2].value;
+
+                if (stack_depth < MAX_STACK_DEPTH)
+                {
+                    strncpy (stack_labels[stack_depth], body_label, MAX_LENGTH_NAME - 1);
+                    stack_depth++;
+                }
+                else
+                {
+                    fprintf (stderr, "Error: too much cond\n");
+                    return;
+                }
+
+                char reg_str[3] = {};
+                sscanf(condition, "r%s != %d", &reg_str[1], &(int){0});
+                reg_str[0] = 'r';
+                reg_str[2] = '\0';
+
+                int reg_index = get_reg_index(reg_str);
+                if (reg_index >= 0 && reg_index < MAX_REGISTERS)
+                {
+                    fprintf (asm_file, "    cmp %s, 0\n", reg_map[reg_index]);
+                    fprintf (asm_file, "    je end_if_%s\n", body_label);
+                }
+            }
+            else if (strcmp(transformations[i].x86_op, "endcond") == 0)
+            {
+                if (stack_depth > 0)
+                {
+                    stack_depth--;
+
+                    char* body_label = stack_labels[stack_depth];
+
+                    fprintf (asm_file, "\nend_if_%s:\n", body_label);
+                }
+                else
+                {
+                    fprintf (stderr, "Error: end_if without if\n");
+                    return;
+                }
 
             break;
+            }
         }
     }
 }
 
-enum Errors generate_x86_nasm (const char* ir_filename, const char* asm_filename)
+enum Errors generate_x86_nasm (struct IRGenerator_t* gen, const char* asm_filename)
 {
-    assert (ir_filename);
+    assert (gen);
     assert (asm_filename);
 
-    FILE* ir_file  = fopen (ir_filename, "rb");
     FILE* asm_file = fopen (asm_filename, "wb");
-
-    if (ir_file == NULL || asm_file == NULL)
+    if (asm_file == NULL)
     {
-        fprintf (stderr, "Error: Cannot open files [%s] or [%s]\n", ir_filename, asm_filename);
+        fprintf (stderr, "Error: Cannot open file \"%s\" for writing.\n", asm_filename);
         return FILE_OPEN_ERROR;
     }
 
-    char line[MAX_LINE] = {};
     struct Token tokens[MAX_TOKENS] = {};
 
-    fprintf (asm_file, "section .data\n");
-    while (fgets(line, MAX_LINE, ir_file))
-    {
-        line[strcspn(line, "\n")] = 0;
-        int token_count = tokenize_line (line, tokens);
-        if (token_count > 1 && strcmp(tokens[0].value, "store") == 0 && !tokens[1].is_register)
-            add_variable (tokens[1].value);
-    }
+    fprintf (asm_file, "%%include \"src/io_syscalls.nasm\"\n\n");
 
-    rewind (ir_file);
+    fprintf (asm_file, "section .data\n");
+    fprintf (asm_file, "    buffer times 256 db 0\n");
+
+    for (int i = 0; i < gen->instr_count; i++)
+        add_variable (gen->symbols[i].name);
 
     for (int i = 0; i < variable_count; i++)
         fprintf (asm_file, "    %-*s dq 0\n", 10, variables[i].name);
 
     fprintf (asm_file, "\nsection .text\n");
-    fprintf (asm_file, "global _start\n");
+    fprintf (asm_file, "\nglobal _start\n");
 
-    while (fgets(line, MAX_LINE, ir_file))
+    for (int i = 0; i < gen->instr_count; i++)
     {
-        line[strcspn(line, "\n")] = 0;
-        int token_count = tokenize_line (line, tokens);
+        int token_count = tokenize_line (gen->instructions[i], tokens);
         if (token_count > 0)
             transform_to_x86 (asm_file, tokens, token_count);
     }
 
     fprintf (asm_file, "\n_start:\n");
     fprintf (asm_file, "    call carti\n");
-    fprintf (asm_file, "    mov rax, 60\n");
-    fprintf (asm_file, "    xor rdi, rdi\n");
-    fprintf (asm_file, "    syscall\n");
+    fprintf (asm_file, "    call hlt_syscall\n");
 
-    fclose (ir_file);
     fclose (asm_file);
 
     return NO_ERROR;

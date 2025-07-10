@@ -4,48 +4,64 @@
 #include "backend_nasm.h"
 #include "backend_bin.h"
 #include "errors.h"
-#include "create_elf.h"
+#include "ir_gen.h"
+#include "struct.h"
+#include "tree.h"
 #include "file.h"
 
 #define EXE_FILE "backend/build/program"
+#define NAME_T_FILENAME "backend/Name_Table.txt"
+#define TREE_FILENAME "backend/AST_tree.txt"
+#define IR_FILENAME "backend/program_beta.ir"
+#define NASM_FILENAME "backend/program_beta.nasm"
 
-int main (int argc, char* argv[])
+int main ()
 {
-    if (argc != 3)
+    // if (argc != 3)
+    // {
+    //     fprintf (stderr, "Usage: %s <input.ir> <output.nasm>\n", argv[0]);
+    //     return 1;
+    // }
+
+//* ========== tree hangling ========== *// // add tree.c
+    struct Context_t context = {};
+
+    ctor_keywords (&context);
+
+    int read_error = read_name_table (&context, NAME_T_FILENAME);
+    if (read_error != 0)
+       return 1;
+
+    name_table_dump (stderr, &context);
+
+    struct Buffer_t buffer = {};
+
+    struct Node_t* root = read_tree (&buffer, &context, TREE_FILENAME);
+    if (root == NULL)
     {
-        fprintf (stderr, "Usage: %s <input.ir> <output.nasm>\n", argv[0]);
+        fprintf (stderr, "ERROR: atfer parcing root is NULL\n");
         return 1;
     }
+//* ========== tree hangling ========== *//
 
-    //enum Errors error = generate_x86_nasm (argv[1], argv[2]);
-    //if (error != NO_ERROR)
-    //    ERROR_CHECK_RET_STATUS (error)
+//! ========== ir generation ========== !// // check ir_grn.c
+    struct IRGenerator_t gen = {};
+    initial_ir_generator (&gen);
+    bypass (&gen, root, &context);
 
-    parse_IR_to_array (argv[1]);
-    print_IR_array();
+    dump_ir_to_file (&gen, IR_FILENAME);
+//! ========== ir generation ========== !//
 
-    Elf64_Ehdr header = {};
-    memset (&header, 0, sizeof(header));
+    enum Errors error = generate_x86_nasm (&gen, NASM_FILENAME);
+    if (error != NO_ERROR)
+        ERROR_CHECK_RET_STATUS (error)
 
-    filing_header (&header);
+    // generate_elf_binary (EXE_FILE);
 
-    FILE* exe_file = OpenFile (EXE_FILE, "wb");
-    if (exe_file == NULL)
-        return 1;
-
-    if (fwrite (&header, sizeof(header), 1, exe_file) != 1)
-    {
-        perror ("Error to write the ELF header");
-        fclose (exe_file);
-        return 1;
-    }
-
-    enum Errors close_err = CloseFile (exe_file);
-    if (close_err != NO_ERROR)
-        return 1;
+    destructor (root, &buffer, &context);
 
     return 0;
 }
 
-// ! start elf file gen function !
-// !        imitters             !
+// end adding sqrt in backend
+// fixed translation in nasm

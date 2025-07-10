@@ -1,9 +1,15 @@
+%include "src/io_syscalls.nasm"
+
 section .data
+    buffer times 256 db 0
+    argc       dq 0
     numb       dq 0
     result     dq 0
     old        dq 0
+               dq 0
 
 section .text
+
 global _start
 
 carti:
@@ -27,12 +33,12 @@ loop_body383:
     jmp loop_body383
 
 end_loop_body383:
+    mov rdi, rcx
+    call out_syscall
     mov rsp, rbp
     pop rbp
     ret
 
 _start:
     call carti
-    mov rax, 60
-    xor rdi, rdi
-    syscall
+    call hlt_syscall

@@ -13,4 +13,6 @@ set r5, 1
 sub r2, r5
 store numb, r2
 end_while
+set rdi, r3
+call printf
 end_function

@@ -13,32 +13,45 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		-Wno-varargs -Wstack-protector                                                				  \
 		-fstack-protector -fstrict-overflow -flto -fno-omit-frame-pointer             				  \
 		-pie -fPIE -Werror=vla                                                        				  \
+		-fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
+		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,$\
+		returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
-CFLAGS = -c $(FLAGS)
+CFLAGS = -c $(FLAGS) -I./include -I../tools/include
 LDFLAGS = $(FLAGS) -lm
 
-SOURCES_LIST = main.c backend_nasm.c tools.c file.c backend_bin.c
+BUILD_DIR = build
+
+SOURCES_LIST = main.c backend_nasm.c backend_bin.c emitters.c ir_gen.c tree.c
+SOURCES_TOOL_LIST = errors.c file.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
-OBJECTS = $(SOURCES_LIST:%.c=build/%.o)
-DEPS = $(OBJECTS:%.o=%.d)
-EXECUTABLE = build/backend
 
-.PHONY: all clean
+TOOL_OBJECTS = $(SOURCES_TOOL_LIST:%.c=../tools/build/%.o)
+OBJECTS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.o) $(TOOL_OBJECTS)
+
+DEPS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.d) $(SOURCES_TOOL_LIST:%.c=../tools/build/%.d)
+
+EXECUTABLE = $(BUILD_DIR)/backend
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+.PHONY: all clean nasm
 
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
-	@$(CC) $(LDFLAGS) $^ -o $@
+$(EXECUTABLE): $(OBJECTS) | $(BUILD_DIR)
+	$(CC) $(LDFLAGS) $^ -o $@
 
--include $(DEPS)
-
-build/%.o: src/%.c
-	@$(CC) -I./include $(CFLAGS) -MMD -MP $< -o $@
+$(BUILD_DIR)/%.o: src/%.c makefile | $(BUILD_DIR)
+	$(CC) $(CFLAGS) -MMD -MP $< -o $@
 
 nasm:
-	nasm -g -f elf64 src/program.nasm -o build/output_nasm.o
-	ld -m elf_x86_64 build/output_nasm.o -o build/nasm_test
+	nasm -g -f elf64 program_beta.nasm -o $(BUILD_DIR)/output_nasm.o
+	ld -m elf_x86_64 $(BUILD_DIR)/output_nasm.o -o $(BUILD_DIR)/nasm_test
+
+-include $(DEPS)
 
 clean:
 	rm -f build/*.o $(EXECUTABLE)
