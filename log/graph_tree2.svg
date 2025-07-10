@@ -14,7 +14,7 @@
 <path fill="#ffd700" stroke="black" d="M12,-0.5C12,-0.5 119,-0.5 119,-0.5 125,-0.5 131,-6.5 131,-12.5 131,-12.5 131,-34.5 131,-34.5 131,-40.5 125,-46.5 119,-46.5 119,-46.5 12,-46.5 12,-46.5 6,-46.5 0,-40.5 0,-34.5 0,-34.5 0,-12.5 0,-12.5 0,-6.5 6,-0.5 12,-0.5"/>
 <text text-anchor="middle" x="65.5" y="-31.3" font-family="Times,serif" font-size="14.00">type = 1 (NUM)</text>
 <polyline fill="none" stroke="black" points="0,-23.5 131,-23.5 "/>
-<text text-anchor="middle" x="65.5" y="-8.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 5 &#39;&#39;</text>
+<text text-anchor="middle" x="65.5" y="-8.3" font-family="Times,serif" font-size="14.00">value = &#39;&#39; 1 &#39;&#39;</text>
 </g>
 </g>
 </svg>

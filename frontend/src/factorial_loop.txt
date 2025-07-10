@@ -1,9 +1,11 @@
 lethimcook carti (lethimcook argc)
 lesssgo
 
-lethimcook numb   is 5 shutup
+lethimcook numb   is 1 shutup
 lethimcook result is 1 shutup
 lethimcook old    is 1 shutup
+
+scanf(numb) shutup
 
 money (numb)
 lesssgo

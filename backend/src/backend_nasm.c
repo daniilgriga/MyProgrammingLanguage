@@ -54,8 +54,8 @@ struct Variable
 };
 
 const char* reg_map[MAX_REGISTERS] = {
-    "rax", "rbx", "rcx", "rdx", "rsi", "r8",
-    "r9" , "r10", "r11", "r12", "r13", "r14", "r15"
+    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "r8",
+    "r9",  "r10", "r11", "r12", "r13", "r14", "r15"
 };
 
 struct Variable variables[MAX_VARIABLES];
@@ -166,7 +166,7 @@ static int get_reg_index (const char* reg_str)
 
     if (strlen(reg_str) < 2 || reg_str[0] != 'r') return -1;
 
-    int index = atoi (reg_str + 1) - 1;
+    int index = atoi (reg_str + 1);
 
     return (index >= 0 && index < MAX_REGISTERS) ? index : -1;
 }
@@ -209,6 +209,8 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                 int reg1_index = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
                 int reg2_index = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
 
+                fprintf (stderr, "reg1_index: %d, reg2_index: %d\n", reg1_index, reg2_index);
+
                 if (transformations[i].is_variable_target && !tokens[1].is_register)
                 {
                     add_variable (tokens[1].value);
@@ -246,6 +248,8 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             {
                 if (strcmp(tokens[1].value, "printf") == 0)
                     fprintf (asm_file, "    call out_syscall\n");
+                else if (strcmp(tokens[1].value, "scanf") == 0)
+                    fprintf (asm_file, "    call in_syscall\n");
                 else
                     fprintf (asm_file, "    call %s\n", tokens[1].value);
             }

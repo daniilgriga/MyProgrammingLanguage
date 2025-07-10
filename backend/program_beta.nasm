@@ -15,25 +15,27 @@ global _start
 carti:
     push rbp
     mov rbp, rsp
-    mov rbx, 5
-    mov [numb], rbx
     mov rcx, 1
-    mov [result], rcx
+    mov [numb], rcx
     mov rdx, 1
-    mov [old], rdx
+    mov [result], rdx
+    mov rsi, 1
+    mov [old], rsi
+    call in_syscall
+    mov rcx, rax
 
 loop_body383:
-    cmp rbx, 0
+    cmp rcx, 0
     jle end_loop_body383
-    imul rcx, rbx
-    mov [result], rcx
-    mov rsi, 1
-    sub rbx, rsi
-    mov [numb], rbx
+    imul rdx, rcx
+    mov [result], rdx
+    mov rdi, 1
+    sub rcx, rdi
+    mov [numb], rcx
     jmp loop_body383
 
 end_loop_body383:
-    mov rdi, rcx
+    mov rdi, rdx
     call out_syscall
     mov rsp, rbp
     pop rbp

@@ -119,7 +119,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
     assert (gen);
     assert (context);
 
-    if (!node) return NULL;
+    if (node == NULL) return NULL;
 
     switch (node->type)
     {
@@ -183,7 +183,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     int length = context->name_table[(int)node->left->value].name.length;
                     char instr[MAX_INSTR_LEN] = {};
 
-                    if (node->right && node->right->type == FUNC && (int)node->right->value == COMMA)
+                    if (node->right && node->right->type == FUNC && (int)node->right->value == COMMA && strcmp(func_name, "scanf") != 0)
                     {
                         struct Node_t* arg = node->right->left;
                         if (arg && arg->type == ID)
@@ -191,7 +191,6 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                             const char* arg_name = context->name_table[(int)arg->value].name.str_pointer;
                             int arg_length = context->name_table[(int)arg->value].name.length;
                             char* arg_reg = get_or_add_symbol (gen, arg_name, arg_length);
-
                             snprintf (instr, sizeof(instr), "set rdi, %s", arg_reg);
                             add_instruction (gen, instr);
                             free (arg_reg);
@@ -202,18 +201,29 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     add_instruction (gen, instr);
 
                     char* result = NULL;
-                    if (strcmp(func_name, "printf") != 0)
+                    if (strcmp(func_name, "scanf") == 0)
                     {
-                        result = calloc (MAX_VAR_NAME, sizeof(char));
+                        const char* var_name = context->name_table[(int)node->right->left->value].name.str_pointer;
+                        int var_length = context->name_table[(int)node->right->left->value].name.length;
+                        char* var_reg = get_or_add_symbol (gen, var_name, var_length);
+
+                        snprintf (instr, sizeof(instr), "set %s, r0", var_reg);
+                        add_instruction (gen, instr);
+
+                        result = strdup (var_reg);
+                        free (var_reg);
+                    }
+                    else if (strcmp(func_name, "printf") != 0 && strcmp(func_name, "scanf") != 0)
+                    {
+                        result = calloc(MAX_VAR_NAME, sizeof(char));
                         if (!result)
                         {
-                            fprintf (stderr, "Memory allocation failed\n");
+                            fprintf(stderr, "Memory allocation failed\n");
                             exit(1);
                         }
-
-                        new_register (gen, result, MAX_VAR_NAME);
-                        snprintf (instr, sizeof(instr), "set %s, r7", result);
-                        add_instruction (gen, instr);
+                        new_register(gen, result, MAX_VAR_NAME);
+                        snprintf(instr, sizeof(instr), "set %s, r7", result);
+                        add_instruction(gen, instr);
                     }
 
                     return result;

@@ -11,6 +11,12 @@ section .text
 ; [in_syscall]: reads data from standard input
 ; no arguments
 in_syscall:
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+
     mov rax, 0                  ; syscall number for read
     mov rdi, 0                  ; stdin
     mov rsi, buffer             ; buffer to store input
@@ -36,6 +42,11 @@ in_syscall:
     jmp .convert_loop           ; loop
 
 .done:
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
     ret
 
 .error:
