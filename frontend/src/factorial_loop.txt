@@ -16,7 +16,7 @@ stoopit shutup
 
 result is result * 1 shutup
 
-old is 3 * 5 shutup
+printf(result) shutup
 
 stoopit
 $

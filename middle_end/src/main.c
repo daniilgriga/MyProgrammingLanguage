@@ -31,11 +31,10 @@ int main ()
 
     simplification_of_expression (root, NULL);
 
-    create_tree_file_for_middle_end (root, &context, "middle_end/AST_tree_optimized.txt", 0);
+    create_tree_file_for_backend (root, &context, "backend/AST_tree.txt", 0);
+    create_name_table_file_for_backend (&context, "backend/Name_Table.txt");
 
     destructor (root, &buffer, &context);
-
-    // files to backend
 
     return 0;
 }
