@@ -306,7 +306,7 @@ struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* 
     ON_DEBUG ( INDENT; fprintf (stderr, GREEN_TEXT("Got an '{'. Creating a node. Cur = <%.40s...>, [%p]. buffer_ptr = [%p]\n"),
                buffer->current_ptr,  buffer->current_ptr, buffer->buffer_ptr); )
 
-    struct Node_t* node = new_node (NULL);
+    struct Node_t* node = new_node ();
 
     int type = 0;
     char value_str[MAX_NAME_LENGTH] = {};
