@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "backend_nasm.h"
-#include "backend_bin.h"
+#include "backend_elf.h"
 #include "errors.h"
 #include "ir_gen.h"
 #include "struct.h"
@@ -56,7 +56,9 @@ int main ()
     if (error != NO_ERROR)
         ERROR_CHECK_RET_STATUS (error)
 
-    // generate_elf_binary (EXE_FILE);
+    error = generate_elf_binary (&gen, EXE_FILE);
+    if (error != NO_ERROR)
+        ERROR_CHECK_RET_STATUS (error)
 
     destructor (root, &buffer, &context);
 
