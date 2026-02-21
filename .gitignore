@@ -1,5 +1,5 @@
-/build
-/frontend/build
-/middle_end/build
-/backend/build
-/tools/build
+*/build
+
+log/*.svg
+log/*.dot
+log/*.html
