@@ -109,7 +109,6 @@ const char* get_name (double enum_value)
         case     SIN: return "SIN";
         case     COS: return "COS";
         case      LN: return "LN";
-        case    SQRT: return "SQRT";
         case    ADVT: return "LETHIMCOOK";
 
         default:      return "bro, wth...";

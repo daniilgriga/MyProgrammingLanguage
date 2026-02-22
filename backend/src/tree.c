@@ -185,7 +185,6 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,                   "^",   POW  , 1, strlen (                  "^"), 0);
     add_struct_in_keywords (context,                   "(",  OP_BR , 1, strlen (                  "("), 0);
     add_struct_in_keywords (context,                   ")",  CL_BR , 1, strlen (                  ")"), 0);
-    add_struct_in_keywords (context,                "sqrt",  SQRT  , 1, strlen (               "sqrt"), 0);
     add_struct_in_keywords (context,             "lesssgo", OP_F_BR, 1, strlen (            "lesssgo"), 0);
     add_struct_in_keywords (context,             "stoopit", CL_F_BR, 1, strlen (            "stoopit"), 0);
     add_struct_in_keywords (context,                  "is",  EQUAL , 1, strlen (                 "is"), 0);
@@ -195,6 +194,11 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,                   ",",  COMMA , 1, strlen (                  ","), 0);
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",  SPACE , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
+
+    // built-in functions: registered as IDs with added_status=1
+    add_struct_in_keywords (context,  "printf",  (enum Operations) ID, 0, strlen ( "printf"), 1);
+    add_struct_in_keywords (context,   "scanf",  (enum Operations) ID, 0, strlen (  "scanf"), 1);
+    add_struct_in_keywords (context,    "sqrt",  (enum Operations) ID, 0, strlen (   "sqrt"), 1);
 
     context->keywords_offset = context->table_size;
 

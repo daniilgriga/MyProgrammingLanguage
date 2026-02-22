@@ -24,7 +24,6 @@ enum Operations
     LN      = 'l',
     OP_BR   = '(',
     CL_BR   = ')',
-    SQRT    = 'S',
     OP_F_BR = '{',
     CL_F_BR = '}',
     EQUAL   = '=',

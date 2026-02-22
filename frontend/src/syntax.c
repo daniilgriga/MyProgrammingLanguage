@@ -302,7 +302,7 @@ static struct Node_t* GetTerm (struct Context_t* context)
 {
     struct Node_t* val = GetP (context);
 
-    while ( _IS_OP (MUL) || _IS_OP (DIV) || _IS_OP (SQRT) )
+    while ( _IS_OP (MUL) || _IS_OP (DIV) )
     {
         int op = (int) _CUR_TOKEN.value;
 
@@ -310,17 +310,10 @@ static struct Node_t* GetTerm (struct Context_t* context)
 
         struct Node_t* val2 = GetP (context);
 
-        if (op == SQRT)
-        {
-            val = _SQRT (val2);
-        }
+        if (op == MUL)
+            val = _MUL (val, val2);
         else
-        {
-            if (op == MUL)
-                val = _MUL (val, val2);
-            else
-                val = _DIV (val, val2);
-        }
+            val = _DIV (val, val2);
     }
 
     return val;

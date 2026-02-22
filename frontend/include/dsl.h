@@ -8,7 +8,6 @@
 #define _SIN(arg)           new_node (   OP,      SIN,  (arg),    NULL )
 #define _COS(arg)           new_node (   OP,      COS,  (arg),    NULL )
 #define _LN(arg)            new_node (   OP,       LN,  (arg),    NULL )
-#define _SQRT(arg)          new_node (   OP,     SQRT,  (arg),    NULL )
 #define _NUM(value)         new_node (  NUM,  (value),   NULL,    NULL )
 #define _ID(value)          new_node (   ID,  (value),   NULL,    NULL )
 #define _EQL(left, right)   new_node (   OP,    EQUAL, (left), (right) )

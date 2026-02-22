@@ -319,19 +319,6 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     return lreg;  // caller sees updated lreg
                 }
 
-                case SQRT:
-                {
-                    const char* vname = context->name_table[(int)node->left->value].name.str_pointer;
-                    int         vlen  = context->name_table[(int)node->left->value].name.length;
-                    char* vreg = get_or_add_symbol (gen, vname, vlen);
-
-                    char instr[MAX_INSTR_LEN] = {};
-                    snprintf (instr, sizeof (instr), "sqrt %s", vreg);
-                    add_instruction (gen, instr);
-
-                    return vreg;
-                }
-
                 case WHILE:
                 {
                     char label[64] = {};
