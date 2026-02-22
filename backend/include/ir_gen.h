@@ -30,7 +30,7 @@ void new_register (struct IRGenerator_t* gen, char* buffer, size_t size);
 
 char* get_or_add_symbol (struct IRGenerator_t* gen, const char* name, int length);
 
-void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const char* reg);
+void set_symbol_reg (struct IRGenerator_t* gen, const char* name, int length, const char* reg);
 
 void add_instruction (struct IRGenerator_t* gen, const char* instr);
 

@@ -12,15 +12,17 @@ void initial_ir_generator (struct IRGenerator_t* gen)
     gen->reg_count = 0;
 }
 
+// allocate a fresh virtual register name into buffer
 void new_register (struct IRGenerator_t* gen, char* buffer, size_t size)
 {
     assert (gen);
     assert (buffer);
 
     snprintf (buffer, size, "r%d", ++gen->reg_count);
-    fprintf (stderr, "in new_register: new reg: [r%d]\n", gen->reg_count);
 }
 
+// look up variable by name; return its register
+// if not found - allocate a new register, add to table, return it
 char* get_or_add_symbol (struct IRGenerator_t* gen, const char* name, int length)
 {
     assert (gen);
@@ -28,48 +30,31 @@ char* get_or_add_symbol (struct IRGenerator_t* gen, const char* name, int length
 
     for (int i = 0; i < gen->symbol_count; i++)
     {
-        fprintf (stderr, "COMPARE: {%d}: [%.10s] | [%.10s]\n", i, gen->symbols[i].name, name);
-        if (strncmp(gen->symbols[i].name, name, (size_t) length) == 0)
+        if (strncmp (gen->symbols[i].name, name, (size_t) length) == 0 &&
+            gen->symbols[i].name[length] == '\0')
         {
-            char* reg_copy = calloc (MAX_VAR_NAME, sizeof(char));
-            if (!reg_copy)
-            {
-                fprintf (stderr, "Memory allocation failed\n");
-                exit(1);
-            }
-
-            fprintf (stderr, "get_or_add_symbol: existing reg = <%s> for name = <%.10s>\n", reg_copy, name);
-            strncpy (reg_copy, gen->symbols[i].reg, MAX_VAR_NAME);
-            return reg_copy;
+            return strdup (gen->symbols[i].reg);
         }
     }
 
     if (gen->symbol_count >= MAX_SYMBOLS)
     {
         fprintf (stderr, "Symbol table overflow\n");
-        exit(1);
+        exit (1);
     }
 
     char reg[MAX_VAR_NAME] = {};
-    new_register (gen, reg, sizeof(reg));
-    fprintf (stderr, "get_or_add_symbol: new reg = <%s> for name = <%.10s>\n", reg, name);
-    strncpy (gen->symbols[gen->symbol_count].name, name, MAX_VAR_NAME);
-    strncpy (gen->symbols[gen->symbol_count].reg, reg, MAX_VAR_NAME);
+    new_register (gen, reg, sizeof (reg));
 
-    char* reg_copy = calloc (MAX_VAR_NAME, sizeof(char));
-    if (!reg_copy)
-    {
-        fprintf (stderr, "Memory allocation failed\n");
-        exit(1);
-    }
-
-    strncpy (reg_copy, gen->symbols[gen->symbol_count].reg, MAX_VAR_NAME);
+    strncpy (gen->symbols[gen->symbol_count].name, name,   MAX_VAR_NAME - 1);
+    strncpy (gen->symbols[gen->symbol_count].reg,  reg,    MAX_VAR_NAME - 1);
     gen->symbol_count++;
 
-    return reg_copy;
+    return strdup (reg);
 }
 
-void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const char* reg)
+// update (or insert) the register bound to a variable name
+void set_symbol_reg (struct IRGenerator_t* gen, const char* name, int length, const char* reg)
 {
     assert (gen);
     assert (name);
@@ -77,10 +62,10 @@ void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const cha
 
     for (int i = 0; i < gen->symbol_count; i++)
     {
-        if (strcmp(gen->symbols[i].name, name) == 0)
+        if (strncmp (gen->symbols[i].name, name, (size_t) length) == 0 &&
+            gen->symbols[i].name[length] == '\0')
         {
-            strncpy (gen->symbols[i].reg, reg, MAX_VAR_NAME);
-            fprintf (stderr, "add_symbol_with_reg: updated reg = <%s> for name = <%.10s>\n", reg, name);
+            strncpy (gen->symbols[i].reg, reg, MAX_VAR_NAME - 1);
             return;
         }
     }
@@ -88,14 +73,12 @@ void add_symbol_with_reg (struct IRGenerator_t* gen, const char* name, const cha
     if (gen->symbol_count >= MAX_SYMBOLS)
     {
         fprintf (stderr, "Symbol table overflow\n");
-        exit(1);
+        exit (1);
     }
 
-    strncpy (gen->symbols[gen->symbol_count].name, name, MAX_VAR_NAME);
-    strncpy (gen->symbols[gen->symbol_count].reg, reg, MAX_VAR_NAME);
+    strncpy (gen->symbols[gen->symbol_count].name, name, MAX_VAR_NAME - 1);
+    strncpy (gen->symbols[gen->symbol_count].reg,  reg,  MAX_VAR_NAME - 1);
     gen->symbol_count++;
-
-    fprintf (stderr, "add_symbol_with_reg: new reg = <%s> for name = <%.10s>\n", reg, name);
 }
 
 void add_instruction (struct IRGenerator_t* gen, const char* instr)
@@ -105,15 +88,16 @@ void add_instruction (struct IRGenerator_t* gen, const char* instr)
 
     if (gen->instr_count < MAX_IR_INSTR)
     {
-        strncpy (gen->instructions[gen->instr_count++], instr, MAX_INSTR_LEN);
+        strncpy (gen->instructions[gen->instr_count++], instr, MAX_INSTR_LEN - 1);
     }
     else
     {
         fprintf (stderr, "Instruction buffer overflow\n");
-        exit(1);
+        exit (1);
     }
 }
 
+// model: each variable owns one fixed register for its lifetime.
 char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* context)
 {
     assert (gen);
@@ -125,11 +109,11 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
     {
         case FUNC:
         {
-            switch ((int)node->value)
+            switch ((int) node->value)
             {
                 case FN_GLUE:
                 {
-                    bypass (gen, node->left, context);
+                    bypass (gen, node->left,  context);
                     bypass (gen, node->right, context);
                     return NULL;
                 }
@@ -137,41 +121,37 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                 case DEF:
                 {
                     const char* func_name = context->name_table[(int)node->left->left->value].name.str_pointer;
-                    int length = context->name_table[(int)node->left->left->value].name.length;
+                    int         func_len  = context->name_table[(int)node->left->left->value].name.length;
                     char instr[MAX_INSTR_LEN] = {};
 
-                    snprintf (instr, sizeof(instr), "function " "%.*s", length, func_name);
+                    snprintf (instr, sizeof (instr), "function %.*s", func_len, func_name);
                     add_instruction (gen, instr);
 
-                    if (node->left->right && node->left->right->type == FUNC && (int)node->left->right->value == COMMA)
+                    // emit param instructions
+                    if (node->left->right &&
+                        node->left->right->type == FUNC &&
+                        (int) node->left->right->value == COMMA)
                     {
                         struct Node_t* param = node->left->right;
                         while (param)
                         {
                             if (param->left && param->left->type == ID)
                             {
-                                const char* param_name = context->name_table[(int)param->left->value].name.str_pointer;
-                                int param_length = context->name_table[(int)param->left->value].name.length;
-                                char* param_reg = get_or_add_symbol (gen, param_name, param_length);
+                                const char* pname = context->name_table[(int)param->left->value].name.str_pointer;
+                                int         plen  = context->name_table[(int)param->left->value].name.length;
+                                char* preg = get_or_add_symbol (gen, pname, plen);
 
-                                snprintf (instr, sizeof(instr), "param %.*s, %s", param_length, param_name, param_reg);
+                                snprintf (instr, sizeof (instr), "param %.*s, %s", plen, pname, preg);
                                 add_instruction (gen, instr);
-
-                                free (param_reg);
+                                free (preg);
                             }
                             param = param->right;
                         }
                     }
 
-                    char* result_reg = bypass (gen, node->right, context);
-                    if (result_reg)
-                    {
-                        snprintf (instr, sizeof(instr), "set r7, %s", result_reg);
-                        add_instruction (gen, instr);
-                        free (result_reg);
-                    }
+                    bypass (gen, node->right, context);
 
-                    snprintf (instr, sizeof(instr), "end_function");
+                    snprintf (instr, sizeof (instr), "end_function");
                     add_instruction (gen, instr);
 
                     return NULL;
@@ -180,58 +160,56 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                 case CALL:
                 {
                     const char* func_name = context->name_table[(int)node->left->value].name.str_pointer;
-                    int length = context->name_table[(int)node->left->value].name.length;
+                    int         func_len  = context->name_table[(int)node->left->value].name.length;
                     char instr[MAX_INSTR_LEN] = {};
 
-                    if (node->right && node->right->type == FUNC && (int)node->right->value == COMMA && strcmp(func_name, "scanf") != 0)
+                    // for printf: load argument into rdi before call
+                    if (strcmp (func_name, "printf") == 0 &&
+                        node->right &&
+                        node->right->type == FUNC &&
+                        (int) node->right->value == COMMA)
+                    {
+                        struct Node_t* arg = node->right->left;
+                        if (arg)
+                        {
+                            char* arg_reg = bypass (gen, arg, context);
+                            if (arg_reg)
+                            {
+                                snprintf (instr, sizeof (instr), "set rdi, %s", arg_reg);
+                                add_instruction (gen, instr);
+                                free (arg_reg);
+                            }
+                        }
+                    }
+
+                    snprintf (instr, sizeof (instr), "call %.*s", func_len, func_name);
+                    add_instruction (gen, instr);
+
+                    // scanf: result comes back in r0; write it into the variable's register
+                    if (strcmp (func_name, "scanf") == 0 &&
+                        node->right &&
+                        node->right->type == FUNC &&
+                        (int) node->right->value == COMMA)
                     {
                         struct Node_t* arg = node->right->left;
                         if (arg && arg->type == ID)
                         {
-                            const char* arg_name = context->name_table[(int)arg->value].name.str_pointer;
-                            int arg_length = context->name_table[(int)arg->value].name.length;
-                            char* arg_reg = get_or_add_symbol (gen, arg_name, arg_length);
-                            snprintf (instr, sizeof(instr), "set rdi, %s", arg_reg);
+                            const char* vname = context->name_table[(int)arg->value].name.str_pointer;
+                            int         vlen  = context->name_table[(int)arg->value].name.length;
+
+                            char* vreg = get_or_add_symbol (gen, vname, vlen);
+                            snprintf (instr, sizeof (instr), "set %s, r0", vreg);
                             add_instruction (gen, instr);
-                            free (arg_reg);
+                            free (vreg);
                         }
                     }
 
-                    snprintf (instr, sizeof(instr), "call %.*s", length, func_name);
-                    add_instruction (gen, instr);
-
-                    char* result = NULL;
-                    if (strcmp(func_name, "scanf") == 0)
-                    {
-                        const char* var_name = context->name_table[(int)node->right->left->value].name.str_pointer;
-                        int var_length = context->name_table[(int)node->right->left->value].name.length;
-                        char* var_reg = get_or_add_symbol (gen, var_name, var_length);
-
-                        snprintf (instr, sizeof(instr), "set %s, r0", var_reg);
-                        add_instruction (gen, instr);
-
-                        result = strdup (var_reg);
-                        free (var_reg);
-                    }
-                    else if (strcmp(func_name, "printf") != 0 && strcmp(func_name, "scanf") != 0)
-                    {
-                        result = calloc(MAX_VAR_NAME, sizeof(char));
-                        if (!result)
-                        {
-                            fprintf(stderr, "Memory allocation failed\n");
-                            exit(1);
-                        }
-                        new_register(gen, result, MAX_VAR_NAME);
-                        snprintf(instr, sizeof(instr), "set %s, r7", result);
-                        add_instruction(gen, instr);
-                    }
-
-                    return result;
+                    return NULL;
                 }
 
                 case COMMA:
                 {
-                    bypass (gen, node->left, context);
+                    bypass (gen, node->left,  context);
                     bypass (gen, node->right, context);
                     return NULL;
                 }
@@ -244,59 +222,48 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
         case OP:
         {
-            switch ((int)node->value)
+            switch ((int) node->value)
             {
                 case GLUE:
-                    char* should_free_1 = bypass (gen, node->left, context);
-                    free (should_free_1);
-
-                    char* should_free_2 = bypass (gen, node->right, context);
-                    free (should_free_2);
-
+                {
+                    char* r1 = bypass (gen, node->left,  context);
+                    free (r1);
+                    char* r2 = bypass (gen, node->right, context);
+                    free (r2);
                     return NULL;
+                }
 
+                // a is <expr>
+                // rA = fixed register for a; write expr result into rA
                 case EQUAL:
                 {
-                    const char* var_name = context->name_table[(int)node->left->value].name.str_pointer;
-                    int var_length = context->name_table[(int)node->left->value].name.length;
-                    char* value_reg = bypass (gen, node->right, context);
+                    const char* lname = context->name_table[(int)node->left->value].name.str_pointer;
+                    int         llen  = context->name_table[(int)node->left->value].name.length;
 
-                    char instr[MAX_INSTR_LEN] = {};
-                    if (value_reg)
+                    // get (or allocate) lhs's own register
+                    char* lreg = get_or_add_symbol (gen, lname, llen);
+
+                    // evaluate rhs: for arithmetic, result is in the LEFT operand's
+                    // for ID/NUM bypass returns their reg
+                    char* rreg = bypass (gen, node->right, context);
+
+                    if (rreg == NULL)
                     {
-                        if (node->right->type == NUM)
-                        {
-                            add_symbol_with_reg (gen, var_name, value_reg);
-
-                            snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, value_reg);
-                            add_instruction (gen, instr);
-
-                            return value_reg;
-                        }
-                        else if (node->right->type == ID &&                                                                          // |
-                                strncmp(context->name_table[(int)node->left->value].name.str_pointer,                                // |
-                                        context->name_table[(int)node->right->value].name.str_pointer,                               // |
-                                        var_length > context->name_table[(int)node->right->value].name.length ?                      // |
-                                        (size_t)var_length : (size_t)context->name_table[(int)node->right->value].name.length) == 0) // | (MIDDLEEND)
-                        {                                                                                                            // |
-                            free (value_reg);                                                                                        // |
-                            return get_or_add_symbol (gen, var_name, var_length);                                                    // |
-                        }                                                                                                            // |
-                        else
-                        {
-                            add_symbol_with_reg( gen, var_name, value_reg);
-
-                            snprintf (instr, sizeof(instr), "store %.*s, %s", var_length, var_name, value_reg);
-                            add_instruction (gen, instr);
-
-                            return value_reg;
-                        }
-                    }
-                    else
-                    {
-                        fprintf (stderr, "Error: value_reg is NULL for EQUAL\n");
+                        fprintf (stderr, "Error: rhs is NULL for EQUAL\n");
+                        free (lreg);
+                        return NULL;
                     }
 
+                    // if rhs already landed in lreg (a is a+b) - nothing to copy
+                    if (strcmp (lreg, rreg) != 0)
+                    {
+                        char instr[MAX_INSTR_LEN] = {};
+                        snprintf (instr, sizeof (instr), "set %s, %s", lreg, rreg);
+                        add_instruction (gen, instr);
+                    }
+
+                    free (rreg);
+                    free (lreg);
                     return NULL;
                 }
 
@@ -306,76 +273,65 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                 case DIV:
                 case POW:
                 {
-                    const char* var_name = context->name_table[(int)node->left->value].name.str_pointer;
-                    int var_length = context->name_table[(int)node->left->value].name.length;
-                    char* value_reg = bypass (gen, node->right, context);
+                    const char* lname = context->name_table[(int)node->left->value].name.str_pointer;
+                    int         llen  = context->name_table[(int)node->left->value].name.length;
+                    char* lreg = get_or_add_symbol (gen, lname, llen);
 
-                    char* var_reg = get_or_add_symbol (gen, var_name, var_length);
+                    char* rreg = bypass (gen, node->right, context);
 
                     char instr[MAX_INSTR_LEN] = {};
 
-                    if (value_reg)
+                    const char* op = NULL;
+                    switch ((int) node->value)
                     {
-                        switch ((int)node->value)
-                        {
-                            case ADD: snprintf (instr, sizeof(instr), "add %s, %s", var_reg, value_reg); break;
-                            case SUB: snprintf (instr, sizeof(instr), "sub %s, %s", var_reg, value_reg); break;
-                            case MUL: snprintf (instr, sizeof(instr), "mul %s, %s", var_reg, value_reg); break;
-                            case DIV: snprintf (instr, sizeof(instr), "div %s, %s", var_reg, value_reg); break;
-                            case POW: snprintf (instr, sizeof(instr), "pow %s, %s", var_reg, value_reg); break;
+                        case ADD: op = "add"; break;
+                        case SUB: op = "sub"; break;
+                        case MUL: op = "mul"; break;
+                        case DIV: op = "div"; break;
+                        case POW: op = "pow"; break;
 
-                            default:
-                                fprintf (stderr, "Unknown node value in OP node type: %.0f\n", node->value);
-                        }
-
-                        add_instruction (gen, instr);
-                        free (value_reg);
+                        default:  op = "???"; break;
                     }
-                    else
-                    {
-                        fprintf (stderr, "Error: value_reg is NULL for arithmetic operation\n");
-                    }
+                    snprintf (instr, sizeof (instr), "%s %s, %s", op, lreg, rreg);
+                    add_instruction (gen, instr);
 
-                    return var_reg;
+                    free (rreg);
+                    return lreg;  // caller sees updated lreg
                 }
 
                 case SQRT:
                 {
-                    fprintf (stderr, "\n\n\n [%g] \n\n\n", node->left->value);
-                    const char* var_name = context->name_table[(int)node->left->value].name.str_pointer;
-                    int var_length = context->name_table[(int)node->left->value].name.length;
-
-                    char* var_reg = get_or_add_symbol (gen, var_name, var_length);
+                    const char* vname = context->name_table[(int)node->left->value].name.str_pointer;
+                    int         vlen  = context->name_table[(int)node->left->value].name.length;
+                    char* vreg = get_or_add_symbol (gen, vname, vlen);
 
                     char instr[MAX_INSTR_LEN] = {};
-
-                    snprintf (instr, sizeof(instr), "sqrt %s", var_reg);
+                    snprintf (instr, sizeof (instr), "sqrt %s", vreg);
                     add_instruction (gen, instr);
 
-                    return var_reg;
+                    return vreg;
                 }
 
                 case WHILE:
                 {
-                    char label[MAX_SYMBOLS] = {};
-                    snprintf (label, sizeof(label), "body%d", rand() % 1000);
+                    char label[64] = {};
+                    snprintf (label, sizeof (label), "body%d", rand () % 1000);
 
-                    char* counter_reg = bypass (gen, node->left, context);
-                    if (counter_reg == NULL)
+                    char* cond_reg = bypass (gen, node->left, context);
+                    if (cond_reg == NULL)
                     {
-                        fprintf (stderr, "Error: Counter register is NULL for MONEY\n");
+                        fprintf (stderr, "Error: condition register is NULL for WHILE\n");
                         return NULL;
                     }
 
                     char instr[MAX_INSTR_LEN] = {};
-
-                    snprintf (instr, sizeof(instr), "while %s > 0, %s", counter_reg, label);
+                    snprintf (instr, sizeof (instr), "while %s > 0, %s", cond_reg, label);
                     add_instruction (gen, instr);
-                    free (counter_reg);
+                    free (cond_reg);
 
                     bypass (gen, node->right, context);
 
-                    snprintf (instr, sizeof(instr), "end_while");
+                    snprintf (instr, sizeof (instr), "end_while");
                     add_instruction (gen, instr);
 
                     return NULL;
@@ -383,53 +339,49 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
                 case IF:
                 {
-                    char label[MAX_SYMBOLS] = {};
-                    snprintf (label, sizeof(label), "if_body%d", rand() % 1000);
+                    char label[64] = {};
+                    snprintf (label, sizeof (label), "if_body%d", rand () % 1000);
 
-                    char* condition_reg = bypass(gen, node->left, context);
-                    if (condition_reg == NULL)
+                    char* cond_reg = bypass (gen, node->left, context);
+                    if (cond_reg == NULL)
                     {
-                        fprintf (stderr, "Error: Condition register is NULL for IF\n");
+                        fprintf (stderr, "Error: condition register is NULL for IF\n");
                         return NULL;
                     }
 
                     char instr[MAX_INSTR_LEN] = {};
-
-                    snprintf (instr, sizeof(instr), "if %s != 0, %s", condition_reg, label);
+                    snprintf (instr, sizeof (instr), "if %s != 0, %s", cond_reg, label);
                     add_instruction (gen, instr);
-                    free (condition_reg);
+                    free (cond_reg);
 
                     bypass (gen, node->right, context);
 
-                    snprintf (instr, sizeof(instr), "end_if");
+                    snprintf (instr, sizeof (instr), "end_if");
                     add_instruction (gen, instr);
 
                     return NULL;
                 }
 
                 default:
-                    fprintf (stderr, "Unknown node value in OP node type: %.0f\n", node->value);
+                    fprintf (stderr, "Unknown OP value: %.0f\n", node->value);
                     return NULL;
             }
         }
 
         case ID:
-            return get_or_add_symbol (gen, context->name_table[(int)node->value].name.str_pointer, context->name_table[(int)node->value].name.length);
+        {
+            const char* name = context->name_table[(int)node->value].name.str_pointer;
+            int         len  = context->name_table[(int)node->value].name.length;
+            return get_or_add_symbol (gen, name, len);
+        }
 
         case NUM:
         {
-            char* reg = calloc (MAX_VAR_NAME, sizeof (char));
-            if (reg == NULL)
-            {
-                fprintf (stderr, "Memory allocation failed\n");
-                exit(1);
-            }
-
+            char* reg = malloc (MAX_VAR_NAME);
             new_register (gen, reg, MAX_VAR_NAME);
 
             char instr[MAX_INSTR_LEN] = {};
-
-            snprintf (instr, sizeof(instr), "set %s, %.0f", reg, node->value);
+            snprintf (instr, sizeof (instr), "set %s, %.0f", reg, node->value);
             add_instruction (gen, instr);
 
             return reg;
@@ -437,7 +389,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
         default:
             fprintf (stderr, "Unknown node type: %d\n", node->type);
-            exit(1);
+            exit (1);
     }
 }
 
