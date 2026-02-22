@@ -3,3 +3,13 @@
 log/*.svg
 log/*.dot
 log/*.html
+
+# generated files
+middle_end/Name_Table.txt
+middle_end/AST_tree.txt
+
+backend/Name_Table.txt
+backend/AST_tree.txt
+
+backend/program_beta.ir
+backend/program_beta.nasm
