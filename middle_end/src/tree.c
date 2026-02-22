@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "assert.h"
 #include "color.h"
@@ -563,7 +564,8 @@ void free_context (struct Context_t* context)
             if (context->name_table[i].name.str_pointer)
             {
                 fprintf (stderr, "Freed str_pointer [%p] at index %d in name_table\n", context->name_table[i].name.str_pointer, i);
-                free ((char*)context->name_table[i].name.str_pointer);
+                uintptr_t str_ptr = (uintptr_t) context->name_table[i].name.str_pointer;
+                free ((void*) str_ptr);
                 context->name_table[i].name.str_pointer = NULL;
             }
         }

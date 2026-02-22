@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "assert.h"
 #include "color.h"
@@ -16,6 +17,12 @@
 #else
     #define ON_DEBUG(...)
 #endif
+
+// forward declarations for internal helpers
+static void skip_spaces (char** ptr);
+static struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* context);
+static struct Node_t* new_node ();
+static void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
 
 int read_name_table (struct Context_t* context, const char* filename)
 {
@@ -222,7 +229,7 @@ int find_name (struct Context_t* context, const char* str, int length)
     return -1;
 }
 
-void skip_spaces (char** ptr)
+static void skip_spaces (char** ptr)
 {
     while (isspace((unsigned char)**ptr))
         (*ptr)++;
@@ -283,10 +290,9 @@ struct Node_t* read_tree (struct Buffer_t* buffer, struct Context_t* context, co
 
 #define INDENT fprintf (stderr, "%*s", level*2, "")
 
-struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* context)
+static struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* context)
 {
     assert (buffer && "Buffer is NULL in read_node()\n");
-    assert (level == 0 ? parent == NULL : parent != NULL);
 
     skip_spaces (&buffer->current_ptr);
 
@@ -306,7 +312,7 @@ struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* 
     ON_DEBUG ( INDENT; fprintf (stderr, GREEN_TEXT("Got an '{'. Creating a node. Cur = <%.40s...>, [%p]. buffer_ptr = [%p]\n"),
                buffer->current_ptr,  buffer->current_ptr, buffer->buffer_ptr); )
 
-    struct Node_t* node = new_node (NULL);
+    struct Node_t* node = new_node ();
 
     int type = 0;
     char value_str[MAX_NAME_LENGTH] = {};
@@ -423,7 +429,7 @@ struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* 
     return node;
 }
 
-struct Node_t* new_node ()
+static struct Node_t* new_node ()
 {
     struct Node_t* node = (struct Node_t*) calloc (1, sizeof(*node));
     assert (node && "Failed to allocate node");
@@ -437,7 +443,7 @@ struct Node_t* new_node ()
     return node;
 }
 
-void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level)
+static void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level)
 {
     assert (root);
     assert (context);
@@ -479,6 +485,8 @@ int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* cont
     }
 
     print_tree_preorder (root, context, file, level);
+
+    fclose (file);
 
     return 0;
 }
@@ -535,7 +543,8 @@ void free_context (struct Context_t* context)
             if (context->name_table[i].name.str_pointer)
             {
                 fprintf (stderr, "Freed str_pointer [%p] at index %d in name_table\n", context->name_table[i].name.str_pointer, i);
-                free ((char*)context->name_table[i].name.str_pointer);
+                uintptr_t str_ptr = (uintptr_t) context->name_table[i].name.str_pointer;
+                free ((void*) str_ptr);
                 context->name_table[i].name.str_pointer = NULL;
             }
         }

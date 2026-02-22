@@ -29,15 +29,7 @@ int add_struct_in_keywords (struct Context_t* context, const char* str, enum Ope
 
 int find_name (struct Context_t* context, const char* str, int length);
 
-void skip_spaces (char** ptr);
-
 struct Node_t* read_tree (struct Buffer_t* buffer, struct Context_t* context, const char* filename);
-
-struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* context);
-
-struct Node_t* new_node ();
-
-void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
 
 int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level);
 
