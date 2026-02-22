@@ -445,3 +445,52 @@ void encode_mov_mem_dl (struct CodeBuffer* buf, uint64_t addr)
     emit_byte (buf, 0x25);                      // sib: scale=00, index=100, base=101 (abs32)
     emit_dword (buf, (uint32_t)addr);
 }
+
+// ========== 8-bit arithmetic for runtime syscalls ========== //
+
+// cmp bl, imm8  (80 FB ib)
+void encode_cmp_bl_imm8 (struct CodeBuffer* buf, uint8_t imm)
+{
+    emit_byte (buf, 0x80);                      // opcode: 8-bit immediate group
+    emit_byte (buf, 0xFB);                      // modrm: mod=11, reg=7 (/7=CMP), rm=3 (BL)
+    emit_byte (buf, imm);
+}
+
+// sub bl, imm8  (80 EB ib)
+void encode_sub_bl_imm8 (struct CodeBuffer* buf, uint8_t imm)
+{
+    emit_byte (buf, 0x80);                      // opcode: 8-bit immediate group
+    emit_byte (buf, 0xEB);                      // modrm: mod=11, reg=5 (/5=SUB), rm=3 (BL)
+    emit_byte (buf, imm);
+}
+
+// add dl, imm8  (80 C2 ib)
+void encode_add_dl_imm8 (struct CodeBuffer* buf, uint8_t imm)
+{
+    emit_byte (buf, 0x80);                      // opcode: 8-bit immediate group
+    emit_byte (buf, 0xC2);                      // modrm: mod=11, reg=0 (/0=ADD), rm=2 (DL)
+    emit_byte (buf, imm);
+}
+
+// div reg64  (48 F7 /6) - unsigned division RDX:RAX / reg
+void encode_div_reg (struct CodeBuffer* buf, Register divisor)
+{
+    emit_rex (buf, 1, 0, 0, (divisor >> 3) & 1);
+    emit_byte (buf, 0xF7);                      // opcode group
+    emit_modrm (buf, 0b11, 6, divisor & 7);     // /6 = DIV
+}
+
+// mov byte [reg], imm8  (C6 /0 with register-indirect addressing)
+void encode_mov_byte_reg_ind_imm8 (struct CodeBuffer* buf, Register base, uint8_t imm)
+{
+    emit_byte (buf, 0xC6);                      // opcode: MOV r/m8, imm8
+    emit_modrm (buf, 0b00, 0, base & 7);        // mod=00, reg=0 (/0), rm=base
+    emit_byte (buf, imm);
+}
+
+// mov [reg], dl  (88 /r with register-indirect addressing)
+void encode_mov_reg_ind_dl (struct CodeBuffer* buf, Register base)
+{
+    emit_byte (buf, 0x88);                      // opcode: MOV r/m8, r8
+    emit_modrm (buf, 0b00, RDX & 7, base & 7);  // mod=00, reg=2 (DL), rm=base
+}

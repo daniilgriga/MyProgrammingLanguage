@@ -79,6 +79,15 @@ void encode_ret        (struct CodeBuffer* buf);                                
 
 void encode_syscall (struct CodeBuffer* buf);                                       // syscall
 
+// ========== 8-BIT ARITHMETIC (for runtime syscalls) ========== //
+
+void encode_cmp_bl_imm8            (struct CodeBuffer* buf, uint8_t imm);                 // cmp bl, imm8
+void encode_sub_bl_imm8            (struct CodeBuffer* buf, uint8_t imm);                 // sub bl, imm8
+void encode_add_dl_imm8            (struct CodeBuffer* buf, uint8_t imm);                 // add dl, imm8
+void encode_div_reg                (struct CodeBuffer* buf, Register divisor);            // div reg (unsigned)
+void encode_mov_byte_reg_ind_imm8  (struct CodeBuffer* buf, Register base, uint8_t imm);  // mov byte [reg], imm8
+void encode_mov_reg_ind_dl         (struct CodeBuffer* buf, Register base);               // mov [reg], dl
+
 // ========== UTILITIES ========== //
 
 void patch_rel32 (struct CodeBuffer* buf, size_t offset, int32_t value);            // patch relative offset

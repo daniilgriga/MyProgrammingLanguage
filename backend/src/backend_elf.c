@@ -202,10 +202,21 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
 
         if (!dst || !src) return;
 
+        // handle ABI register names (rdi, rsi, etc.) for syscall argument passing
+        Register dst_reg;
+        int dst_is_reg = 0;
+
         if (is_register (dst))
         {
-            Register dst_reg = parse_register (dst);
+            dst_reg = parse_register (dst);
+            dst_is_reg = 1;
+        }
+        else if (strcmp (dst, "rdi") == 0) { dst_reg = RDI; dst_is_reg = 1; }
+        else if (strcmp (dst, "rsi") == 0) { dst_reg = RSI; dst_is_reg = 1; }
+        else if (strcmp (dst, "rax") == 0) { dst_reg = RAX; dst_is_reg = 1; }
 
+        if (dst_is_reg)
+        {
             if (is_register (src))
             {
                 Register src_reg = parse_register (src);
@@ -473,58 +484,185 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
 
 // ========== runtime function emission ========== //
 
-static size_t emit_runtime_functions (struct CompilerState* state, uint64_t* buffer_addr, uint64_t* output_buffer_addr)
+// in_syscall: reads integer from stdin, returns result in RAX
+// ported from io_syscalls.nasm
+static void emit_in_syscall (struct CompilerState* state, uint64_t buffer_addr)
 {
     struct CodeBuffer* code = get_text_buffer (state->elf);
-    size_t runtime_start = get_text_offset (state->elf);
-
-    // allocate buffers in .data section
-    *buffer_addr = get_data_absolute_addr (state->elf, get_data_offset (state->elf));
-    for (int i = 0; i < 32; i++)            // 256 bytes = 32 qwords
-        add_data_qword (state->elf, 0);     // buffer[256 bytes]
-
-    *output_buffer_addr = get_data_absolute_addr (state->elf, get_data_offset (state->elf));
-    for (int i = 0; i < 2; i++)             // 16 bytes = 2 qwords
-        add_data_qword (state->elf, 0);     // output_buffer[16 bytes]
-
-    // register in_syscall label
     resolve_label (state, "in_syscall", get_text_offset (state->elf));
 
-    // in_syscall: simplified implementation - returns fixed value rn
-    // TODO: implement full input parsing
-    encode_mov_reg_imm64 (code, RAX, 5);    // rax = 5
+    // save caller-saved registers
+    encode_push_reg (code, RBX);
+    encode_push_reg (code, RCX);
+    encode_push_reg (code, RDX);
+    encode_push_reg (code, RSI);
+    encode_push_reg (code, RDI);
+
+    // sys_read(0, buffer, 16)
+    encode_mov_reg_imm64 (code, RAX, 0);                // rax = 0 (sys_read)
+    encode_mov_reg_imm64 (code, RDI, 0);                // rdi = 0 (stdin)
+    encode_mov_reg_imm64 (code, RSI, buffer_addr);      // rsi = buffer
+    encode_mov_reg_imm64 (code, RDX, 16);               // rdx = 16 bytes
+    encode_syscall (code);
+
+    // prepare for ASCII->number conversion
+    encode_mov_reg_imm64 (code, RSI, buffer_addr);      // rsi = buffer
+    encode_xor_reg_reg (code, RAX, RAX);                // rax = 0 (result)
+    encode_xor_reg_reg (code, RBX, RBX);                // rbx = 0 (temp)
+
+    // .convert_loop:
+    size_t convert_loop = get_text_offset (state->elf);
+
+    encode_mov_bl_mem (code, RSI, 0);                   // mov bl, [rsi]
+
+    // cmp bl, 0 -> je .done
+    encode_cmp_bl_imm8 (code, 0);
+    size_t je_done_1 = get_text_offset (state->elf);
+    encode_je_rel32 (code, 0);                          // placeholder
+
+    // cmp bl, 10 -> je .done
+    encode_cmp_bl_imm8 (code, 10);
+    size_t je_done_2 = get_text_offset (state->elf);
+    encode_je_rel32 (code, 0);                          // placeholder
+
+    // sub bl, '0'
+    encode_sub_bl_imm8 (code, '0');
+
+    // cmp bl, 9 -> ja .error
+    encode_cmp_bl_imm8 (code, 9);
+    size_t ja_error = get_text_offset (state->elf);
+    encode_ja_rel32 (code, 0);                          // placeholder
+
+    // imul rax, 10
+    encode_imul_reg_imm (code, RAX, 10);
+
+    // add rax, rbx
+    encode_add_reg_reg (code, RAX, RBX);
+
+    // inc rsi
+    encode_inc_reg (code, RSI);
+
+    // jmp .convert_loop (backward jump)
+    int32_t jmp_back = (int32_t)(convert_loop - (get_text_offset (state->elf) + 5));
+    encode_jmp_rel32 (code, jmp_back);
+
+    // .done:
+    size_t done = get_text_offset (state->elf);
+
+    // patch forward jumps to .done
+    patch_rel32 (code, je_done_1 + 2, (int32_t)(done - (je_done_1 + 6)));
+    patch_rel32 (code, je_done_2 + 2, (int32_t)(done - (je_done_2 + 6)));
+
+    // restore registers and return
+    encode_pop_reg (code, RDI);
+    encode_pop_reg (code, RSI);
+    encode_pop_reg (code, RDX);
+    encode_pop_reg (code, RCX);
+    encode_pop_reg (code, RBX);
     encode_ret (code);
 
-    // register out_syscall label
+    // .error:
+    size_t error = get_text_offset (state->elf);
+
+    // patch ja .error
+    patch_rel32 (code, ja_error + 2, (int32_t)(error - (ja_error + 6)));
+
+    encode_mov_reg_imm64 (code, RAX, (uint64_t)-1);    // rax = -1
+    encode_ret (code);
+}
+
+// out_syscall: prints integer from RDI to stdout
+// ported from io_syscalls.nasm
+static void emit_out_syscall (struct CompilerState* state, uint64_t output_buffer_addr)
+{
+    struct CodeBuffer* code = get_text_buffer (state->elf);
     resolve_label (state, "out_syscall", get_text_offset (state->elf));
 
-    // out_syscall: simplified implementation - just outputs the number rn
-    // input: rdi = number to print
-    // TODO: implement full number to string conversion
+    encode_mov_reg_reg (code, RAX, RDI);                    // rax = input value
+    encode_mov_reg_imm64 (code, RDI, output_buffer_addr + 15);  // rdi = end of buffer
+    encode_mov_byte_reg_ind_imm8 (code, RDI, 10);           // mov byte [rdi], '\n'
+    encode_dec_reg (code, RDI);                             // dec rdi
+    encode_mov_reg_imm64 (code, RCX, 0);                    // rcx = 0 (digit counter)
 
-    // rn just write "120\n" to stdout as placeholder
-    encode_mov_reg_imm64 (code, RAX, 1);    // rax = 1 (sys_write)
-    encode_mov_reg_imm64 (code, RDI, 1);    // rdi = 1 (stdout)
-    encode_mov_reg_imm64 (code, RSI, *output_buffer_addr);  // rsi = output buffer
-    encode_mov_reg_imm64 (code, RDX, 4);    // rdx = 4 (length "120\n")
+    // test rax, rax -> jnz .convert
+    encode_test_reg_reg (code, RAX, RAX);
+    size_t jnz_convert = get_text_offset (state->elf);
+    encode_jnz_rel32 (code, 0);                             // placeholder
 
-    // write "120\n" to buffer
-    encode_mov_byte_mem_imm (code, *output_buffer_addr, '1');
-    encode_mov_byte_mem_imm (code, *output_buffer_addr + 1, '2');
-    encode_mov_byte_mem_imm (code, *output_buffer_addr + 2, '0');
-    encode_mov_byte_mem_imm (code, *output_buffer_addr + 3, '\n');
+    // zero case: write '0'
+    encode_mov_byte_reg_ind_imm8 (code, RDI, '0');          // mov byte [rdi], '0'
+    encode_inc_reg (code, RCX);                             // inc rcx
+    size_t jmp_write = get_text_offset (state->elf);
+    encode_jmp_rel32 (code, 0);                             // placeholder -> .write
 
+    // .convert:
+    size_t convert = get_text_offset (state->elf);
+
+    // patch jnz .convert
+    patch_rel32 (code, jnz_convert + 2, (int32_t)(convert - (jnz_convert + 6)));
+
+    encode_mov_reg_imm64 (code, RBX, 10);                   // rbx = 10 (divisor)
+
+    // .convert_loop:
+    size_t convert_loop = get_text_offset (state->elf);
+
+    encode_xor_reg_reg (code, RDX, RDX);                    // xor rdx, rdx
+    encode_div_reg (code, RBX);                             // div rbx (unsigned)
+    encode_add_dl_imm8 (code, '0');                         // add dl, '0'
+    encode_mov_reg_ind_dl (code, RDI);                      // mov [rdi], dl
+    encode_dec_reg (code, RDI);                             // dec rdi
+    encode_inc_reg (code, RCX);                             // inc rcx
+
+    // test rax, rax -> jnz .convert_loop (backward jump)
+    encode_test_reg_reg (code, RAX, RAX);
+    int32_t jnz_back = (int32_t)(convert_loop - (get_text_offset (state->elf) + 6));
+    encode_jnz_rel32 (code, jnz_back);
+
+    // .write:
+    size_t write = get_text_offset (state->elf);
+
+    // patch jmp .write
+    patch_rel32 (code, jmp_write + 1, (int32_t)(write - (jmp_write + 5)));
+
+    encode_inc_reg (code, RDI);                             // inc rdi (point to first digit)
+    encode_mov_reg_imm64 (code, RAX, 1);                    // rax = 1 (sys_write)
+    encode_mov_reg_reg (code, RSI, RDI);                    // rsi = buffer address
+    encode_mov_reg_imm64 (code, RDI, 1);                    // rdi = 1 (stdout)
+    encode_mov_reg_reg (code, RDX, RCX);                    // rdx = digit count
+    encode_inc_reg (code, RDX);                             // rdx++ (for newline)
     encode_syscall (code);
     encode_ret (code);
+}
 
-    // register hlt_syscall label
+// hlt_syscall: terminates the program with exit code 0
+static void emit_hlt_syscall (struct CompilerState* state)
+{
+    struct CodeBuffer* code = get_text_buffer (state->elf);
     resolve_label (state, "hlt_syscall", get_text_offset (state->elf));
 
-    // hlt_syscall implementation
     encode_mov_reg_imm64 (code, RAX, 60);   // rax = 60 (sys_exit)
     encode_xor_reg_reg (code, RDI, RDI);    // rdi = 0 (exit code)
     encode_syscall (code);
     encode_ret (code);
+}
+
+static size_t emit_runtime_functions (struct CompilerState* state)
+{
+    size_t runtime_start = get_text_offset (state->elf);
+
+    // allocate input buffer in .data section (256 bytes)
+    uint64_t buffer_addr = get_data_absolute_addr (state->elf, get_data_offset (state->elf));
+    for (int i = 0; i < 32; i++)
+        add_data_qword (state->elf, 0);
+
+    // allocate output buffer in .data section (16 bytes)
+    uint64_t output_buffer_addr = get_data_absolute_addr (state->elf, get_data_offset (state->elf));
+    for (int i = 0; i < 2; i++)
+        add_data_qword (state->elf, 0);
+
+    emit_in_syscall  (state, buffer_addr);
+    emit_out_syscall (state, output_buffer_addr);
+    emit_hlt_syscall (state);
 
     return runtime_start;
 }
@@ -544,12 +682,7 @@ enum Errors generate_elf_binary (struct IRGenerator_t* gen, const char* output_f
     state.patch_count = 0;
 
     // emit runtime functions first
-    uint64_t buffer_addr = 0;
-    uint64_t output_buffer_addr = 0;
-    emit_runtime_functions (&state, &buffer_addr, &output_buffer_addr);
-
-    fprintf (stderr, "Runtime functions emitted. buffer=0x%lx, output_buffer=0x%lx\n",
-             buffer_addr, output_buffer_addr);
+    emit_runtime_functions (&state);
 
     // compile user code
     for (int i = 0; i < gen->instr_count; i++)
