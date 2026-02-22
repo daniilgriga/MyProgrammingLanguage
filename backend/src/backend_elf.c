@@ -41,6 +41,8 @@ struct CompilerState
     int variable_count;
     char loop_stack[MAX_LABELS][MAX_LENGTH_NAME];   // stack of loop labels
     int loop_stack_depth;
+    char if_stack[MAX_LABELS][MAX_LENGTH_NAME];     // stack of if labels
+    int if_stack_depth;
     struct PendingPatch patches[MAX_LABELS];        // pending jump patches
     int patch_count;
 };
@@ -466,6 +468,80 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
                     state->patches[i] = state->patches[state->patch_count - 1];
                     state->patch_count--;
                     i--;  // recheck this index
+                }
+            }
+        }
+    }
+    // ========== IF ========== //
+    // IR format: "if rX != 0, label"
+    else if (strcmp (token, "if") == 0)
+    {
+        char* condition  = strtok (NULL, ",");
+        char* label_name = strtok (NULL, " ,");
+
+        if (!condition || !label_name) return;
+
+        // push if label to stack
+        if (state->if_stack_depth < MAX_LABELS)
+        {
+            strncpy (state->if_stack[state->if_stack_depth], label_name, MAX_LENGTH_NAME - 1);
+            state->if_stack[state->if_stack_depth][MAX_LENGTH_NAME - 1] = '\0';
+            state->if_stack_depth++;
+        }
+
+        // parse condition: "rX != 0"
+        char cond_copy[128] = {};
+        strncpy (cond_copy, condition, sizeof (cond_copy) - 1);
+
+        char* reg_str = strtok (cond_copy, " ");
+        // skip op ("!=") and value ("0") — we only support != 0 rn
+        Register reg = parse_register (reg_str);
+
+        // test rX, rX  (sets ZF if rX == 0)
+        encode_test_reg_reg (code, reg, reg);
+
+        // je end_if_label  (jump over body if zero)
+        char end_label[64] = {};
+        snprintf (end_label, sizeof (end_label), "end_if_%s", label_name);
+        add_label (state, end_label);
+
+        size_t je_offset = get_text_offset (state->elf);
+        encode_je_rel32 (code, 0);  // placeholder
+
+        if (state->patch_count < MAX_LABELS)
+        {
+            state->patches[state->patch_count].patch_offset = je_offset + 2;  // skip 0F 84
+            strncpy (state->patches[state->patch_count].target_label, end_label, MAX_LENGTH_NAME - 1);
+            state->patches[state->patch_count].target_label[MAX_LENGTH_NAME - 1] = '\0';
+            state->patch_count++;
+        }
+    }
+    // ========== END_IF ========== //
+    else if (strcmp (token, "end_if") == 0)
+    {
+        if (state->if_stack_depth > 0)
+        {
+            state->if_stack_depth--;
+            char* if_label = state->if_stack[state->if_stack_depth];
+
+            // resolve end_if label at current position
+            char end_label[64] = {};
+            snprintf (end_label, sizeof (end_label), "end_if_%s", if_label);
+            size_t end_offset = get_text_offset (state->elf);
+            resolve_label (state, end_label, end_offset);
+
+            // patch all pending je jumps to this end_if label
+            for (int i = 0; i < state->patch_count; i++)
+            {
+                if (strcmp (state->patches[i].target_label, end_label) == 0)
+                {
+                    size_t patch_loc = state->patches[i].patch_offset;
+                    int32_t rel_offset = (int32_t)(end_offset - (patch_loc + 4));
+                    patch_rel32 (code, patch_loc, rel_offset);
+
+                    state->patches[i] = state->patches[state->patch_count - 1];
+                    state->patch_count--;
+                    i--;
                 }
             }
         }
