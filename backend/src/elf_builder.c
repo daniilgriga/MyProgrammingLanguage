@@ -257,8 +257,8 @@ int write_elf_executable (struct ElfBuilder* builder, const char* filename)
     CloseFile (file);
 
     fprintf (stderr, "Successfully created ELF executable: %s\n", filename);
-    fprintf (stderr, "  .text: %zu bytes at 0x%x\n", text_size, TEXT_VADDR);
-    fprintf (stderr, "  .data: %zu bytes at 0x%x\n", data_size, DATA_VADDR);
+    fprintf (stderr, "  .text: %zu bytes at 0x%lx\n", text_size, (unsigned long) TEXT_VADDR);
+    fprintf (stderr, "  .data: %zu bytes at 0x%lx\n", data_size, (unsigned long) DATA_VADDR);
     fprintf (stderr, "  entry: 0x%lx\n", (unsigned long)builder->entry_point);
 
     return 0;

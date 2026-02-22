@@ -134,7 +134,11 @@ static void emit_rex (struct CodeBuffer* buf, int w, int r, int x, int b)
 // generate ModR/M byte
 static void emit_modrm (struct CodeBuffer* buf, uint8_t mod, uint8_t reg, uint8_t rm)
 {
-    emit_byte (buf, (mod << 6) | ((reg & 7) << 3) | (rm & 7));
+    uint32_t mod_bits = ((uint32_t) (mod & 0x3u)) << 6u;
+    uint32_t reg_bits = ((uint32_t) (reg & 0x7u)) << 3u;
+    uint32_t rm_bits  =  (uint32_t) (rm  & 0x7u);
+    uint8_t modrm = (uint8_t) (mod_bits | reg_bits | rm_bits);
+    emit_byte (buf, modrm);
 }
 
 // ========== MOV instructions ========== //
