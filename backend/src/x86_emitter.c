@@ -494,3 +494,35 @@ void encode_mov_reg_ind_dl (struct CodeBuffer* buf, Register base)
     emit_byte (buf, 0x88);                      // opcode: MOV r/m8, r8
     emit_modrm (buf, 0b00, RDX & 7, base & 7);  // mod=00, reg=2 (DL), rm=base
 }
+
+// cvtsi2sd xmm0, reg64  (F2 REX.W 0F 2A /r)
+// converts 64-bit integer in reg to double in xmm0
+void encode_cvtsi2sd_xmm0_reg (struct CodeBuffer* buf, Register src)
+{
+    emit_byte (buf, 0xF2);                      // SSE prefix
+    emit_rex  (buf, 1, 0, 0, (src >> 3) & 1);   // REX.W + REX.B if src >= r8
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x2A);                      // cvtsi2sd opcode
+    emit_modrm (buf, 0b11, 0, src & 7);         // mod=11, reg=xmm0(0), rm=src
+}
+
+// sqrtsd xmm0, xmm0  (F2 0F 51 /r)
+// computes square root of double in xmm0, result in xmm0
+void encode_sqrtsd_xmm0_xmm0 (struct CodeBuffer* buf)
+{
+    emit_byte (buf, 0xF2);                      // SSE prefix
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x51);                      // sqrtsd opcode
+    emit_modrm (buf, 0b11, 0, 0);               // mod=11, reg=xmm0, rm=xmm0
+}
+
+// cvttsd2si reg64, xmm0  (F2 REX.W 0F 2C /r)
+// converts double in xmm0 to 64-bit integer in reg (truncate toward zero)
+void encode_cvttsd2si_reg_xmm0 (struct CodeBuffer* buf, Register dst)
+{
+    emit_byte (buf, 0xF2);                      // SSE prefix
+    emit_rex  (buf, 1, (dst >> 3) & 1, 0, 0);   // REX.W + REX.R if dst >= r8
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x2C);                      // cvttsd2si opcode
+    emit_modrm (buf, 0b11, dst & 7, 0);         // mod=11, reg=dst, rm=xmm0(0)
+}

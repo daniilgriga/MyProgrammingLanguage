@@ -163,6 +163,26 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     int         func_len  = context->name_table[(int)node->left->value].name.length;
                     char instr[MAX_INSTR_LEN] = {};
 
+                    // for sqrt: evaluate argument, emit sqrt instruction, return result register
+                    if (strncmp (func_name, "sqrt", (size_t) func_len) == 0 &&
+                        node->right &&
+                        node->right->type == FUNC &&
+                        (int) node->right->value == COMMA)
+                    {
+                        struct Node_t* arg = node->right->left;
+                        if (arg)
+                        {
+                            char* arg_reg = bypass (gen, arg, context);
+                            if (arg_reg)
+                            {
+                                snprintf (instr, sizeof (instr), "sqrt %s", arg_reg);
+                                add_instruction (gen, instr);
+                                return arg_reg;  // result lands in the same register
+                            }
+                        }
+                        return NULL;
+                    }
+
                     // for printf: load argument into rdi before call
                     if (strcmp (func_name, "printf") == 0 &&
                         node->right &&

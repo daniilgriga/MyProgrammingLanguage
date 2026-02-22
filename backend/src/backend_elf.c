@@ -472,6 +472,22 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
             }
         }
     }
+    // ========== SQRT ========== //
+    // IR format: "sqrt rX"
+    // codegen:   cvtsi2sd xmm0, rX  ->  sqrtsd xmm0, xmm0  ->  cvttsd2si rX, xmm0
+    else if (strcmp (token, "sqrt") == 0)
+    {
+        char* reg_str = strtok (NULL, " ,");
+        if (!reg_str) return;
+
+        if (is_register (reg_str))
+        {
+            Register reg = parse_register (reg_str);
+            encode_cvtsi2sd_xmm0_reg  (code, reg);   // int -> double
+            encode_sqrtsd_xmm0_xmm0   (code);        // sqrt
+            encode_cvttsd2si_reg_xmm0 (code, reg);   // double -> int (truncate)
+        }
+    }
     // ========== IF ========== //
     // IR format: "if rX != 0, label"
     else if (strcmp (token, "if") == 0)

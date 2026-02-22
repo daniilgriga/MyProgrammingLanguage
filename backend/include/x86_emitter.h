@@ -88,6 +88,12 @@ void encode_div_reg                (struct CodeBuffer* buf, Register divisor);  
 void encode_mov_byte_reg_ind_imm8  (struct CodeBuffer* buf, Register base, uint8_t imm);  // mov byte [reg], imm8
 void encode_mov_reg_ind_dl         (struct CodeBuffer* buf, Register base);               // mov [reg], dl
 
+// ========== SSE / SQRT ========== //
+
+void encode_cvtsi2sd_xmm0_reg  (struct CodeBuffer* buf, Register src);   // cvtsi2sd xmm0, reg  (int64 → double)
+void encode_sqrtsd_xmm0_xmm0   (struct CodeBuffer* buf);                 // sqrtsd   xmm0, xmm0 (sqrt of double)
+void encode_cvttsd2si_reg_xmm0 (struct CodeBuffer* buf, Register dst);   // cvttsd2si reg, xmm0 (double → int64, truncate)
+
 // ========== UTILITIES ========== //
 
 void patch_rel32 (struct CodeBuffer* buf, size_t offset, int32_t value);            // patch relative offset
