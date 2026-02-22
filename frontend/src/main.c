@@ -6,20 +6,24 @@
 #include "syntax.h"
 #include "buffer.h"
 
-#define PROGRAM "frontend/src/factorial_loop.txt"
-
 int main (int argc, const char* argv[])
 {
-    const char* LogFileName = (argc >= 2)? argv[1] : "log/TreeGraph.html";
+    if (argc < 2)
+    {
+        fprintf (stderr, "Usage: %s <program.txt>\n", argv[0]);
+        return 1;
+    }
 
-    FILE* LogFile = open_log_file (LogFileName);
+    const char* program_file = argv[1];
+
+    FILE* LogFile = open_log_file ("log/TreeGraph.html");
 
     struct  Buffer_t  buffer = {};
     struct Context_t context = {};
 
     ctor_keywords (&context);
 
-    const char* string = file_reader (&buffer, PROGRAM);
+    const char* string = file_reader (&buffer, program_file);
 
     int error = tokenization (&context, string);
 
