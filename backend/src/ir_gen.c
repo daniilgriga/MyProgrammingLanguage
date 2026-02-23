@@ -512,8 +512,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
         case NUM:
         {
             // return the literal as a string - no register allocated
-            // callers (ADD/SUB/MUL/DIV/SET) must check is_number() on the returned string
-            char* str = malloc (MAX_VAR_NAME);
+            char* str = calloc (MAX_VAR_NAME, sizeof (char));
             snprintf (str, MAX_VAR_NAME, "%.0f", node->value);
             return str;
         }

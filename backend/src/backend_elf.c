@@ -265,11 +265,14 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
 
         if (!dst || !src) return;
 
-        if (is_register (dst) && is_register (src))
+        Register dst_reg = parse_register (dst);
+        if (is_register (src))
         {
-            Register dst_reg = parse_register (dst);
-            Register src_reg = parse_register (src);
-            encode_add_reg_reg (code, dst_reg, src_reg);
+            encode_add_reg_reg (code, dst_reg, parse_register (src));
+        }
+        else if (is_number (src))
+        {
+            encode_add_reg_imm (code, dst_reg, (uint8_t) atoi (src));
         }
     }
     // ========== SUB ========== //
@@ -280,11 +283,14 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
 
         if (!dst || !src) return;
 
-        if (is_register (dst) && is_register (src))
+        Register dst_reg = parse_register (dst);
+        if (is_register (src))
         {
-            Register dst_reg = parse_register (dst);
-            Register src_reg = parse_register (src);
-            encode_sub_reg_reg (code, dst_reg, src_reg);
+            encode_sub_reg_reg (code, dst_reg, parse_register (src));
+        }
+        else if (is_number (src))
+        {
+            encode_sub_reg_imm (code, dst_reg, (uint8_t) atoi (src));
         }
     }
     // ========== MUL ========== //
@@ -295,11 +301,14 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
 
         if (!dst || !src) return;
 
-        if (is_register (dst) && is_register (src))
+        Register dst_reg = parse_register (dst);
+        if (is_register (src))
         {
-            Register dst_reg = parse_register (dst);
-            Register src_reg = parse_register (src);
-            encode_imul_reg_reg (code, dst_reg, src_reg);
+            encode_imul_reg_reg (code, dst_reg, parse_register (src));
+        }
+        else if (is_number (src))
+        {
+            encode_imul_reg_imm (code, dst_reg, atoi (src));
         }
     }
     // ========== DIV ========== //
@@ -315,10 +324,22 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
             Register dst_reg = parse_register (dst);
             Register src_reg = parse_register (src);
 
-            // move dividend to RAX, extend to RDX:RAX, divide
-            encode_mov_reg_reg (code, RAX, dst_reg);
-            encode_cqo (code);
-            encode_idiv_reg (code, src_reg);
+            if (src_reg == RDX)
+            {
+                encode_push_reg (code, RDX);             // save divisor on stack
+                encode_mov_reg_reg (code, RAX, dst_reg);
+                encode_cqo (code);                       // rdx:rax = sign-extended dividend
+                encode_pop_reg (code, R11);              // R11 = original divisor
+                encode_idiv_reg (code, R11);             // rax = quotient, rdx = remainder
+                encode_mov_reg_reg (code, RDX, R11);     // restore RDX to divisor value
+            }
+            else
+            {
+                // cqo clobbers RDX, but src_reg is not RDX so divisor is safe
+                encode_mov_reg_reg (code, RAX, dst_reg);
+                encode_cqo (code);
+                encode_idiv_reg (code, src_reg);
+            }
             encode_mov_reg_reg (code, dst_reg, RAX);
         }
     }
@@ -720,7 +741,24 @@ static void emit_out_syscall (struct CompilerState* state, uint64_t output_buffe
     struct CodeBuffer* code = get_text_buffer (state->elf);
     resolve_label (state, "out_syscall", get_text_offset (state->elf));
 
+    // save caller-saved registers that out_syscall uses internally
+    encode_push_reg (code, RBX);
+    encode_push_reg (code, RCX);
+    encode_push_reg (code, RDX);
+    encode_push_reg (code, RSI);
+
     encode_mov_reg_reg (code, RAX, RDI);                    // rax = input value
+
+    // handle negative numbers: if rax < 0, negate and set R8=1 (sign flag)
+    encode_xor_reg_reg (code, R8, R8);                      // r8 = 0 (positive)
+    encode_test_reg_reg (code, RAX, RAX);
+    size_t jns_positive = get_text_offset (state->elf);
+    encode_jns_rel32 (code, 0);                             // placeholder: jump if >= 0
+    encode_neg_reg (code, RAX);                             // rax = -rax
+    encode_mov_reg_imm64 (code, R8, 1);                     // r8 = 1 (negative)
+    size_t positive_label = get_text_offset (state->elf);
+    patch_rel32 (code, jns_positive + 2, (int32_t)(positive_label - (jns_positive + 6)));
+
     encode_mov_reg_imm64 (code, RDI, output_buffer_addr + 15);  // rdi = end of buffer
     encode_mov_byte_reg_ind_imm8 (code, RDI, 10);           // mov byte [rdi], '\n'
     encode_dec_reg (code, RDI);                             // dec rdi
@@ -766,6 +804,16 @@ static void emit_out_syscall (struct CompilerState* state, uint64_t output_buffe
     // patch jmp .write
     patch_rel32 (code, jmp_write + 1, (int32_t)(write - (jmp_write + 5)));
 
+    // if R8 == 1 (negative number), prepend '-' sign
+    encode_test_reg_reg (code, R8, R8);
+    size_t jz_no_sign = get_text_offset (state->elf);
+    encode_je_rel32 (code, 0);                              // placeholder: skip if positive
+    encode_mov_byte_reg_ind_imm8 (code, RDI, '-');          // mov byte [rdi], '-'
+    encode_dec_reg (code, RDI);                             // dec rdi
+    encode_inc_reg (code, RCX);                             // rcx++ (one more char)
+    size_t no_sign_label = get_text_offset (state->elf);
+    patch_rel32 (code, jz_no_sign + 2, (int32_t)(no_sign_label - (jz_no_sign + 6)));
+
     encode_inc_reg (code, RDI);                             // inc rdi (point to first digit)
     encode_mov_reg_imm64 (code, RAX, 1);                    // rax = 1 (sys_write)
     encode_mov_reg_reg (code, RSI, RDI);                    // rsi = buffer address
@@ -773,6 +821,12 @@ static void emit_out_syscall (struct CompilerState* state, uint64_t output_buffe
     encode_mov_reg_reg (code, RDX, RCX);                    // rdx = digit count
     encode_inc_reg (code, RDX);                             // rdx++ (for newline)
     encode_syscall (code);
+
+    // restore saved registers
+    encode_pop_reg (code, RSI);
+    encode_pop_reg (code, RDX);
+    encode_pop_reg (code, RCX);
+    encode_pop_reg (code, RBX);
     encode_ret (code);
 }
 

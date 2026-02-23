@@ -331,6 +331,22 @@ void encode_dec_reg (struct CodeBuffer* buf, Register reg)
     emit_modrm (buf, 3, 1, reg);
 }
 
+// neg reg  (REX.W F7 /3) - two's complement negation
+void encode_neg_reg (struct CodeBuffer* buf, Register reg)
+{
+    emit_rex (buf, 1, 0, 0, (reg >> 3) & 1);
+    emit_byte (buf, 0xF7);
+    emit_modrm (buf, 3, 3, reg & 7);
+}
+
+// jns rel32  (0F 89 rel32) - jump if not sign (SF=0, i.e. value >= 0)
+void encode_jns_rel32 (struct CodeBuffer* buf, int32_t offset)
+{
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x89);
+    emit_dword (buf, (uint32_t)offset);
+}
+
 // test reg, reg  (REX.W 85 /r)
 void encode_test_reg_reg (struct CodeBuffer* buf, Register dst, Register src)
 {
@@ -347,7 +363,7 @@ void encode_jnz_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// ja rel32  (0F 87 rel32) — jump if above (unsigned >)
+// ja rel32  (0F 87 rel32) - jump if above (unsigned >)
 void encode_ja_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);
@@ -355,7 +371,7 @@ void encode_ja_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// jl rel32  (0F 8C rel32) — jump if less (signed <)
+// jl rel32  (0F 8C rel32) - jump if less (signed <)
 void encode_jl_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);
@@ -363,7 +379,7 @@ void encode_jl_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// jg rel32  (0F 8F rel32) — jump if greater (signed >)
+// jg rel32  (0F 8F rel32) - jump if greater (signed >)
 void encode_jg_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);
@@ -371,7 +387,7 @@ void encode_jg_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// jge rel32  (0F 8D rel32) — jump if greater or equal (signed >=)
+// jge rel32  (0F 8D rel32) - jump if greater or equal (signed >=)
 void encode_jge_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);
@@ -379,7 +395,7 @@ void encode_jge_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// jne rel32  (0F 85 rel32) — jump if not equal (!=)
+// jne rel32  (0F 85 rel32) - jump if not equal (!=)
 void encode_jne_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);

@@ -30,58 +30,60 @@ void emit_qword (struct CodeBuffer* buf, uint64_t qword);
 
 // ========== MOV INSTRUCTIONS ========== //
 
-void encode_mov_reg_reg     (struct CodeBuffer* buf, Register dst, Register src);      // mov reg, reg
-void encode_mov_reg_imm64   (struct CodeBuffer* buf, Register dst, uint64_t imm);      // mov reg, imm64
-void encode_mov_reg_imm8    (struct CodeBuffer* buf, Register reg, uint8_t imm);       // mov reg, imm8
-void encode_mov_reg_mem     (struct CodeBuffer* buf, Register dst, uint64_t addr);     // mov reg, [abs_addr]
-void encode_mov_mem_reg     (struct CodeBuffer* buf, uint64_t addr, Register src);     // mov [abs_addr], reg
-void encode_mov_byte_mem_imm (struct CodeBuffer* buf, uint64_t addr, uint8_t imm);     // mov byte [addr], imm8
-void encode_mov_bl_mem      (struct CodeBuffer* buf, Register base, int32_t offset);   // mov bl, [base+offset]
-void encode_mov_mem_bl      (struct CodeBuffer* buf, uint64_t addr);                   // mov [addr], bl
-void encode_mov_mem_dl      (struct CodeBuffer* buf, uint64_t addr);                   // mov [addr], dl
+void encode_mov_reg_reg     (struct CodeBuffer* buf, Register dst, Register src);     // mov reg, reg
+void encode_mov_reg_imm64   (struct CodeBuffer* buf, Register dst, uint64_t imm);     // mov reg, imm64
+void encode_mov_reg_imm8    (struct CodeBuffer* buf, Register reg, uint8_t imm);      // mov reg, imm8
+void encode_mov_reg_mem     (struct CodeBuffer* buf, Register dst, uint64_t addr);    // mov reg, [abs_addr]
+void encode_mov_mem_reg     (struct CodeBuffer* buf, uint64_t addr, Register src);    // mov [abs_addr], reg
+void encode_mov_byte_mem_imm (struct CodeBuffer* buf, uint64_t addr, uint8_t imm);    // mov byte [addr], imm8
+void encode_mov_bl_mem      (struct CodeBuffer* buf, Register base, int32_t offset);  // mov bl, [base+offset]
+void encode_mov_mem_bl      (struct CodeBuffer* buf, uint64_t addr);                  // mov [addr], bl
+void encode_mov_mem_dl      (struct CodeBuffer* buf, uint64_t addr);                  // mov [addr], dl
 
 // ========== ARITHMETIC INSTRUCTIONS ========== //
 
-void encode_add_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);      // add reg, reg
-void encode_add_reg_imm  (struct CodeBuffer* buf, Register dst, uint8_t imm);       // add reg, imm8
-void encode_sub_reg_imm  (struct CodeBuffer* buf, Register dst, uint8_t imm);       // sub reg, imm8
-void encode_sub_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);      // sub reg, reg
-void encode_imul_reg_imm (struct CodeBuffer* buf, Register dst, int32_t imm);       // imul reg, imm32
-void encode_imul_reg_reg (struct CodeBuffer* buf, Register dst, Register src);      // imul reg, reg
-void encode_idiv_reg     (struct CodeBuffer* buf, Register divisor);                // idiv reg
-void encode_cqo          (struct CodeBuffer* buf);                                  // cqo
-void encode_xor_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);      // xor reg, reg
-void encode_inc_reg      (struct CodeBuffer* buf, Register reg);                    // inc reg
-void encode_dec_reg      (struct CodeBuffer* buf, Register reg);                    // dec reg
+void encode_add_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);        // add reg, reg
+void encode_add_reg_imm  (struct CodeBuffer* buf, Register dst, uint8_t imm);         // add reg, imm8
+void encode_sub_reg_imm  (struct CodeBuffer* buf, Register dst, uint8_t imm);         // sub reg, imm8
+void encode_sub_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);        // sub reg, reg
+void encode_imul_reg_imm (struct CodeBuffer* buf, Register dst, int32_t imm);         // imul reg, imm32
+void encode_imul_reg_reg (struct CodeBuffer* buf, Register dst, Register src);        // imul reg, reg
+void encode_idiv_reg     (struct CodeBuffer* buf, Register divisor);                  // idiv reg
+void encode_cqo          (struct CodeBuffer* buf);                                    // cqo
+void encode_xor_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);        // xor reg, reg
+void encode_inc_reg      (struct CodeBuffer* buf, Register reg);                      // inc reg
+void encode_dec_reg      (struct CodeBuffer* buf, Register reg);                      // dec reg
 
 // ========== COMPARISON AND JUMPS ========== //
 
-void encode_cmp_reg_imm  (struct CodeBuffer* buf, Register reg, int32_t imm);       // cmp reg, imm32
-void encode_cmp_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);      // cmp reg, reg
-void encode_test_reg_reg (struct CodeBuffer* buf, Register dst, Register src);      // test reg, reg
-void encode_jle_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jle rel32  (<=, signed)
-void encode_jmp_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jmp rel32
-void encode_je_rel32     (struct CodeBuffer* buf, int32_t offset);                  // je  rel32  (==)
-void encode_jnz_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jnz rel32  (!= 0)
-void encode_ja_rel32     (struct CodeBuffer* buf, int32_t offset);                  // ja  rel32  (>, unsigned)
-void encode_jl_rel32     (struct CodeBuffer* buf, int32_t offset);                  // jl  rel32  (<,  signed)
-void encode_jg_rel32     (struct CodeBuffer* buf, int32_t offset);                  // jg  rel32  (>,  signed)
-void encode_jge_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jge rel32  (>=, signed)
-void encode_jne_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jne rel32  (!=)
+void encode_cmp_reg_imm  (struct CodeBuffer* buf, Register reg, int32_t imm);         // cmp reg, imm32
+void encode_cmp_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);        // cmp reg, reg
+void encode_test_reg_reg (struct CodeBuffer* buf, Register dst, Register src);        // test reg, reg
+void encode_neg_reg      (struct CodeBuffer* buf, Register reg);                      // neg reg  (two's complement)
+void encode_jns_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jns rel32  (jump if not sign / >= 0)
+void encode_jle_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jle rel32  (<=, signed)
+void encode_jmp_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jmp rel32
+void encode_je_rel32     (struct CodeBuffer* buf, int32_t offset);                    // je  rel32  (==)
+void encode_jnz_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jnz rel32  (!= 0)
+void encode_ja_rel32     (struct CodeBuffer* buf, int32_t offset);                    // ja  rel32  (>, unsigned)
+void encode_jl_rel32     (struct CodeBuffer* buf, int32_t offset);                    // jl  rel32  (<,  signed)
+void encode_jg_rel32     (struct CodeBuffer* buf, int32_t offset);                    // jg  rel32  (>,  signed)
+void encode_jge_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jge rel32  (>=, signed)
+void encode_jne_rel32    (struct CodeBuffer* buf, int32_t offset);                    // jne rel32  (!=)
 
 // ========== STACK OPERATIONS ========== //
 
-void encode_push_reg (struct CodeBuffer* buf, Register reg);                        // push reg
-void encode_pop_reg  (struct CodeBuffer* buf, Register reg);                        // pop reg
+void encode_push_reg (struct CodeBuffer* buf, Register reg);                          // push reg
+void encode_pop_reg  (struct CodeBuffer* buf, Register reg);                          // pop reg
 
 // ========== CALLS AND RETURNS ========== //
 
-void encode_call_rel32 (struct CodeBuffer* buf, int32_t offset);                    // call rel32
-void encode_ret        (struct CodeBuffer* buf);                                    // ret
+void encode_call_rel32 (struct CodeBuffer* buf, int32_t offset);                      // call rel32
+void encode_ret        (struct CodeBuffer* buf);                                      // ret
 
 // ========== SYSTEM CALLS ========== //
 
-void encode_syscall (struct CodeBuffer* buf);                                       // syscall
+void encode_syscall (struct CodeBuffer* buf);                                         // syscall
 
 // ========== 8-BIT ARITHMETIC (for runtime syscalls) ========== //
 
@@ -100,5 +102,5 @@ void encode_cvttsd2si_reg_xmm0 (struct CodeBuffer* buf, Register dst);   // cvtt
 
 // ========== UTILITIES ========== //
 
-void patch_rel32 (struct CodeBuffer* buf, size_t offset, int32_t value);            // patch relative offset
-size_t get_code_position (struct CodeBuffer* buf);                                  // get current position
+void patch_rel32 (struct CodeBuffer* buf, size_t offset, int32_t value);              // patch relative offset
+size_t get_code_position (struct CodeBuffer* buf);                                    // get current position
