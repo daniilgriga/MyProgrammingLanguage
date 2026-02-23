@@ -18,13 +18,9 @@ int tokenization (struct Context_t* context, const char* string)
 
     int length_string = (int) strlen (string);
 
-    fprintf (stderr, PURPLE_TEXT("\n\nSTART_STRING = <<< %s >>>\n\n"), string);
     int i = 0;
 
-    int old_size      = context->table_size;
     int count_tokens  = 0;
-
-    fprintf (stderr, "old = %d\n", old_size);
 
     while (string[i] != '$')
     {
@@ -39,28 +35,17 @@ int tokenization (struct Context_t* context, const char* string)
 
             int end_i = i;
 
-            // fprintf (stderr, "after skiping spaces >>>  end_i = %d\n", end_i);
-
             int length = end_i - start_i;
 
             double value = find_name (context, &string[start_i], length);
 
             int num_keyword = find_number_of_keyword (context, &string[start_i], length);
 
-            fprintf (stderr, "POS: %d: num_keywrd = %d" "\n" "value = %lg" "\n", count_tokens, num_keyword, value);
-
-            if (num_keyword > 0)
-                fprintf (stderr, "keyword = %d" "\n", context->name_table[num_keyword].name.is_keyword);
-            // fprintf (stderr, "after find_name >>>  value = %lg\n", value);
-            // fprintf (stderr, "string in this moment >>>  string = '%s'\n\n", &string[start_i]);
-
             if ( (int) value != -1 && num_keyword > 0 && context->name_table[num_keyword].name.is_keyword == 1)
             {
                 context->token[count_tokens].type   = OP;
                 context->token[count_tokens].value  = value;
                 context->token[count_tokens].str    = &string[start_i];
-
-                fprintf (stderr, "IN OP >>> context->token[count_tokens].value = %lg\n\n", value);
 
                 count_tokens++;
             }
@@ -70,13 +55,9 @@ int tokenization (struct Context_t* context, const char* string)
                 {
                     add_struct_in_keywords (context, &string[start_i], (enum Operations) ID, 0, length, 0);
 
-                    fprintf (stderr, "table_size = %d\n", context->table_size);
-
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = context->table_size - 1; // before 'add_struct' table_size was table_size - 1
                     context->token[count_tokens].str   = &string[start_i];
-
-                    fprintf (stderr, "IN ADD STRUCT_IF >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
                     count_tokens++;
                 }
@@ -85,8 +66,6 @@ int tokenization (struct Context_t* context, const char* string)
                     context->token[count_tokens].type  = ID;
                     context->token[count_tokens].value = num_keyword;
                     context->token[count_tokens].str   = &string[start_i];
-
-                    fprintf (stderr, "IN ADD STRUCT >>> context->token[count_tokens].value = %lg\n\n", context->token[count_tokens].value);
 
                     count_tokens++;
                 }
@@ -131,14 +110,6 @@ int tokenization (struct Context_t* context, const char* string)
     context->token[count_tokens].value = '$';
 
     count_tokens++;
-
-    fprintf (stderr, BLUE_TEXT("\nTOKENS DUMP:\n\n"));
-
-    tokens_dump (context);
-
-    fprintf (stderr, BLUE_TEXT("\n\nNAME TABLE DUMP:\n\n"));
-
-    name_table_dump (stderr, context);
 
     return 0;
 }

@@ -44,6 +44,6 @@ void clean_buffer (void);
 
 void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
 
-int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level);
+int write_ast_file (struct Node_t* root, struct Context_t* context, const char* filename, int level);
 
-int create_name_table_file_for_middle_end (struct Context_t* context, const char* filename);
+int write_name_table_file (struct Context_t* context, const char* filename);

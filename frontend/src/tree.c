@@ -283,7 +283,7 @@ void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* 
     fprintf (file, "%*s} \n", (root->left) ? level * 4 : 0, "");
 }
 
-int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level)
+int write_ast_file (struct Node_t* root, struct Context_t* context, const char* filename, int level)
 {
     assert (context);
     assert (filename);
@@ -306,7 +306,7 @@ int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* cont
     return 0;
 }
 
-int create_name_table_file_for_middle_end (struct Context_t* context, const char* filename)
+int write_name_table_file (struct Context_t* context, const char* filename)
 {
     assert (context);
     assert (filename);

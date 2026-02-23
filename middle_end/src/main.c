@@ -31,8 +31,8 @@ int main ()
 
     simplification_of_expression (root, NULL);
 
-    create_tree_file_for_backend (root, &context, "backend/AST_tree.txt", 0);
-    create_name_table_file_for_backend (&context, "backend/Name_Table.txt");
+    write_ast_file (root, &context, "backend/AST_tree.txt", 0);
+    write_name_table_file (&context, "backend/Name_Table.txt");
 
     destructor (root, &buffer, &context);
 

@@ -6,7 +6,8 @@
 #include "errors.h"
 #include "ir_gen.h"
 #include "struct.h"
-#include "tree.h"
+#include "keywords.h"
+#include "tree_io.h"
 #include "file.h"
 
 #define EXE_FILE "backend/build/program"
