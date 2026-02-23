@@ -1,4 +1,6 @@
+#ifdef DEBUG
 #define DEBUG_READER
+#endif
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -441,7 +443,9 @@ int destructor (struct Node_t* node, struct Buffer_t* buffer, struct Context_t* 
     assert (node);
     assert (buffer);
 
+#ifdef DEBUG
     fprintf (stderr, "\nDestructor starting...\n");
+#endif
 
     free_context (context);
     delete_sub_tree (node);
@@ -458,7 +462,9 @@ void free_context (struct Context_t* context)
         {
             if (context->name_table[i].name.str_pointer)
             {
+#ifdef DEBUG
                 fprintf (stderr, "Freed str_pointer [%p] at index %d in name_table\n", context->name_table[i].name.str_pointer, i);
+#endif
                 uintptr_t str_ptr = (uintptr_t) context->name_table[i].name.str_pointer;
                 free ((void*) str_ptr);
                 context->name_table[i].name.str_pointer = NULL;

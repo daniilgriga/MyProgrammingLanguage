@@ -5,7 +5,7 @@ SUBDIRS = tools frontend middle_end backend
 all: $(SUBDIRS)
 
 $(SUBDIRS):
-	@$(MAKE) -s -C $@ all
+	@$(MAKE) -s -C $@ all $(if $(DEBUG),DEBUG=$(DEBUG))
 
 nasm:
 	@$(MAKE) -s -C backend nasm

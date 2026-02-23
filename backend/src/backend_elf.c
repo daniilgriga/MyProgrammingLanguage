@@ -174,7 +174,9 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
     char* token = strtok (instr_copy, " ,");
     if (!token) return;
 
+#ifdef DEBUG
     fprintf (stderr, "Compiling: %s\n", instruction);
+#endif
 
     // ========== FUNCTION ========== //
     if (strcmp (token, "function") == 0)
@@ -448,7 +450,9 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
                 state->patches[state->patch_count].patch_offset = jcc_offset + 2;
                 strncpy (state->patches[state->patch_count].target_label, end_label, MAX_LENGTH_NAME - 1);
                 state->patches[state->patch_count].target_label[MAX_LENGTH_NAME - 1] = '\0';
+#ifdef DEBUG
                 fprintf (stderr, "  Saving patch: jcc at 0x%lx -> %s\n", jcc_offset, end_label);
+#endif
                 state->patch_count++;
             }
         }
@@ -478,8 +482,10 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
             resolve_label (state, end_label, end_offset);
 
             // patch all pending jumps to this end_loop label
+#ifdef DEBUG
             fprintf (stderr, "  Patching jumps to %s at offset 0x%lx (buffer size=%lu)\n",
                      end_label, end_offset, code->size);
+#endif
             for (int i = 0; i < state->patch_count; i++)
             {
                 if (strcmp (state->patches[i].target_label, end_label) == 0)
@@ -488,14 +494,18 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
                     // patch_location points to the rel32 field (after opcode)
                     size_t patch_loc = state->patches[i].patch_offset;
                     int32_t rel_offset = (int32_t)(end_offset - (patch_loc + 4));
+#ifdef DEBUG
                     fprintf (stderr, "    Patching buffer[0x%lx]: rel_offset=%d (0x%x), old_bytes=%02x %02x %02x %02x\n",
                              patch_loc, rel_offset, (uint32_t)rel_offset,
                              code->data[patch_loc], code->data[patch_loc+1],
                              code->data[patch_loc+2], code->data[patch_loc+3]);
+#endif
                     patch_rel32 (code, patch_loc, rel_offset);
+#ifdef DEBUG
                     fprintf (stderr, "    After patch: %02x %02x %02x %02x\n",
                              code->data[patch_loc], code->data[patch_loc+1],
                              code->data[patch_loc+2], code->data[patch_loc+3]);
+#endif
 
                     // remove this patch by moving last element here
                     state->patches[i] = state->patches[state->patch_count - 1];
@@ -599,7 +609,9 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
             state->patches[state->patch_count].patch_offset = jcc_offset + 2;  // skip 0F XX
             strncpy (state->patches[state->patch_count].target_label, end_label, MAX_LENGTH_NAME - 1);
             state->patches[state->patch_count].target_label[MAX_LENGTH_NAME - 1] = '\0';
+#ifdef DEBUG
             fprintf (stderr, "  Saving if-patch: jcc at 0x%lx -> %s\n", jcc_offset, end_label);
+#endif
             state->patch_count++;
         }
     }
@@ -907,7 +919,9 @@ enum Errors generate_elf_binary (struct IRGenerator_t* gen, const char* output_f
     struct CodeBuffer* code = get_text_buffer (state.elf);
     size_t start_offset = get_text_offset (state.elf);  // save offset BEFORE adding any code
 
+#ifdef DEBUG
     fprintf (stderr, "Creating _start at offset 0x%lx (text_size=%lu)\n", start_offset, code->size);
+#endif
 
     // resolve _start label at current position
     resolve_label (&state, "_start", start_offset);
@@ -922,7 +936,9 @@ enum Errors generate_elf_binary (struct IRGenerator_t* gen, const char* output_f
         size_t call_offset = start_offset + 3;  // after xor rbp,rbp (3 bytes)
         int32_t rel_offset = (int32_t)(carti_label->code_offset - (call_offset + 5));
         encode_call_rel32 (code, rel_offset);
+#ifdef DEBUG
         fprintf (stderr, "  call carti: offset=0x%lx, rel_offset=%d\n", call_offset, rel_offset);
+#endif
     }
     else
     {
@@ -936,7 +952,9 @@ enum Errors generate_elf_binary (struct IRGenerator_t* gen, const char* output_f
         size_t call_offset = start_offset + 3 + 5;  // after xor (3) + first call (5)
         int32_t rel_offset = (int32_t)(hlt_label->code_offset - (call_offset + 5));
         encode_call_rel32 (code, rel_offset);
+#ifdef DEBUG
         fprintf (stderr, "  call hlt_syscall: offset=0x%lx, rel_offset=%d\n", call_offset, rel_offset);
+#endif
     }
     else
     {
@@ -948,8 +966,10 @@ enum Errors generate_elf_binary (struct IRGenerator_t* gen, const char* output_f
     // file_offset = ELF headers size + offset of _start inside .text buffer
     size_t file_offset = get_header_size() + start_offset;
 
+#ifdef DEBUG
     fprintf (stderr, "Setting entry point: text_offset=0x%lx, file_offset=0x%lx, vaddr=0x%lx\n",
              start_offset, file_offset, TEXT_VADDR + file_offset);
+#endif
     set_entry_point (state.elf, file_offset);
 
     // write executable

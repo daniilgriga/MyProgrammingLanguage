@@ -63,6 +63,7 @@ int write_log_file (const char* reason, va_list args)
         fprintf (stderr, "Error: Failed to execute command '%s'\n", command_name);
         return 1;
     }
+#ifdef DEBUG
     else if (result > 0)
     {
         fprintf (stderr, "Warning: Command '%s' exited with error code %d\n", command_name, result);
@@ -71,6 +72,7 @@ int write_log_file (const char* reason, va_list args)
     {
         fprintf (stderr, "Command '%s' executed successfully\n", command_name);
     }
+#endif
 
     log_printf ("\n\n<img src=\"%s\">", filename);
 

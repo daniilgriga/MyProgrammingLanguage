@@ -208,7 +208,9 @@ struct Node_t* GetOperation (struct Context_t* context)
 
     if (node == NULL) node = GetExpression (context);
 
+#ifdef DEBUG
     dump_token (context, 0);
+#endif
 
     if (node != NULL)
     {
@@ -221,9 +223,11 @@ struct Node_t* GetOperation (struct Context_t* context)
 
 struct Node_t* GetAssignment (struct Context_t* context)
 {
+#ifdef DEBUG
     fprintf (stderr, "\nin GetA starting (Pos = %d): cur: type = %d, value = %lg" "\n" "next: type = %d, value = %lg\n\n", Position,
                        _CUR_TOKEN.type,  _CUR_TOKEN.value,
                       _NEXT_TOKEN.type, _NEXT_TOKEN.value );
+#endif
 
     struct Node_t* val_1 = NULL;
 
@@ -241,12 +245,16 @@ struct Node_t* GetAssignment (struct Context_t* context)
             context->name_table[(int)val_1->value].name.host_func = context->curr_host_func;
             context->name_table[context->curr_host_func].name.counter_locals++;
 
+#ifdef DEBUG
             fprintf (stderr, "\nvalue = %lg", val_1->value);
             fprintf (stderr, "\nname = '%s'\n", context->name_table[context->name_table[(int)val_1->value].name.host_func].name.str_pointer);
+#endif
         }
         else
         {
+#ifdef DEBUG
             fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, _CUR_TOKEN.value, _CUR_NAME.added_status, _CUR_NAME.is_keyword);
+#endif
 
             if ( ( _CUR_TOKEN.type        == ID &&
                    _CUR_NAME.added_status == 0 ) ||
@@ -275,8 +283,6 @@ static struct Node_t* GetExpression (struct Context_t* context)
 {
     struct Node_t* val = GetTerm (context);
 
-    dump_in_log_file (val, context, "BEFORE 'WHILE' IN GetExpression >>> LEFT NODE:");
-
     while ( _IS_OP (ADD) || _IS_OP (SUB) )
     {
         int op = (int) _CUR_TOKEN.value;
@@ -285,13 +291,8 @@ static struct Node_t* GetExpression (struct Context_t* context)
 
         struct Node_t* val2 = GetTerm (context);
 
-        dump_in_log_file (val2, context, "IN 'WHILE' IN GetExpression >>> RIGHT NODE");
-
         if (op == ADD)
-        {
             val = _ADD (val, val2);
-            dump_in_log_file (val, context, "FRESH NODE AHAHAH:");
-        }
         else
             val = _SUB (val, val2);
     }
@@ -368,7 +369,9 @@ static struct Node_t* GetIdent (struct Context_t* context)
 
         node = _ID (_CUR_TOKEN.value);
 
+#ifdef DEBUG
         fprintf (stderr, "\nnode [%p]: node->value = %lg\n", node, node->value);
+#endif
 
         MOVE_POSITION;
     }
@@ -551,7 +554,9 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
     }
     else
     {
+#ifdef DEBUG
         fprintf (stderr, "\nPosition = %d; token_value = %lg >>> added_status = %d, is_keyword = %d\n", Position, _CUR_TOKEN.value, _CUR_NAME.added_status, _CUR_NAME.is_keyword);
+#endif
 
         if ( _CUR_TOKEN.type == ID &&
              _CUR_NAME.added_status == 0 )
@@ -581,7 +586,9 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
             _CUR_NAME.added_status = 1;
 
+#ifdef DEBUG
             dump_token (context, 0);
+#endif
 
             node = GetIdent (context);
 
@@ -601,8 +608,6 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
             MOVE_POSITION;
         }
     }
-
-    dump_in_log_file (root, context, "FRESH NODE IS REEEEAAADYYYYYY:\n");
 
     return root;
 }

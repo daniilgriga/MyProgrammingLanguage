@@ -17,6 +17,10 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,$\
 		returns-nonnull-attribute,shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
 
+ifdef DEBUG
+FLAGS += -DDEBUG
+endif
+
 CFLAGS = -c $(FLAGS) -I./include -I../tools/include
 LDFLAGS = $(FLAGS) -lm
 
@@ -34,12 +38,12 @@ DEPS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.d) $(SOURCES_TOOL_LIST:%.c=../tools/bui
 
 EXECUTABLE = $(BUILD_DIR)/frontend
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
 .PHONY: all clean
 
 all: $(EXECUTABLE)
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 $(EXECUTABLE): $(OBJECTS) | $(BUILD_DIR)
 	$(CC) $(LDFLAGS) $^ -o $@

@@ -14,6 +14,10 @@ FLAGS = -O3 -g -msse4.2 -mavx2 -DNDEBUG -ggdb3 -Wall -Wextra  -Waggressive-loop-
 		-fstack-protector -fstrict-overflow -flto -fno-omit-frame-pointer             				  \
 		-pie -fPIE -Werror=vla                                                        				  \
 
+ifdef DEBUG
+FLAGS += -DDEBUG
+endif
+
 CFLAGS = -c $(FLAGS) -I./include
 DPFLAGS = -MMD -MP
 
@@ -26,17 +30,17 @@ OBJECTS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.o)
 
 DEPS = $(OBJECTS:%.o=%.d)
 
+.PHONY: all clean
+
+all: $(OBJECTS)
+
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/%.o: src/%.c makefile | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(DPFLAGS) $< -o $@
 
-all: $(OBJECTS)
-
 -include $(DEPS)
 
 clean:
 	rm -rf $(BUILD_DIR)
-
-.PHONY: all clean

@@ -114,13 +114,17 @@ static int tokenize_line (const char* line, struct Token* tokens)
     {
         if (strcmp(token, "while") == 0 || strcmp(token, "if") == 0)            // for 'loop'
         {
+#ifdef DEBUG
             fprintf (stderr, "%d: [%s]\n",token_count, token);
+#endif
             strncpy (tokens[token_count].value, token, MAX_LENGTH_NAME - 1);
             tokens[token_count].is_register = 0;
             token_count++;
 
             token = strtok (NULL, ",");                                         // condition
+#ifdef DEBUG
             fprintf (stderr, "%d: [%s]\n",token_count, token);
+#endif
             if (token)
             {
                 while (*token == ' ') token++;                                  // skip spaces
@@ -131,7 +135,9 @@ static int tokenize_line (const char* line, struct Token* tokens)
             }                                                                   // ? errors hangling ?
 
             token = strtok (NULL, " ");                                         // label
+#ifdef DEBUG
             fprintf (stderr, "%d: [%s]\n",token_count, token);
+#endif
             if (token)
             {
                 while (*token == ' ') token++;
@@ -148,7 +154,9 @@ static int tokenize_line (const char* line, struct Token* tokens)
             strncpy (tokens[token_count].value, token, MAX_LENGTH_NAME - 1);
             tokens[token_count].is_register = is_register (token);
 
+#ifdef DEBUG
             fprintf (stderr, "token = %s\n", token);
+#endif
 
             token = strtok (NULL, " ,");
             token_count++;
@@ -202,14 +210,18 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "mov") == 0)                                         // | MOVE | //
             {
+#ifdef DEBUG
                 fprintf (stderr, "Processing move: %s %s %s, is_reg1: %d, is_reg2: %d\n",
                          tokens[0].value, tokens[1].value, tokens[2].value,
                          tokens[1].is_register, tokens[2].is_register);
+#endif
 
                 int reg1_index = tokens[1].is_register ? get_reg_index (tokens[1].value) : -1;
                 int reg2_index = tokens[2].is_register ? get_reg_index (tokens[2].value) : -1;
 
+#ifdef DEBUG
                 fprintf (stderr, "reg1_index: %d, reg2_index: %d\n", reg1_index, reg2_index);
+#endif
 
                 if (transformations[i].is_variable_target && !tokens[1].is_register)
                 {
@@ -320,7 +332,9 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
                 reg_str[2] = '\0';
 
                 int reg_index = get_reg_index (reg_str);
+#ifdef DEBUG
                 fprintf (stderr, "\n [%s] reg_index = %d\n\n", reg_str, reg_index);
+#endif
 
                 if (reg_index >= 0 && reg_index < MAX_REGISTERS)
                 {

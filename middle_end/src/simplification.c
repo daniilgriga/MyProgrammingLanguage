@@ -16,31 +16,41 @@
 
 double eval (struct Node_t* node)
 {
+#ifdef DEBUG
     fprintf (stderr, "Starting evaluation...\n");
+#endif
 
     if (node == NULL)
     {
+#ifdef DEBUG
         fprintf (stderr, "ERROR: Node is NULL\n");
+#endif
         return NAN;
     }
 
     if (node->type == NUM)
     {
         double value = node->value;
+#ifdef DEBUG
         fprintf (stderr, "node->type = NUM >>> node->value = %lg\n\n", node->value);
+#endif
 
         return value;
     }
 
     if (node->type == ID)
     {
+#ifdef DEBUG
         fprintf (stderr, "node->type = ID >>> node->value = %c\n\n", (int) node->value);
+#endif
         return NAN;
     }
 
     if (node->type == OP)
     {
+#ifdef DEBUG
         fprintf (stderr, "node->type = OP >>> node->value = %c\n\n", (int) node->value);
+#endif
 
         switch ( (int) node->value )
         {
@@ -49,8 +59,9 @@ double eval (struct Node_t* node)
                 double res = eval (node->left) +
                              eval (node->right);
 
+#ifdef DEBUG
                 fprintf (stderr, "case ADD: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
@@ -58,8 +69,9 @@ double eval (struct Node_t* node)
             {
                 double res = eval (node->left) -
                              eval (node->right);
+#ifdef DEBUG
                 fprintf (stderr, "case SUB: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
@@ -67,8 +79,9 @@ double eval (struct Node_t* node)
             {
                 double res = eval (node->left) /
                              eval (node->right);
+#ifdef DEBUG
                 fprintf (stderr, "case DIV: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
@@ -76,37 +89,44 @@ double eval (struct Node_t* node)
             {
                 double res = eval (node->left) *
                              eval (node->right);
+#ifdef DEBUG
                 fprintf (stderr, "case MUL: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
             case SIN:
             {
                 double res = sin ( eval (node->left) );
+#ifdef DEBUG
                 fprintf (stderr, "case SIN: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
             case COS:
             {
                 double res = cos ( eval (node->left) );
+#ifdef DEBUG
                 fprintf (stderr, "case COS: result = %lg\n\n", res);
-
+#endif
                 return res;
             }
 
             default:
             {
+#ifdef DEBUG
                 fprintf (stderr, "Unknown operation. returned 1");
+#endif
                 return 1;
             }
         }
     }
     else
     {
+#ifdef DEBUG
         fprintf (stderr, "ERROR with evaluation!!! Thats not a number, id or operation\n");
+#endif
         return NAN;
     }
 }
@@ -274,8 +294,10 @@ int constant_folding (struct Node_t* root)
         root->right->type == NUM)
     {
         double answer = eval (root);
+#ifdef DEBUG
         fprintf (stderr, "\nlol im in if: node [%p]: type=%d, left=%g, right=%g, answer = %lg\n\n",
                  root, root->type, root->left->value, root->right->value, answer);
+#endif
 
         struct Node_t* left_to_delete  = root->left;
         struct Node_t* right_to_delete = root->right;
@@ -283,8 +305,10 @@ int constant_folding (struct Node_t* root)
         root->type = NUM;
         root->value = answer;
 
+#ifdef DEBUG
         fprintf (stderr, "Deleting left subtree [%p] and right subtree [%p] from node [%p]\n",
                  left_to_delete, right_to_delete, root);
+#endif
 
         delete_sub_tree (left_to_delete);
         delete_sub_tree (right_to_delete);
@@ -296,8 +320,10 @@ int constant_folding (struct Node_t* root)
     }
     else
     {
+#ifdef DEBUG
         fprintf (stderr, "Skipped if for node [%p]: type=%d, left_type=%d, right_type=%d\n",
                  root, root->type, root->left ? root->left->type : -1, root->right ? root->right->type : -1);
+#endif
     }
 
     return count_changes;
@@ -312,7 +338,9 @@ int simplification_of_expression (struct Node_t* root, struct Node_t* parent)
         changes += simplification_typical_operations (root, parent);
         changes += constant_folding (root);
 
+#ifdef DEBUG
         fprintf (stderr, "Changes = %d\n\n", changes);
+#endif
 
         if (changes == 0)
             break;

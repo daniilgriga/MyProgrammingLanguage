@@ -18,7 +18,9 @@ int main ()
     if (error != 0)
         return 1;
 
+#ifdef DEBUG
     name_table_dump (stderr, &context);
+#endif
 
     struct Buffer_t buffer = {};
 
