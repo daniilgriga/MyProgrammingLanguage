@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <elf.h>
+#include <sys/stat.h>
 
 #include "elf_builder.h"
 #include "x86_emitter.h"
@@ -255,6 +256,8 @@ int write_elf_executable (struct ElfBuilder* builder, const char* filename)
     }
 
     CloseFile (file);
+
+    chmod (filename, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);  // 0755
 
 #ifdef DEBUG
     fprintf (stderr, "Successfully created ELF executable: %s\n", filename);

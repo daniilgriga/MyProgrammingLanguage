@@ -39,7 +39,7 @@ struct IR_Transformation transformations[] = {
     {"while",        "loop",    2, 0, 0},   // < grinding (condition, body_label) >
     {"end_while",    "endloop", 0, 0, 0},   // < endloop > (end of cycle)
     {"if",           "cond",    2, 0, 0},
-    {"end_if",       "endcond", 2, 0, 0},
+    {"end_if",       "endcond", 0, 0, 0},
     {"add",          "add",     2, 0, 0},   // < add rX, rY >
     {"sub",          "sub",     2, 0, 0},   // < sub rX, rY >
     {"mul",          "imul",    2, 0, 0},   // < mul rX, rY >
@@ -428,7 +428,7 @@ enum Errors generate_x86_nasm (struct IRGenerator_t* gen, const char* asm_filena
     fprintf (asm_file, "section .data\n");
     fprintf (asm_file, "    buffer times 256 db 0\n");
 
-    for (int i = 0; i < gen->instr_count; i++)
+    for (int i = 0; i < gen->symbol_count; i++)
         add_variable (gen->symbols[i].name);
 
     for (int i = 0; i < variable_count; i++)

@@ -31,6 +31,7 @@ int main ()
     if (root == NULL)
     {
         fprintf (stderr, "ERROR: tree root is NULL after parsing\n");
+        free_context (&context);
         return 1;
     }
 
@@ -42,11 +43,19 @@ int main ()
 
     enum Errors error = generate_x86_nasm (&gen, NASM_FILENAME);
     if (error != NO_ERROR)
-        ERROR_CHECK_RET_STATUS (error)
+    {
+        destructor (root, &buffer, &context);
+        ERROR_MESSAGE (error)
+        return (int) error;
+    }
 
     error = generate_elf_binary (&gen, EXE_FILE);
     if (error != NO_ERROR)
-        ERROR_CHECK_RET_STATUS (error)
+    {
+        destructor (root, &buffer, &context);
+        ERROR_MESSAGE (error)
+        return (int) error;
+    }
 
     destructor (root, &buffer, &context);
 
