@@ -672,6 +672,17 @@ static void emit_in_syscall (struct CompilerState* state, uint64_t buffer_addr)
     encode_mov_reg_imm64 (code, RSI, buffer_addr);      // rsi = buffer
     encode_xor_reg_reg (code, RAX, RAX);                // rax = 0 (result)
     encode_xor_reg_reg (code, RBX, RBX);                // rbx = 0 (temp)
+    encode_xor_reg_reg (code, RCX, RCX);                // rcx = 0 (sign flag: 0=pos, 1=neg)
+
+    // check for leading '-' sign
+    encode_mov_bl_mem (code, RSI, 0);                   // bl = first byte
+    encode_cmp_bl_imm8 (code, '-');
+    size_t jne_not_negative = get_text_offset (state->elf);
+    encode_jne_rel32 (code, 0);                         // placeholder: jump if not '-'
+    encode_mov_reg_imm64 (code, RCX, 1);                // rcx = 1 (negative)
+    encode_inc_reg (code, RSI);                         // skip '-' character
+    size_t not_negative = get_text_offset (state->elf);
+    patch_rel32 (code, jne_not_negative + 2, (int32_t)(not_negative - (jne_not_negative + 6)));
 
     // .convert_loop:
     size_t convert_loop = get_text_offset (state->elf);
@@ -715,6 +726,14 @@ static void emit_in_syscall (struct CompilerState* state, uint64_t buffer_addr)
     // patch forward jumps to .done
     patch_rel32 (code, je_done_1 + 2, (int32_t)(done - (je_done_1 + 6)));
     patch_rel32 (code, je_done_2 + 2, (int32_t)(done - (je_done_2 + 6)));
+
+    // if sign flag set (rcx == 1), negate result
+    encode_test_reg_reg (code, RCX, RCX);
+    size_t jz_positive = get_text_offset (state->elf);
+    encode_je_rel32 (code, 0);                          // placeholder: skip neg if positive
+    encode_neg_reg (code, RAX);                         // rax = -rax
+    size_t after_neg = get_text_offset (state->elf);
+    patch_rel32 (code, jz_positive + 2, (int32_t)(after_neg - (jz_positive + 6)));
 
     // restore registers and return
     encode_pop_reg (code, RDI);
