@@ -36,7 +36,7 @@ struct IR_Transformation transformations[] = {
     {"pop",          "pop",     1, 0, 1},   // < pop N     > (clean stack, equals add <rsp, N>)
     {"function",     "label",   1, 0, 0},   // < function FUNC >
     {"end_function", "ret",     0, 0, 0},   // < end_function >
-    {"while",        "loop",    2, 0, 0},   // < money (condition, body_label) >
+    {"while",        "loop",    2, 0, 0},   // < grinding (condition, body_label) >
     {"end_while",    "endloop", 0, 0, 0},   // < endloop > (end of cycle)
     {"if",           "cond",    2, 0, 0},
     {"end_if",       "endcond", 2, 0, 0},
@@ -246,9 +246,9 @@ static void transform_to_x86 (FILE* asm_file, struct Token* tokens, int token_co
             }
             else if (strcmp(transformations[i].x86_op, "call") == 0)                                        // | CALL | //
             {
-                if (strcmp(tokens[1].value, "printf") == 0)
+                if (strcmp(tokens[1].value, "yap") == 0)
                     fprintf (asm_file, "    call out_syscall\n");
-                else if (strcmp(tokens[1].value, "scanf") == 0)
+                else if (strcmp(tokens[1].value, "gimme") == 0)
                     fprintf (asm_file, "    call in_syscall\n");
                 else
                     fprintf (asm_file, "    call %s\n", tokens[1].value);

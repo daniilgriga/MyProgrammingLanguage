@@ -350,7 +350,7 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
         if (!func_name) return;
 
         // special syscall wrappers
-        if (strcmp (func_name, "scanf") == 0)
+        if (strcmp (func_name, "gimme") == 0)
         {
             // call in_syscall (implemented in our runtime)
             struct Label* label = find_label (state, "in_syscall");
@@ -364,7 +364,7 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
                 fprintf (stderr, "Error: in_syscall label not found or not resolved\n");
             }
         }
-        else if (strcmp (func_name, "printf") == 0)
+        else if (strcmp (func_name, "yap") == 0)
         {
             // call out_syscall
             struct Label* label = find_label (state, "out_syscall");

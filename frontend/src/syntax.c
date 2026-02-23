@@ -22,7 +22,7 @@ int Position =  0;
 //    CompoundParametersForDef  ::= { 'lethimcook' Ident, }*
 //    Compound_Operator         ::= 'lesssgo' { { Assignment | Cond | Cycle } 'shutup' }+ 'stoopit'
 //    Cond                      ::= 'forreal' '('Expression')' Compound_Operator
-//    Cycle                     ::= 'money'   '('Expression')' Compound_Operator
+//    Cycle                     ::= 'grinding' '('Expression')' Compound_Operator
 //
 //    FunctionDef               ::= 'lethimcook' Ident '(' CompoundParametersForDef ')' Compound_Operator
 //    FunctionCall              ::= Ident '(' CompoundParametersForCall ')'
@@ -639,7 +639,7 @@ static struct Node_t* CompoundParametersForDef (struct Context_t* context)
 
         case NOT_FIND_OPEN_BRACE:
             fprintf (stderr, "expected " WHITE_TEXT("'('") " before " WHITE_TEXT("'%s'")  "\n",
-                             ( (int) context->token[Position - 1].value == 'w') ? "money" : "forreal" );
+                             ( (int) context->token[Position - 1].value == 'w') ? "grinding" : "forreal" );
 
             break;
 

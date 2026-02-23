@@ -193,8 +193,8 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                         return NULL;
                     }
 
-                    // for printf: load argument into rdi before call
-                    if (strcmp (func_name, "printf") == 0 &&
+                    // for yap: load argument into rdi before call
+                    if (strcmp (func_name, "yap") == 0 &&
                         node->right &&
                         node->right->type == FUNC &&
                         (int) node->right->value == COMMA)
@@ -215,8 +215,8 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     snprintf (instr, sizeof (instr), "call %.*s", func_len, func_name);
                     add_instruction (gen, instr);
 
-                    // scanf: result comes back in r0; write it into the variable's register
-                    if (strcmp (func_name, "scanf") == 0 &&
+                    // gimme: result comes back in r0; write it into the variable's register
+                    if (strcmp (func_name, "gimme") == 0 &&
                         node->right &&
                         node->right->type == FUNC &&
                         (int) node->right->value == COMMA)
