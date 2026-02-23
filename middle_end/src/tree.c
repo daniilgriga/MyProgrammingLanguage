@@ -189,6 +189,13 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",  SPACE , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
 
+    // comparison operators
+    add_struct_in_keywords (context,     "fr",  GT , 1, strlen (    "fr"), 0);
+    add_struct_in_keywords (context, "lowkey",  LT , 1, strlen ("lowkey"), 0);
+    add_struct_in_keywords (context,  "nocap",  GTE, 1, strlen ( "nocap"), 0);
+    add_struct_in_keywords (context,    "nah",  NEQ, 1, strlen (   "nah"), 0);
+    add_struct_in_keywords (context, "sameAs",  EQ , 1, strlen ("sameAs"), 0);
+
     // built-in functions: registered as IDs with added_status=1
     add_struct_in_keywords (context,  "printf",  (enum Operations) ID, 0, strlen ( "printf"), 1);
     add_struct_in_keywords (context,   "scanf",  (enum Operations) ID, 0, strlen (  "scanf"), 1);

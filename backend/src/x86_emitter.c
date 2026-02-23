@@ -347,11 +347,43 @@ void encode_jnz_rel32 (struct CodeBuffer* buf, int32_t offset)
     emit_dword (buf, (uint32_t)offset);
 }
 
-// ja rel32  (0F 87 rel32)
+// ja rel32  (0F 87 rel32) — jump if above (unsigned >)
 void encode_ja_rel32 (struct CodeBuffer* buf, int32_t offset)
 {
     emit_byte (buf, 0x0F);
     emit_byte (buf, 0x87);
+    emit_dword (buf, (uint32_t)offset);
+}
+
+// jl rel32  (0F 8C rel32) — jump if less (signed <)
+void encode_jl_rel32 (struct CodeBuffer* buf, int32_t offset)
+{
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x8C);
+    emit_dword (buf, (uint32_t)offset);
+}
+
+// jg rel32  (0F 8F rel32) — jump if greater (signed >)
+void encode_jg_rel32 (struct CodeBuffer* buf, int32_t offset)
+{
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x8F);
+    emit_dword (buf, (uint32_t)offset);
+}
+
+// jge rel32  (0F 8D rel32) — jump if greater or equal (signed >=)
+void encode_jge_rel32 (struct CodeBuffer* buf, int32_t offset)
+{
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x8D);
+    emit_dword (buf, (uint32_t)offset);
+}
+
+// jne rel32  (0F 85 rel32) — jump if not equal (!=)
+void encode_jne_rel32 (struct CodeBuffer* buf, int32_t offset)
+{
+    emit_byte (buf, 0x0F);
+    emit_byte (buf, 0x85);
     emit_dword (buf, (uint32_t)offset);
 }
 

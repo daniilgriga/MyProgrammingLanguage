@@ -393,29 +393,41 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
         char* op = strtok (NULL, " ");
         char* num_str = strtok (NULL, " ");
 
-        if (reg_str && op && num_str && strcmp (op, ">") == 0)
+        if (reg_str && op && num_str)
         {
-            Register reg = parse_register (reg_str);
-            int32_t value = atoi (num_str);
-
-            encode_cmp_reg_imm (code, reg, value);
-
-            // create end_loop label
             char end_label[64] = {};
             snprintf (end_label, sizeof (end_label), "end_loop_%s", label_name);
             add_label (state, end_label);
 
-            // emit jle with placeholder offset (will be patched in end_while)
-            size_t jle_offset = get_text_offset (state->elf);
-            encode_jle_rel32 (code, 0);  // placeholder
+            if (is_register (num_str))
+            {
+                Register rl = parse_register (reg_str);
+                Register rr = parse_register (num_str);
+                encode_cmp_reg_reg (code, rl, rr);
+            }
+            else
+            {
+                Register reg = parse_register (reg_str);
+                int32_t value = atoi (num_str);
+                encode_cmp_reg_imm (code, reg, value);
+            }
 
-            // remember this jump needs patching
+            size_t jcc_offset = get_text_offset (state->elf);
+
+            if      (strcmp (op, "fr")     == 0) encode_jle_rel32 (code, 0); // NOT (>)  -> jle
+            else if (strcmp (op, "lowkey") == 0) encode_jge_rel32 (code, 0); // NOT (<)  -> jge
+            else if (strcmp (op, "nocap")  == 0) encode_jl_rel32  (code, 0); // NOT (>=) -> jl
+            else if (strcmp (op, "nah")    == 0) encode_je_rel32  (code, 0); // NOT (!=) -> je
+            else if (strcmp (op, "sameAs") == 0) encode_jne_rel32 (code, 0); // NOT (==) -> jne
+            else                                 encode_jle_rel32 (code, 0); // legacy ">" or fallback
+
+            // remember this jump needs patching (jcc = 0F XX, skip 2 bytes to reach rel32)
             if (state->patch_count < MAX_LABELS)
             {
-                state->patches[state->patch_count].patch_offset = jle_offset + 2;  // +2 to skip opcode bytes (0f 8e)
+                state->patches[state->patch_count].patch_offset = jcc_offset + 2;
                 strncpy (state->patches[state->patch_count].target_label, end_label, MAX_LENGTH_NAME - 1);
                 state->patches[state->patch_count].target_label[MAX_LENGTH_NAME - 1] = '\0';
-                fprintf (stderr, "  Saving patch: jle at 0x%lx -> %s\n", jle_offset, end_label);
+                fprintf (stderr, "  Saving patch: jcc at 0x%lx -> %s\n", jcc_offset, end_label);
                 state->patch_count++;
             }
         }
@@ -489,7 +501,7 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
         }
     }
     // ========== IF ========== //
-    // IR format: "if rX != 0, label"
+    // IR format: "if rL <op> rR, label"  or  "if rX != 0, label" (legacy)
     else if (strcmp (token, "if") == 0)
     {
         char* condition  = strtok (NULL, ",");
@@ -505,30 +517,68 @@ static void compile_ir_instruction (struct CompilerState* state, const char* ins
             state->if_stack_depth++;
         }
 
-        // parse condition: "rX != 0"
+        // parse condition: "rL <op> rR"
         char cond_copy[128] = {};
         strncpy (cond_copy, condition, sizeof (cond_copy) - 1);
 
         char* reg_str = strtok (cond_copy, " ");
-        // skip op ("!=") and value ("0") — we only support != 0 rn
-        Register reg = parse_register (reg_str);
+        char* op      = strtok (NULL, " ");
+        char* rhs_str = strtok (NULL, " ");
 
-        // test rX, rX  (sets ZF if rX == 0)
-        encode_test_reg_reg (code, reg, reg);
-
-        // je end_if_label  (jump over body if zero)
         char end_label[64] = {};
         snprintf (end_label, sizeof (end_label), "end_if_%s", label_name);
         add_label (state, end_label);
 
-        size_t je_offset = get_text_offset (state->elf);
-        encode_je_rel32 (code, 0);  // placeholder
+        size_t jcc_offset = 0;
 
-        if (state->patch_count < MAX_LABELS)
+        if (reg_str && op && rhs_str && is_register (rhs_str))
         {
-            state->patches[state->patch_count].patch_offset = je_offset + 2;  // skip 0F 84
+            // reg-to-reg comparison
+            Register rl = parse_register (reg_str);
+            Register rr = parse_register (rhs_str);
+            encode_cmp_reg_reg (code, rl, rr);
+            // jcc_offset must be captured AFTER cmp, BEFORE jcc
+            jcc_offset = get_text_offset (state->elf);
+            // jump over body when condition is FALSE
+            if      (strcmp (op, "fr")     == 0) encode_jle_rel32 (code, 0); // NOT (>)  -> jle
+            else if (strcmp (op, "lowkey") == 0) encode_jge_rel32 (code, 0); // NOT (<)  -> jge
+            else if (strcmp (op, "nocap")  == 0) encode_jl_rel32  (code, 0); // NOT (>=) -> jl
+            else if (strcmp (op, "nah")    == 0) encode_je_rel32  (code, 0); // NOT (!=) -> je
+            else if (strcmp (op, "sameAs") == 0) encode_jne_rel32 (code, 0); // NOT (==) -> jne
+            else                                 encode_je_rel32  (code, 0); // fallback
+        }
+        else if (reg_str && op && rhs_str)
+        {
+            // reg vs immediate  (also handles legacy "!= 0")
+            if (strcmp (op, "!=") == 0)
+            {
+                // legacy: test rX, rX  -> je (jump if zero)
+                Register reg = parse_register (reg_str);
+                encode_test_reg_reg (code, reg, reg);
+                jcc_offset = get_text_offset (state->elf);
+                encode_je_rel32 (code, 0);
+            }
+            else
+            {
+                Register reg = parse_register (reg_str);
+                int32_t value = atoi (rhs_str);
+                encode_cmp_reg_imm (code, reg, value);
+                jcc_offset = get_text_offset (state->elf);
+                if      (strcmp (op, "fr")     == 0) encode_jle_rel32 (code, 0);
+                else if (strcmp (op, "lowkey") == 0) encode_jge_rel32 (code, 0);
+                else if (strcmp (op, "nocap")  == 0) encode_jl_rel32  (code, 0);
+                else if (strcmp (op, "nah")    == 0) encode_je_rel32  (code, 0);
+                else if (strcmp (op, "sameAs") == 0) encode_jne_rel32 (code, 0);
+                else                                 encode_je_rel32  (code, 0);
+            }
+        }
+
+        if (jcc_offset > 0 && state->patch_count < MAX_LABELS)
+        {
+            state->patches[state->patch_count].patch_offset = jcc_offset + 2;  // skip 0F XX
             strncpy (state->patches[state->patch_count].target_label, end_label, MAX_LENGTH_NAME - 1);
             state->patches[state->patch_count].target_label[MAX_LENGTH_NAME - 1] = '\0';
+            fprintf (stderr, "  Saving if-patch: jcc at 0x%lx -> %s\n", jcc_offset, end_label);
             state->patch_count++;
         }
     }

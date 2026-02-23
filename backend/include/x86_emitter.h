@@ -59,11 +59,15 @@ void encode_dec_reg      (struct CodeBuffer* buf, Register reg);                
 void encode_cmp_reg_imm  (struct CodeBuffer* buf, Register reg, int32_t imm);       // cmp reg, imm32
 void encode_cmp_reg_reg  (struct CodeBuffer* buf, Register dst, Register src);      // cmp reg, reg
 void encode_test_reg_reg (struct CodeBuffer* buf, Register dst, Register src);      // test reg, reg
-void encode_jle_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jle rel32
+void encode_jle_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jle rel32  (<=, signed)
 void encode_jmp_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jmp rel32
-void encode_je_rel32     (struct CodeBuffer* buf, int32_t offset);                  // je rel32
-void encode_jnz_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jnz rel32
-void encode_ja_rel32     (struct CodeBuffer* buf, int32_t offset);                  // ja rel32
+void encode_je_rel32     (struct CodeBuffer* buf, int32_t offset);                  // je  rel32  (==)
+void encode_jnz_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jnz rel32  (!= 0)
+void encode_ja_rel32     (struct CodeBuffer* buf, int32_t offset);                  // ja  rel32  (>, unsigned)
+void encode_jl_rel32     (struct CodeBuffer* buf, int32_t offset);                  // jl  rel32  (<,  signed)
+void encode_jg_rel32     (struct CodeBuffer* buf, int32_t offset);                  // jg  rel32  (>,  signed)
+void encode_jge_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jge rel32  (>=, signed)
+void encode_jne_rel32    (struct CodeBuffer* buf, int32_t offset);                  // jne rel32  (!=)
 
 // ========== STACK OPERATIONS ========== //
 
@@ -90,9 +94,9 @@ void encode_mov_reg_ind_dl         (struct CodeBuffer* buf, Register base);     
 
 // ========== SSE / SQRT ========== //
 
-void encode_cvtsi2sd_xmm0_reg  (struct CodeBuffer* buf, Register src);   // cvtsi2sd xmm0, reg  (int64 → double)
+void encode_cvtsi2sd_xmm0_reg  (struct CodeBuffer* buf, Register src);   // cvtsi2sd xmm0, reg  (int64 -> double)
 void encode_sqrtsd_xmm0_xmm0   (struct CodeBuffer* buf);                 // sqrtsd   xmm0, xmm0 (sqrt of double)
-void encode_cvttsd2si_reg_xmm0 (struct CodeBuffer* buf, Register dst);   // cvttsd2si reg, xmm0 (double → int64, truncate)
+void encode_cvttsd2si_reg_xmm0 (struct CodeBuffer* buf, Register dst);   // cvttsd2si reg, xmm0 (double -> int64, truncate)
 
 // ========== UTILITIES ========== //
 

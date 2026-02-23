@@ -324,17 +324,39 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     char label[64] = {};
                     snprintf (label, sizeof (label), "body%d", rand () % 1000);
 
-                    char* cond_reg = bypass (gen, node->left, context);
-                    if (cond_reg == NULL)
-                    {
-                        fprintf (stderr, "Error: condition register is NULL for WHILE\n");
-                        return NULL;
-                    }
-
                     char instr[MAX_INSTR_LEN] = {};
-                    snprintf (instr, sizeof (instr), "while %s > 0, %s", cond_reg, label);
-                    add_instruction (gen, instr);
-                    free (cond_reg);
+
+                    struct Node_t* cond = node->left;
+                    int cond_op = (cond != NULL) ? (int) cond->value : 0;
+
+                    if (cond != NULL && cond->type == OP &&
+                        (cond_op == GT || cond_op == LT || cond_op == GTE ||
+                         cond_op == NEQ || cond_op == EQ))
+                    {
+                        // comparison: "while rL <op> rR, label"
+                        char* lreg = bypass (gen, cond->left,  context);
+                        char* rreg = bypass (gen, cond->right, context);
+                        const char* op_str = (cond_op == GT)  ? "fr"     :
+                                             (cond_op == LT)  ? "lowkey" :
+                                             (cond_op == GTE) ? "nocap"  :
+                                             (cond_op == NEQ) ? "nah"    : "sameAs";
+                        snprintf (instr, sizeof (instr), "while %s %s %s, %s", lreg, op_str, rreg, label);
+                        add_instruction (gen, instr);
+                        free (lreg);
+                        free (rreg);
+                    }
+                    else
+                    {
+                        char* cond_reg = bypass (gen, cond, context);
+                        if (cond_reg == NULL)
+                        {
+                            fprintf (stderr, "Error: condition register is NULL for WHILE\n");
+                            return NULL;
+                        }
+                        snprintf (instr, sizeof (instr), "while %s > 0, %s", cond_reg, label);
+                        add_instruction (gen, instr);
+                        free (cond_reg);
+                    }
 
                     bypass (gen, node->right, context);
 
@@ -349,17 +371,39 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     char label[64] = {};
                     snprintf (label, sizeof (label), "if_body%d", rand () % 1000);
 
-                    char* cond_reg = bypass (gen, node->left, context);
-                    if (cond_reg == NULL)
-                    {
-                        fprintf (stderr, "Error: condition register is NULL for IF\n");
-                        return NULL;
-                    }
-
                     char instr[MAX_INSTR_LEN] = {};
-                    snprintf (instr, sizeof (instr), "if %s != 0, %s", cond_reg, label);
-                    add_instruction (gen, instr);
-                    free (cond_reg);
+
+                    struct Node_t* cond = node->left;
+                    int cond_op = (cond != NULL) ? (int) cond->value : 0;
+
+                    if (cond != NULL && cond->type == OP &&
+                        (cond_op == GT || cond_op == LT || cond_op == GTE ||
+                         cond_op == NEQ || cond_op == EQ))
+                    {
+                        // comparison: "if rL <op> rR, label"
+                        char* lreg = bypass (gen, cond->left,  context);
+                        char* rreg = bypass (gen, cond->right, context);
+                        const char* op_str = (cond_op == GT)  ? "fr"     :
+                                             (cond_op == LT)  ? "lowkey" :
+                                             (cond_op == GTE) ? "nocap"  :
+                                             (cond_op == NEQ) ? "nah"    : "sameAs";
+                        snprintf (instr, sizeof (instr), "if %s %s %s, %s", lreg, op_str, rreg, label);
+                        add_instruction (gen, instr);
+                        free (lreg);
+                        free (rreg);
+                    }
+                    else
+                    {
+                        char* cond_reg = bypass (gen, cond, context);
+                        if (cond_reg == NULL)
+                        {
+                            fprintf (stderr, "Error: condition register is NULL for IF\n");
+                            return NULL;
+                        }
+                        snprintf (instr, sizeof (instr), "if %s != 0, %s", cond_reg, label);
+                        add_instruction (gen, instr);
+                        free (cond_reg);
+                    }
 
                     bypass (gen, node->right, context);
 
