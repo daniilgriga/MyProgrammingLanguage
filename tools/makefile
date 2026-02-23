@@ -19,7 +19,7 @@ DPFLAGS = -MMD -MP
 
 BUILD_DIR = build
 
-SOURCES_LIST = errors.c file.c log.c
+SOURCES_LIST = errors.c file.c log.c keywords.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
 OBJECTS = $(SOURCES_LIST:%.c=$(BUILD_DIR)/%.o)

@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include "struct.h"
+#include "keywords.h"
 
 struct Node_t
 {
@@ -23,12 +24,6 @@ struct Buffer_t
 int read_name_table (struct Context_t* context, const char* filename);
 
 int name_table_dump (FILE* file, struct Context_t* context);
-
-int ctor_keywords (struct Context_t* context);
-
-int add_struct_in_keywords (struct Context_t* context, const char* str, enum Operations code, int is_keyword, int length, int added_status);
-
-int find_name (struct Context_t* context, const char* str, int length);
 
 void skip_spaces (char** ptr);
 

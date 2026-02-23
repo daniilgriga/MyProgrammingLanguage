@@ -23,7 +23,7 @@ LDFLAGS = $(FLAGS) -lm
 BUILD_DIR = build
 
 SOURCES_LIST = main.c backend_nasm.c backend_elf.c x86_emitter.c elf_builder.c ir_gen.c tree.c
-SOURCES_TOOL_LIST = errors.c file.c
+SOURCES_TOOL_LIST = errors.c file.c keywords.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
 
