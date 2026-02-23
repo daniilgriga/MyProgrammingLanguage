@@ -2,8 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
 
 #include "ir_gen.h"
+
+// returns 1 if str looks like a virtual register ("r<digits>")
+static int is_register_str (const char* str)
+{
+    if (!str || str[0] != 'r') return 0;
+    for (int i = 1; str[i] != '\0'; i++)
+        if (!isdigit ((unsigned char) str[i])) return 0;
+    return str[1] != '\0';
+}
 
 void initial_ir_generator (struct IRGenerator_t* gen)
 {
@@ -263,8 +273,61 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                     // get (or allocate) lhs's own register
                     char* lreg = get_or_add_symbol (gen, lname, llen);
 
-                    // evaluate rhs: for arithmetic, result is in the LEFT operand's
-                    // for ID/NUM bypass returns their reg
+                    // fast path: rhs is a literal - emit set directly, no temp register
+                    if (node->right != NULL && node->right->type == NUM)
+                    {
+                        char instr[MAX_INSTR_LEN] = {};
+                        snprintf (instr, sizeof (instr), "set %s, %.0f", lreg, node->right->value);
+                        add_instruction (gen, instr);
+                        free (lreg);
+                        return NULL;
+                    }
+
+                    // fast path: rhs is a simple binary op - write result directly into lreg,
+                    // avoiding an extra temp register
+                    struct Node_t* rhs = node->right;
+                    int rhs_op = (rhs != NULL) ? (int) rhs->value : 0;
+                    if (rhs != NULL && rhs->type == OP &&
+                        (rhs_op == ADD || rhs_op == SUB || rhs_op == MUL ||
+                         rhs_op == DIV || rhs_op == POW))
+                    {
+                        // get operand strings (may be reg or literal)
+                        char* a = bypass (gen, rhs->left,  context);
+                        char* b = bypass (gen, rhs->right, context);
+
+                        const char* op_str = (rhs_op == ADD) ? "add" :
+                                             (rhs_op == SUB) ? "sub" :
+                                             (rhs_op == MUL) ? "mul" :
+                                             (rhs_op == DIV) ? "div" : "pow";
+
+                        char instr[MAX_INSTR_LEN] = {};
+
+                        // if 'b' aliases lreg, it would be clobbered by "set lreg, a" - save it first
+                        if (is_register_str (b) && strcmp (b, lreg) == 0)
+                        {
+                            char saved[MAX_VAR_NAME] = {};
+                            new_register (gen, saved, sizeof (saved));
+                            snprintf (instr, sizeof (instr), "set %s, %s", saved, b);
+                            add_instruction (gen, instr);
+                            free (b);
+                            b = strdup (saved);
+                        }
+                        // if 'a' aliases lreg - no copy (just apply op in lreg)
+                        if (!(is_register_str (a) && strcmp (a, lreg) == 0))
+                        {
+                            snprintf (instr, sizeof (instr), "set %s, %s", lreg, a);
+                            add_instruction (gen, instr);
+                        }
+                        snprintf (instr, sizeof (instr), "%s %s, %s", op_str, lreg, b);
+                        add_instruction (gen, instr);
+
+                        free (a);
+                        free (b);
+                        free (lreg);
+                        return NULL;
+                    }
+
+                    // evaluate rhs: for arithmetic, result is in a temp register
                     char* rreg = bypass (gen, node->right, context);
 
                     if (rreg == NULL)
@@ -274,7 +337,7 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                         return NULL;
                     }
 
-                    // if rhs already landed in lreg (a is a+b) - nothing to copy
+                    // copy result into lhs register if needed
                     if (strcmp (lreg, rreg) != 0)
                     {
                         char instr[MAX_INSTR_LEN] = {};
@@ -293,13 +356,8 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
                 case DIV:
                 case POW:
                 {
-                    const char* lname = context->name_table[(int)node->left->value].name.str_pointer;
-                    int         llen  = context->name_table[(int)node->left->value].name.length;
-                    char* lreg = get_or_add_symbol (gen, lname, llen);
-
+                    char* lreg = bypass (gen, node->left,  context);
                     char* rreg = bypass (gen, node->right, context);
-
-                    char instr[MAX_INSTR_LEN] = {};
 
                     const char* op = NULL;
                     switch ((int) node->value)
@@ -312,11 +370,36 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
                         default:  op = "???"; break;
                     }
-                    snprintf (instr, sizeof (instr), "%s %s, %s", op, lreg, rreg);
+
+                    char instr[MAX_INSTR_LEN] = {};
+
+                    // if rreg is a literal number - emit op directly without a temp register
+                    // backend handles reg-imm variants (add rX, 4 / mul rX, 4 / etc.)
+                    if (!is_register_str (rreg))
+                    {
+                        // lreg may be a named-variable register - copy into a temp to avoid clobbering it
+                        char tmp[MAX_VAR_NAME] = {};
+                        new_register (gen, tmp, sizeof (tmp));
+                        snprintf (instr, sizeof (instr), "set %s, %s", tmp, lreg);
+                        add_instruction (gen, instr);
+                        snprintf (instr, sizeof (instr), "%s %s, %s", op, tmp, rreg);
+                        add_instruction (gen, instr);
+                        free (lreg);
+                        free (rreg);
+                        return strdup (tmp);
+                    }
+
+                    // both operands are registers - copy lreg into a temp to avoid clobbering the variable
+                    char tmp[MAX_VAR_NAME] = {};
+                    new_register (gen, tmp, sizeof (tmp));
+                    snprintf (instr, sizeof (instr), "set %s, %s", tmp, lreg);
+                    add_instruction (gen, instr);
+                    snprintf (instr, sizeof (instr), "%s %s, %s", op, tmp, rreg);
                     add_instruction (gen, instr);
 
+                    free (lreg);
                     free (rreg);
-                    return lreg;  // caller sees updated lreg
+                    return strdup (tmp);
                 }
 
                 case WHILE:
@@ -428,14 +511,11 @@ char* bypass (struct IRGenerator_t* gen, struct Node_t* node, struct Context_t* 
 
         case NUM:
         {
-            char* reg = malloc (MAX_VAR_NAME);
-            new_register (gen, reg, MAX_VAR_NAME);
-
-            char instr[MAX_INSTR_LEN] = {};
-            snprintf (instr, sizeof (instr), "set %s, %.0f", reg, node->value);
-            add_instruction (gen, instr);
-
-            return reg;
+            // return the literal as a string - no register allocated
+            // callers (ADD/SUB/MUL/DIV/SET) must check is_number() on the returned string
+            char* str = malloc (MAX_VAR_NAME);
+            snprintf (str, MAX_VAR_NAME, "%.0f", node->value);
+            return str;
         }
 
         default:
