@@ -39,6 +39,7 @@ int Position =  0;
 static struct Node_t* GetFunctionCall           (struct Context_t* context);
 static struct Node_t* GetFunctionDef            (struct Context_t* context);
 static struct Node_t* GetAssignment             (struct Context_t* context);
+static struct Node_t* GetComparison             (struct Context_t* context);
 static struct Node_t* GetExpression             (struct Context_t* context);
 static struct Node_t* GetOperation              (struct Context_t* context);
 static struct Node_t* GetNumber                 (struct Context_t* context);
@@ -389,6 +390,28 @@ static struct Node_t* GetNumber (struct Context_t* context)
     return NULL;
 }
 
+static struct Node_t* GetComparison (struct Context_t* context)
+{
+    struct Node_t* val = GetExpression (context);
+
+    if ( _IS_OP (GT) || _IS_OP (LT) || _IS_OP (GTE) || _IS_OP (NEQ) || _IS_OP (EQ) )
+    {
+        int op = (int) _CUR_TOKEN.value;
+
+        MOVE_POSITION;
+
+        struct Node_t* val2 = GetExpression (context);
+
+        if      (op == GT)  val = _GT  (val, val2);
+        else if (op == LT)  val = _LT  (val, val2);
+        else if (op == GTE) val = _GTE (val, val2);
+        else if (op == NEQ) val = _NEQ (val, val2);
+        else                val = _EQ  (val, val2);
+    }
+
+    return val;
+}
+
 static struct Node_t* GetCond (struct Context_t* context)
 {
     struct Node_t* GetE = NULL;
@@ -402,7 +425,7 @@ static struct Node_t* GetCond (struct Context_t* context)
         {
             MOVE_POSITION;
 
-            GetE = GetExpression (context);
+            GetE = GetComparison (context);
 
             if ( !_IS_OP (CL_BR) )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);
@@ -433,7 +456,7 @@ static struct Node_t* GetLoop (struct Context_t* context)
         {
             MOVE_POSITION;
 
-            GetE = GetExpression (context);
+            GetE = GetComparison (context);
 
             if ( !_IS_OP (CL_BR) )
                 SyntaxError (context, __FILE__, __FUNCTION__, __LINE__, NOT_FIND_CLOSE_BRACE);

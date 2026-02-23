@@ -110,6 +110,11 @@ const char* get_name (double enum_value)
         case     COS: return "COS";
         case      LN: return "LN";
         case    ADVT: return "LETHIMCOOK";
+        case      GT: return ">";
+        case      LT: return "<";
+        case     GTE: return ">=";
+        case     NEQ: return "!=";
+        case      EQ: return "==";
 
         default:      return "bro, wth...";
     }

@@ -113,7 +113,7 @@ int tokenization (struct Context_t* context, const char* string)
             continue;
         }
 
-        if (strchr ("+-*/^()={},", string[i]) != NULL)
+        if (strchr ("+-*/^()={},<>", string[i]) != NULL)
         {
             int value = find_name (context, &string[start_i], 1);
 
@@ -145,7 +145,8 @@ int tokenization (struct Context_t* context, const char* string)
 int find_name (struct Context_t* context, const char* str, int length)
 {
     for (int i = 0; i < context->table_size; i++)
-        if ( strncmp (str, context->name_table[i].name.str_pointer, (size_t) length) == 0 )
+        if ( context->name_table[i].name.length == length &&
+             strncmp (str, context->name_table[i].name.str_pointer, (size_t) length) == 0 )
             return context->name_table[i].name.code;
 
     return -1;
@@ -154,7 +155,8 @@ int find_name (struct Context_t* context, const char* str, int length)
 int find_number_of_keyword (struct Context_t* context, const char* str, int length)
 {
     for (int i = 0; i < context->table_size; i++)
-        if ( strncmp (str, context->name_table[i].name.str_pointer, (size_t) length) == 0 )
+        if ( context->name_table[i].name.length == length &&
+             strncmp (str, context->name_table[i].name.str_pointer, (size_t) length) == 0 )
             return i;
 
     return -1;
@@ -319,6 +321,13 @@ int ctor_keywords (struct Context_t* context)
     add_struct_in_keywords (context,                   ",",  COMMA , 1, strlen (                  ","), 0);
     add_struct_in_keywords (context,              "shutup",  GLUE  , 1, strlen (             "shutup"), 0);
     add_struct_in_keywords (context, "SPACE_FOR_ADDED_OBJ",  SPACE , 1, strlen ("SPACE_FOR_ADDED_OBJ"), 0);
+
+    // comparison operators
+    add_struct_in_keywords (context,     "fr",  GT , 1, strlen (    "fr"), 0);
+    add_struct_in_keywords (context, "lowkey",  LT , 1, strlen ("lowkey"), 0);
+    add_struct_in_keywords (context,  "nocap",  GTE, 1, strlen ( "nocap"), 0);
+    add_struct_in_keywords (context,    "nah",  NEQ, 1, strlen (   "nah"), 0);
+    add_struct_in_keywords (context, "sameAs",  EQ , 1, strlen ("sameAs"), 0);
 
     // built-in functions: registered as IDs with added_status=1
     add_struct_in_keywords (context,  "printf",  (enum Operations) ID, 0, strlen ( "printf"), 1);

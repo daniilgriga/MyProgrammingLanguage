@@ -34,5 +34,10 @@ enum Operations
     DEF     = 'D',
     COMMA   = ',',
     GLUE    = ';',
-    FN_GLUE = '@'
+    FN_GLUE = '@',
+    GT      = 'G',
+    LT      = 'L',
+    GTE     = 'g',
+    NEQ     = 'n',
+    EQ      = 'e'
 };
