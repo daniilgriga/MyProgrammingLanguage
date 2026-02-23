@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include "struct.h"
 #include "keywords.h"
 
@@ -24,9 +25,9 @@ int read_name_table (struct Context_t* context, const char* filename);
 
 int name_table_dump (FILE* file, struct Context_t* context);
 
-struct Node_t* read_tree (struct Buffer_t* buffer, struct Context_t* context, const char* filename);
+void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
 
-int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level);
+struct Node_t* read_tree (struct Buffer_t* buffer, struct Context_t* context, const char* filename);
 
 int delete_sub_tree (struct Node_t* node);
 

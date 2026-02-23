@@ -23,7 +23,7 @@ LDFLAGS = $(FLAGS) -lm
 BUILD_DIR = build
 
 SOURCES_LIST = main.c tree.c simplification.c
-SOURCES_TOOL_LIST = errors.c file.c keywords.c
+SOURCES_TOOL_LIST = errors.c file.c keywords.c tree_io.c
 
 SOURCES = $(SOURCES_LIST:%=src/%)
 

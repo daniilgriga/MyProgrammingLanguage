@@ -11,7 +11,7 @@
 #include "color.h"
 #include "file.h"
 #include "keywords.h"
-#include "tree.h"
+#include "tree_io.h"
 
 #ifdef DEBUG_READER
     #define ON_DEBUG(...) __VA_ARGS__
@@ -19,11 +19,9 @@
     #define ON_DEBUG(...)
 #endif
 
-// forward declarations for internal helpers
 static void skip_spaces (char** ptr);
 static struct Node_t* read_node (int level, struct Buffer_t* buffer, struct Context_t* context);
 static struct Node_t* new_node ();
-static void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level);
 
 int read_name_table (struct Context_t* context, const char* filename)
 {
@@ -377,7 +375,7 @@ static struct Node_t* new_node ()
     struct Node_t* node = (struct Node_t*) calloc (1, sizeof(*node));
     assert (node && "Failed to allocate node");
 
-    node->type = ROOT;  // firstly root, will change in read_node
+    node->type = ROOT;
     node->value = 0;
 
     node->left = NULL;
@@ -386,7 +384,7 @@ static struct Node_t* new_node ()
     return node;
 }
 
-static void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level)
+void print_tree_preorder (struct Node_t* root, struct Context_t* context, FILE* file, int level)
 {
     assert (root);
     assert (context);
@@ -407,31 +405,6 @@ static void print_tree_preorder (struct Node_t* root, struct Context_t* context,
     if (root->right) print_tree_preorder (root->right, context, file, level + 1);
 
     fprintf (file, "%*s} \n", (root->left) ? level * 4 : 0, "");
-}
-
-int create_tree_file_for_middle_end (struct Node_t* root, struct Context_t* context, const char* filename, int level)
-{
-    assert (context);
-    assert (filename);
-
-    if (root == NULL)
-    {
-        fprintf (stderr, RED_TEXT("ERROR: ") "File for middle-end not created - tree root not found\n");
-        return 1;
-    }
-
-    FILE* file = fopen (filename, "wb");
-    if (file == NULL)
-    {
-        fprintf (stderr, "\n" "Could not find the '%s' to be opened!" "\n", filename);
-        return 1;
-    }
-
-    print_tree_preorder (root, context, file, level);
-
-    fclose (file);
-
-    return 0;
 }
 
 int delete_sub_tree (struct Node_t* node)
