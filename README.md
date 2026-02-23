@@ -7,7 +7,7 @@
 **Cook** (from *"let him cook"* - slang for "let someone do their thing") is an esoteric programming language with slang keywords, along with a self-contained compiler that turns `.cook` source files into native x86-64 ELF binaries through a three-stage pipeline - no assembler or linker required.
 
 <p align="center">
-    <img height=300 src="img/lethimcook.jpg">
+    <img height=400 src="img/lethimcook.jpg">
 </p>
 
 ---
