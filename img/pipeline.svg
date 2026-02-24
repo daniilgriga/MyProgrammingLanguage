@@ -26,7 +26,7 @@
 <polygon fill="none" stroke="#5a45cc" points="49.25,-469.33 49.25,-500.58 303.25,-500.58 303.25,-469.33 49.25,-469.33"/>
 <text xml:space="preserve" text-anchor="start" x="56.25" y="-482.18" font-family="monospace" font-size="12.00" fill="white">lexer + recursive&#45;descent parser</text>
 <polygon fill="none" stroke="#5a45cc" points="49.25,-438.08 49.25,-469.33 303.25,-469.33 303.25,-438.08 49.25,-438.08"/>
-<text xml:space="preserve" text-anchor="start" x="90" y="-450.93" font-family="monospace" font-size="12.00" fill="white">frontend/build/frontend</text>
+<text xml:space="preserve" text-anchor="start" x="82.5" y="-450.93" font-family="monospace" font-size="12.00" fill="white">./frontend/build/frontend</text>
 </g>
 <!-- source&#45;&gt;frontend -->
 <g id="edge1" class="edge">
@@ -44,7 +44,7 @@
 <polygon fill="none" stroke="#22aa18" points="8,-303.33 8,-334.58 344.5,-334.58 344.5,-303.33 8,-303.33"/>
 <text xml:space="preserve" text-anchor="start" x="15" y="-316.18" font-family="monospace" font-size="12.00">constant folding + algebraic simplification</text>
 <polygon fill="none" stroke="#22aa18" points="8,-272.08 8,-303.33 344.5,-303.33 344.5,-272.08 8,-272.08"/>
-<text xml:space="preserve" text-anchor="start" x="75" y="-284.93" font-family="monospace" font-size="12.00">middle_end/build/middle_end</text>
+<text xml:space="preserve" text-anchor="start" x="67.5" y="-284.93" font-family="monospace" font-size="12.00">./middle_end/build/middle_end</text>
 </g>
 <!-- frontend&#45;&gt;middle -->
 <g id="edge2" class="edge">
@@ -63,7 +63,7 @@
 <polygon fill="none" stroke="#c040c8" points="53,-137.33 53,-168.58 299.5,-168.58 299.5,-137.33 53,-137.33"/>
 <text xml:space="preserve" text-anchor="start" x="60" y="-150.18" font-family="monospace" font-size="12.00">IR generation + x86&#45;64 ELF emit</text>
 <polygon fill="none" stroke="#c040c8" points="53,-106.08 53,-137.33 299.5,-137.33 299.5,-106.08 53,-106.08"/>
-<text xml:space="preserve" text-anchor="start" x="97.5" y="-118.93" font-family="monospace" font-size="12.00">backend/build/backend</text>
+<text xml:space="preserve" text-anchor="start" x="90" y="-118.93" font-family="monospace" font-size="12.00">./backend/build/backend</text>
 </g>
 <!-- middle&#45;&gt;backend -->
 <g id="edge3" class="edge">
@@ -75,8 +75,8 @@
 <!-- binary -->
 <g id="node5" class="node">
 <title>binary</title>
-<ellipse fill="#00ffdd" stroke="#00bba0" cx="176.25" cy="-18.92" rx="122.68" ry="18.92"/>
-<text xml:space="preserve" text-anchor="middle" x="176.25" y="-15.94" font-family="monospace bold" font-size="13.00">backend/build/program</text>
+<ellipse fill="#00ffdd" stroke="#00bba0" cx="176.25" cy="-18.92" rx="133.29" ry="18.92"/>
+<text xml:space="preserve" text-anchor="middle" x="176.25" y="-15.94" font-family="monospace bold" font-size="13.00">./backend/build/program</text>
 </g>
 <!-- backend&#45;&gt;binary -->
 <g id="edge4" class="edge">
